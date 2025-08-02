@@ -1,0 +1,27 @@
+1 - O que é discretização de fluxo no contexto abaixo ?
+
+Conforme Surianarayanan et al. [2024], uma arquitetura de alta taxa de transferˆencia
+(high-throughput )  ́e essencial para lidar com a chegada de dados em grandes volumes
+e velocidades. O modelo de publica ̧c ̃ao e assinatura (publish-subscribe), aliado `a dis-
+cretiza ̧c ̃ao inteligente do fluxo, permite que algoritmos de detec ̧c ̃ao de anomalias sejam
+executados em paralelo com menor latˆencia. Tal abordagem mostra-se relevante para
+sistemas IoT, pois evita perda de dados e possibilita an ́alises r ́apidas
+
+    Tem a ver com a compactação de trechos do fluxo em partes menores que mantenham características úteis.
+
+2 - O que é concept-drift no contexto abaixo ?
+
+Estudos apontam a necessidade de lidar com cen ́arios de concept drift, onde a distri-
+bui ̧c ̃ao de dados pode mudar ao longo do tempo. Maia et al. [2020] propuseram um
+algoritmo de clustering evolutivo capaz de ajustar parˆametros de forma autˆonoma, dis-
+pensando m ́ultiplas reconfigura ̧c ̃oes e armazenamentos de alta escala. Paralelamente,
+Park [2018] destaca o desafio de detectar n ̃ao apenas outliers pontuais, mas tamb ́em
+padr ̃oes anˆomalos que ocorram em determinados intervalos de tempo ou mudan ̧cas de
+comportamento em janelas de dados.
+
+3 - Quais são as técnicas clássicas para lidar com desequilibrio de classes e o que são tresholds adaptativos no contexto abaixo?
+    Lidar com cen ́arios de desequil ́ıbrio de classes (ataques vs. tr ́afego benigno),
+    possivelmente por meio de thresholds adaptativos [Ahmad et al., 2021, Ogo-
+    buchi, 2022]
+
+
