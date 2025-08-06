@@ -1,2 +1,7 @@
 .vscode/
 env_*
+
+mlflow.db
+mlruns/
+
+__pycache__
