@@ -1,0 +1,13 @@
+features_to_encode:
+- device_type
+- protocol
+features_to_scale:
+- packet_size
+- duration
+- packet_count
+- bytes_per_packet
+- packets_per_second
+input_file: data/raw/iot_traffic_v2_medium.csv
+output_dir: data/processed
+random_state: 42
+test_size: 0.2

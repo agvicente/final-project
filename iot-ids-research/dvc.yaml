@@ -1,0 +1,11 @@
+stages:
+  preprocess:
+    cmd: python3 dvc_pipeline.py
+    deps:
+    - data/raw/iot_traffic_v2_medium.csv
+    - dvc_pipeline.py
+    - configs/preprocessing.yaml
+    outs:
+    - data/processed/
+    metrics:
+    - data/metrics/dataset_stats.json
