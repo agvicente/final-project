@@ -1,5 +1,0 @@
-outs:
-- md5: e895a9bbb4c2a19abb39dcc7dc1ddec5
-  size: 10448924
-  hash: md5
-  path: iot_traffic_v3_large.csv

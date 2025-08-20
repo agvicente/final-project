@@ -5,3 +5,5 @@ mlflow.db
 mlruns/
 
 __pycache__
+
+iot-ids-research/data/raw/CSV/

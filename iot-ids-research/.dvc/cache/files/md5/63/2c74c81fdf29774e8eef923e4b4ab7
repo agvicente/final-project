@@ -1,0 +1,30 @@
+{
+  "original_shape": [
+    50000,
+    13
+  ],
+  "processed_shape": [
+    50000,
+    11
+  ],
+  "train_samples": 40000,
+  "test_samples": 10000,
+  "anomaly_rate": 0,
+  "feature_names": [
+    "device_type",
+    "protocol",
+    "packet_size",
+    "duration",
+    "src_port",
+    "dst_port",
+    "packet_count",
+    "hour",
+    "day_of_week",
+    "bytes_per_packet",
+    "packets_per_second"
+  ],
+  "target_distribution": {
+    "normal": 45000,
+    "anomaly": 5000
+  }
+}
