@@ -1,9 +1,17 @@
 stages:
+  sampling:
+    cmd: python3 dvc_sampling.py
+    deps:
+    - data/raw/CSV/MERGED_CSV/Merged01.csv
+    - dvc_sampling.py
+    - configs/sampling.yaml
+    outs:
+    - data/processed/
   preprocess:
     cmd: python3 dvc_pipeline.py
     deps:
     - data/raw/iot_traffic_v2_medium.csv
-    - dvc_pipeline.py
+    - dvc_preprocessing.py
     - configs/preprocessing.yaml
     outs:
     - data/processed/

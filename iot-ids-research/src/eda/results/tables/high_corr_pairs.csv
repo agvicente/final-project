@@ -1,0 +1,23 @@
+Feature1,Feature2,Correlation
+AVG,Tot size,1.0
+IPv,LLC,1.0
+ARP,IPv,-0.9999999999999994
+ARP,LLC,-0.9999999999999994
+fin_flag_number,fin_count,0.9988611245751265
+syn_flag_number,syn_count,0.9981097873633236
+rst_flag_number,rst_count,0.996268896126857
+fin_count,rst_count,0.9866657312338268
+fin_flag_number,rst_count,0.9852593782639399
+rst_flag_number,fin_count,0.9822264702692292
+fin_flag_number,rst_flag_number,0.980968302277003
+psh_flag_number,ack_count,0.9582456402701794
+Header_Length,TCP,0.9134271721426437
+Max,Std,0.9000530020527275
+Std,Variance,0.8991851381268258
+psh_flag_number,ack_flag_number,0.8557672345647983
+ack_flag_number,ack_count,0.8388020948128905
+Max,Variance,0.8187140693456726
+AVG,Std,0.774898077858832
+Std,Tot size,0.774898077858832
+Max,AVG,0.7592875524095957
+Max,Tot size,0.7592875524095957

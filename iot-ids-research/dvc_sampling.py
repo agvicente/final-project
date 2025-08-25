@@ -7,29 +7,70 @@ import yaml
 import json
 import os
 
+'''
+Dúvidas:
+    - É necessário amostrar os dados de forma que a proporção de dados que são a média na janela?
+'''
+
+'''
+    - Criar arquivo metrics
+    - Para cada arquivo:
+        - Contar quantas amostras tem em cada arquivo ((filename)_samples) e salvar o arquivo metrics
+        - Contar quantas amostras tem cada tipo de ataque em cada arquivo ((attack_name)_(filename)_attack_samples) e salvar o arquivo metrics
+    - Com base nos valores por arquivo, calcular:
+        - Quantas amostras tem contando todos os arquivos (total_samples) e salvar o arquivo metrics
+        - Quantas amostras tem cada tipo de ataque juntando todos os arquivos ((attack_name)_attack_samples_total) e salvar o arquivo metrics
+        - Porcentagem de cada tipo de ataque em relação ao total de dados ((attack_name)_attack_percentage_total) e salvar o arquivo metrics
+    
+Amostrar dados
+    - Criar dataframe que será usado para juntar as amostras
+    - Carregar o arquivo metrics
+    - ler variável que define o tamanho da amostra (sampling_rate)
+    - Para cada tipo de ataque:
+        - Calcular quantas amostras devem ser tiradas para manter a proporção ((attack_name)_attack_percentage_total * total_samples * sampling_rate) ((attack_name)_samples_to_take)
+    Enquanto o numero de amostras tiradas for menor que o numero de amostras que devem ser tiradas:
+        - Escolher arquivo aleatoriamente
+        - Para cada tipo de ataque:
+            - Ler variável que define quantas amostras devem ser tiradas para aquele tipo de ataque ((attack_name)_samples_to_take)
+            - Ler variável que define quantas amostras já foram tiradas para aquele tipo de ataque ((attack_name)_samples_taken)
+            - se ((attack_name)_samples_taken) for menor que ((attack_name)_samples_to_take):
+                - Retirar o numero de amostras para aquele tipo de ataque de forma que não ultrapasse o numero de amostras que devem ser tiradas para aquele tipo de ataque
+                - Adicionar as amostras ao dataframe
+                - Atualizar arquivo metrics com o numero de amostras tiradas total (em memoria)
+                - Atualizar arquivo metrics com o numero de amostras tiradas para aquele tipo de ataque ((attack_name)_samples_taken) (em memoria)
+            - se ((attack_name)_samples_taken) for maior que ((attack_name)_samples_to_take):
+                - Remover amostras excedentes para aquele tipo de ataque
+                - Atualizar arquivo metrics com o numero de amostras tiradas total (em memoria)
+                - Atualizar arquivo metrics com o numero de amostras tiradas para aquele tipo de ataque ((attack_name)_samples_taken) (em memoria)
+                - Sair do loop
+        - Remover arquivo da memoria para carregar outro e reptir o processo ate sair do enquanto (while)
+        - Consolidar dataframe
+        - Consolidar arquivos metrics
+    - Salvar dataframe com as amostras
+    - Salvar arquivo sampled.csv
+    - Salvar arquivo metrics
+'''
+
 def load_config():
     config = {
-        'input_file': 'data/raw/iot_traffic_v2_medium.csv',
+        'data_dir': 'data/raw/CSV/MERGED_CSV',
         'output_dir': 'data/processed',
-        'test_size': 0.2,
-        'random_state': 42,
-        'features_to_encode': ['device_type', 'protocol'], #TODO: analisar graficos sem encode e scaling para ver a diferenca e necesidade
-        'features_to_scale': ['packet_size', 'duration', 'packet_count', 'bytes_per_packet', 'packets_per_second']
+        'sampling_rate': 0.1
     }
     
     os.makedirs('config', exist_ok=True)
-    with open('configs/preprocessing.yaml', 'w') as f:
+    with open('configs/sampling.yaml', 'w') as f:
         yaml.dump(config, f)
     
     return config
 
-def preprocess_data(config_file='configs/preprocessing.yaml'):
+def preprocess_data(config_file='configs/sampling.yaml'):
     with open(config_file) as f:
         #NOTE: safeload impede execucao de codigo malicioso (impede a criação de objetos arbitrários e execução de código)
         config = yaml.safe_load(f)
         
     print('Loading data...')
-    df = pd.read_csv(config['input_file'])
+    df = pd.read_csv(config['data_dir'])
     
     print(f"Original shape: {df.shape}")
     print(f"Label distribution: {df['label'].value_counts().to_dict()}")
