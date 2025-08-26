@@ -13,42 +13,87 @@ Dúvidas:
 '''
 
 '''
+Pontos de melhoria:
+    - Selecão aleatoria de arquivos é ineficiente, pois pode haver arquivos com muitas amostras e outros com poucas amostras
+    - Multiplas cargas e descargas de arquivos
+    - O Loop while pode executar muitas vezes sem progresso
+    - Remover amostras excedentes pode quebrar a aleatoriedade
+    - Sair do loop pode deixar outros tipos de ataques incompletos
+    - Não está claro como as amostras excedentes são selecionadas para remoção
+    - Se um arquivo não contem determinado tipo de ataque, o loop pode ficar em loop infinito
+    - Não á verificação se é possível atingir as quotas desejadas
+    - Alguns arquivos podem ser sobreamostrados enquanto outros podem ser ignorados
+    - Não está sendo garantido a cobertura equilibrada dos arquivos
+'''
+
+'''
+Sugestoes de melhoria:
+    - Calcular exatamente quantas amostras tirar de cada arquivo para cada tipo de ataque
+    - Fazer uma unica passada por cada arqivo
+    - Usar pandas.sample com random_state para reprodutibilidade
+    - verificar se as quootas são atingiveis antes de iniciar
+    - Redistribuir quotas quando um arquivo não tem amostras suficientes
+    - Implementar fallback para tipos de ataques raros
+'''
+
+'''
+FASE 1: Análise e coleta de métricas
     - Criar arquivo metrics
     - Para cada arquivo:
-        - Contar quantas amostras tem em cada arquivo ((filename)_samples) e salvar o arquivo metrics
-        - Contar quantas amostras tem cada tipo de ataque em cada arquivo ((attack_name)_(filename)_attack_samples) e salvar o arquivo metrics
+        - Contar quantas amostras tem em cada arquivo ((filename)_samples) e salvar no metrics
+        - Contar quantas amostras tem cada tipo de ataque em cada arquivo ((attack_name)_(filename)_attack_samples) e salvar no metrics
     - Com base nos valores por arquivo, calcular:
-        - Quantas amostras tem contando todos os arquivos (total_samples) e salvar o arquivo metrics
-        - Quantas amostras tem cada tipo de ataque juntando todos os arquivos ((attack_name)_attack_samples_total) e salvar o arquivo metrics
-        - Porcentagem de cada tipo de ataque em relação ao total de dados ((attack_name)_attack_percentage_total) e salvar o arquivo metrics
-    
-Amostrar dados
-    - Criar dataframe que será usado para juntar as amostras
-    - Carregar o arquivo metrics
-    - ler variável que define o tamanho da amostra (sampling_rate)
+        - Quantas amostras tem contando todos os arquivos (total_samples) e salvar no metrics
+        - Quantas amostras tem cada tipo de ataque juntando todos os arquivos ((attack_name)_attack_samples_total) e salvar no metrics
+        - Porcentagem de cada tipo de ataque em relação ao total de dados ((attack_name)_attack_percentage_total) e salvar no metrics
+
+FASE 2: Planejamento de amostragem estratificada
+    - Carregar arquivo metrics
+    - Ler variável que define o tamanho da amostra (sampling_rate)
     - Para cada tipo de ataque:
-        - Calcular quantas amostras devem ser tiradas para manter a proporção ((attack_name)_attack_percentage_total * total_samples * sampling_rate) ((attack_name)_samples_to_take)
-    Enquanto o numero de amostras tiradas for menor que o numero de amostras que devem ser tiradas:
-        - Escolher arquivo aleatoriamente
-        - Para cada tipo de ataque:
-            - Ler variável que define quantas amostras devem ser tiradas para aquele tipo de ataque ((attack_name)_samples_to_take)
-            - Ler variável que define quantas amostras já foram tiradas para aquele tipo de ataque ((attack_name)_samples_taken)
-            - se ((attack_name)_samples_taken) for menor que ((attack_name)_samples_to_take):
-                - Retirar o numero de amostras para aquele tipo de ataque de forma que não ultrapasse o numero de amostras que devem ser tiradas para aquele tipo de ataque
-                - Adicionar as amostras ao dataframe
-                - Atualizar arquivo metrics com o numero de amostras tiradas total (em memoria)
-                - Atualizar arquivo metrics com o numero de amostras tiradas para aquele tipo de ataque ((attack_name)_samples_taken) (em memoria)
-            - se ((attack_name)_samples_taken) for maior que ((attack_name)_samples_to_take):
-                - Remover amostras excedentes para aquele tipo de ataque
-                - Atualizar arquivo metrics com o numero de amostras tiradas total (em memoria)
-                - Atualizar arquivo metrics com o numero de amostras tiradas para aquele tipo de ataque ((attack_name)_samples_taken) (em memoria)
-                - Sair do loop
-        - Remover arquivo da memoria para carregar outro e reptir o processo ate sair do enquanto (while)
-        - Consolidar dataframe
-        - Consolidar arquivos metrics
-    - Salvar dataframe com as amostras
-    - Salvar arquivo sampled.csv
-    - Salvar arquivo metrics
+        - Calcular quantas amostras totais devem ser tiradas para manter a proporção ((attack_name)_attack_percentage_total * total_samples * sampling_rate) ((attack_name)_samples_target_total)
+    
+    - Para cada arquivo e cada tipo de ataque:
+        - Calcular quota proporcional inicial: ((attack_name)_(filename)_attack_samples / (attack_name)_attack_samples_total) * (attack_name)_samples_target_total ((attack_name)_(filename)_quota_initial)
+        - Ajustar quota para não exceder amostras disponíveis: min((attack_name)_(filename)_quota_initial, (attack_name)_(filename)_attack_samples) ((attack_name)_(filename)_quota_final)
+
+FASE 3: Verificação de viabilidade e redistribuição
+    - Para cada tipo de ataque:
+        - Somar todas as quotas finais por arquivo ((attack_name)_total_achievable)
+        - Se ((attack_name)_total_achievable) for menor que ((attack_name)_samples_target_total):
+            - Identificar arquivos com quotas não saturadas (ainda têm amostras disponíveis)
+            - Calcular déficit: ((attack_name)_samples_target_total) - ((attack_name)_total_achievable)
+            - Redistribuir o déficit proporcionalmente entre arquivos não saturados, respeitando limites de amostras disponíveis
+            - Atualizar ((attack_name)_(filename)_quota_final) para arquivos beneficiados
+        - Se após redistribuição ainda houver déficit:
+            - Marcar tipo de ataque como "raro" e aplicar fallback
+            - Para tipos de ataque raros: usar todas as amostras disponíveis de todos os arquivos
+            - Registrar no metrics o tipo de ataque como "fallback_applied"
+
+FASE 4: Amostragem determinística
+    - Criar dataframe vazio para consolidar amostras
+    - Definir random_state fixo para reprodutibilidade
+    - Para cada arquivo:
+        - Carregar arquivo uma única vez
+        - Para cada tipo de ataque presente no arquivo:
+            - Obter ((attack_name)_(filename)_quota_final)
+            - Se quota for maior que zero:
+                - Filtrar dados do tipo de ataque específico
+                - Usar pandas.sample(n=quota_final, random_state=random_state) para amostrar
+                - Adicionar amostras ao dataframe consolidado
+                - Atualizar métricas de amostras coletadas ((attack_name)_samples_collected_total)
+        - Descarregar arquivo da memória
+
+FASE 5: Consolidação e salvamento
+    - Verificar se todas as quotas foram atingidas ou se houve aplicação de fallback
+    - Consolidar métricas finais:
+        - Total de amostras coletadas (total_samples_collected)
+        - Amostras coletadas por tipo de ataque ((attack_name)_samples_collected_total)
+        - Proporção final de cada tipo de ataque ((attack_name)_final_percentage)
+        - Lista de tipos de ataque com fallback aplicado (fallback_attacks)
+    - Salvar dataframe consolidado como sampled.csv
+    - Salvar arquivo metrics atualizado com métricas de coleta
+    - Registrar log de operação com detalhes da amostragem realizada
 '''
 
 def load_config():
@@ -63,103 +108,3 @@ def load_config():
         yaml.dump(config, f)
     
     return config
-
-def preprocess_data(config_file='configs/sampling.yaml'):
-    with open(config_file) as f:
-        #NOTE: safeload impede execucao de codigo malicioso (impede a criação de objetos arbitrários e execução de código)
-        config = yaml.safe_load(f)
-        
-    print('Loading data...')
-    df = pd.read_csv(config['data_dir'])
-    
-    print(f"Original shape: {df.shape}")
-    print(f"Label distribution: {df['label'].value_counts().to_dict()}")
-    
-    feature_cols = [
-        'device_type',
-        'protocol', 
-        'packet_size', 
-        'duration', 
-        'src_port', 
-        'dst_port', 
-        'packet_count',
-        'hour',
-        'day_of_week',
-        'bytes_per_packet',
-        'packets_per_second'
-    ]
-    
-    X = df[feature_cols].copy()
-    y = df['label'].copy()
-    
-    print("Applying categoric encoding")
-    encoders = {}
-    for col in config['features_to_encode']:
-        le = LabelEncoder()
-        X[col] = le.fit_transform(X[col])
-        encoders[col] = le
-    
-    print("Applying normalization...")
-    scaler = StandardScaler()
-    X[config['features_to_scale']] = scaler.fit_transform(X[config['features_to_scale']])
-    
-    y_binary = (y != 'normal').astype(int)
-    y_multiclass = LabelEncoder().fit_transform(y)
-    
-    
-    X_train, X_test, y_train_bin, y_test_bin, y_train_multi, y_test_multi = train_test_split(
-        X, y_binary, y_multiclass,
-        test_size=config['test_size'],
-        random_state=config['random_state'],
-        stratify=y_binary #TODO: ver problemas de balanceamento que essa linha pode causar (se o modelo multiclasse for treinado com esses dados eu posso ter problemas de balanceamento)
-                            #TODO: ver StratifiedKFold do scikit-learn para validação cruzada estratificada multiclasse.
-    )
-    
-    os.makedirs(config['output_dir'], exist_ok=True)
-    
-    datasets = {
-        'X_train': X_train,
-        'X_test': X_test,
-        'y_train_binary': y_train_bin,
-        'y_test_binary': y_test_bin,
-        'y_train_multiclass': y_train_multi,
-        'y_test_multiclass': y_test_multi
-    }
-    
-    for name, data in datasets.items():
-        filepath = f"{config['output_dir']}/encoders.pkl"
-        if isinstance(data, pd.DataFrame):
-            data.to_csv(filepath, index=False)
-        else:
-            pd.Series(data).to_csv(filepath, index=False, header=[name])
-            
-    joblib.dump(encoders, f"{config['output_dir']}/encoders.pkl")
-    joblib.dump(scaler, f"{config['output_dir']}/scaler.pkl")
-    
-    stats = {
-        'original_shape': df.shape,
-        'processed_shape': X.shape,
-        'train_samples': len(X_train),
-        'test_samples': len(X_test),
-        'anomaly_rate': int(y_binary.mean()),
-        'feature_names': list(X.columns),
-        'target_distribution': {
-            'normal': int((y_binary == 0).sum()),
-            'anomaly': int((y_binary == 1).sum())
-        }
-    }
-    
-    with open(f"{config['output_dir']}/../metrics/dataset_stats.json", 'w') as f:
-        json.dump(stats, f, indent=2)
-    
-    print("Preprocessing finished")
-    print(f"Train: {X_train.shape}, Test: {X_test.shape}")
-    print(f"Anomaly rate: {stats['anomaly_rate']:.3f}")
-    
-    return stats
-
-if __name__ == "__main__":
-    config = load_config()
-    stats = preprocess_data()
-    
-    
