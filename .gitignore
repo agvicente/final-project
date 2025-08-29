@@ -6,4 +6,4 @@ mlruns/
 
 __pycache__
 
-iot-ids-research/data/raw/CSV/
+iot-ids-research/data
