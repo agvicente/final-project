@@ -477,8 +477,306 @@ def stratified_sampling_planning(config=None, metrics_file_path=None):
     return sampling_plan
 
 
+def feasibility_check_and_redistribution(config=None, sampling_plan_file_path=None):
+    """
+    FASE 3: Verificação de viabilidade e redistribuição.
+    
+    Esta função implementa a terceira fase do algoritmo de amostragem estratificada,
+    realizando verificação de viabilidade das quotas e redistribuindo déficits entre
+    arquivos disponíveis. Aplica fallback para tipos de ataques raros quando necessário.
+    
+    Args:
+        config (dict, optional): Configurações do sistema. Se None, carrega configurações
+                               padrão através de load_config().
+        sampling_plan_file_path (str, optional): Caminho para o arquivo sampling_plan.json.
+                                               Se None, deriva do config['metrics_file'].
+    
+    Returns:
+        dict: Dicionário contendo o plano final de amostragem com estrutura:
+            - sampling_config: configurações originais da FASE 2
+            - target_samples: amostras alvo por tipo de ataque  
+            - quotas: quotas finais após redistribuição e fallback
+                - per_file: {file_id: {attack_type: {available, initial, final, redistributed}}}
+                - summary: resumo final com status de redistribuição
+            - redistribution_log: log detalhado das redistribuições realizadas
+            - fallback_attacks: lista de tipos de ataque com fallback aplicado
+    
+    Raises:
+        FileNotFoundError: Se o arquivo sampling_plan.json não for encontrado.
+        KeyError: Se a estrutura do sampling_plan.json estiver incorreta.
+        ValueError: Se quotas ou déficits forem inválidos.
+    
+    Example:
+        >>> config = load_config()
+        >>> # Execute FASE 1 e 2 primeiro
+        >>> metrics = analyze_and_collect_metrics(config)
+        >>> sampling_plan = stratified_sampling_planning(config)
+        >>> # Depois execute FASE 3
+        >>> final_plan = feasibility_check_and_redistribution(config)
+        >>> print(f"Ataques com fallback: {len(final_plan['fallback_attacks'])}")
+    """
+    # Carrega configurações se não fornecidas
+    if config is None:
+        config = load_config()
+    
+    # Define caminho do arquivo de planejamento
+    if sampling_plan_file_path is None:
+        sampling_plan_file_path = config['metrics_file'].replace('metrics.json', 'sampling_plan.json')
+    
+    # Verifica se arquivo de planejamento existe
+    if not os.path.exists(sampling_plan_file_path):
+        raise FileNotFoundError(f"Arquivo de planejamento não encontrado: {sampling_plan_file_path}")
+    
+    print(f"Iniciando FASE 3: Verificação de viabilidade e redistribuição")
+    
+    # Carrega planejamento da FASE 2
+    with open(sampling_plan_file_path, 'r') as f:
+        sampling_plan = json.load(f)
+    
+    # Valida estrutura do arquivo de planejamento
+    required_keys = ['sampling_config', 'target_samples', 'quotas']
+    for key in required_keys:
+        if key not in sampling_plan:
+            raise KeyError(f"Chave '{key}' não encontrada no arquivo de planejamento")
+    
+    # Inicializa estruturas para FASE 3
+    final_plan = sampling_plan.copy()
+    final_plan['redistribution_log'] = {}
+    final_plan['fallback_attacks'] = []
+    
+    # Adiciona campo 'redistributed' para rastrear redistribuições
+    for file_id in final_plan['quotas']['per_file']:
+        for attack_type in final_plan['quotas']['per_file'][file_id]:
+            final_plan['quotas']['per_file'][file_id][attack_type]['redistributed'] = 0
+    
+    redistribution_log = {}
+    fallback_attacks = []
+    
+    print(f"Analisando {len(final_plan['quotas']['summary'])} tipos de ataque...")
+    
+    # FASE 3.1: Identificar tipos de ataque com déficit
+    attacks_with_deficit = []
+    for attack_type, summary in final_plan['quotas']['summary'].items():
+        if summary['deficit'] > 0:
+            attacks_with_deficit.append((attack_type, summary['deficit']))
+    
+    print(f"\n--- TIPOS DE ATAQUE COM DÉFICIT: {len(attacks_with_deficit)} ---")
+    for attack_type, deficit in attacks_with_deficit:
+        target = final_plan['quotas']['summary'][attack_type]['target']
+        achievable = final_plan['quotas']['summary'][attack_type]['achievable']
+        print(f"{attack_type}: déficit de {deficit:,} amostras (alvo: {target:,}, atingível: {achievable:,})")
+    
+    # FASE 3.2: Redistribuição para cada tipo de ataque com déficit
+    for attack_type, original_deficit in attacks_with_deficit:
+        print(f"\n=== REDISTRIBUINDO: {attack_type} ===")
+        redistribution_log[attack_type] = {
+            'original_deficit': original_deficit,
+            'redistributed': 0,
+            'final_deficit': original_deficit,
+            'files_benefited': [],
+            'fallback_applied': False
+        }
+        
+        current_deficit = original_deficit
+        
+        # Identifica arquivos não saturados (com amostras disponíveis além da quota atual)
+        unsaturated_files = []
+        for file_id in final_plan['quotas']['per_file']:
+            file_data = final_plan['quotas']['per_file'][file_id][attack_type]
+            available = file_data['available']
+            current_quota = file_data['final']
+            
+            if available > current_quota:  # Arquivo tem mais amostras disponíveis
+                remaining_capacity = available - current_quota
+                unsaturated_files.append({
+                    'file_id': file_id,
+                    'current_quota': current_quota,
+                    'available': available,
+                    'remaining_capacity': remaining_capacity
+                })
+        
+        if not unsaturated_files:
+            print(f"  ⚠️  Nenhum arquivo não saturado encontrado para {attack_type}")
+            redistribution_log[attack_type]['fallback_applied'] = True
+            fallback_attacks.append(attack_type)
+            continue
+        
+        # Calcula capacidade total restante
+        total_remaining_capacity = sum(f['remaining_capacity'] for f in unsaturated_files)
+        
+        print(f"  Déficit original: {original_deficit:,}")
+        print(f"  Arquivos não saturados: {len(unsaturated_files)}")
+        print(f"  Capacidade restante total: {total_remaining_capacity:,}")
+        
+        if total_remaining_capacity >= current_deficit:
+            # CASO 1: Capacidade suficiente para cobrir todo o déficit
+            print(f"  ✅ Capacidade suficiente para redistribuição completa")
+            
+            redistributed_total = 0
+            for file_info in unsaturated_files:
+                file_id = file_info['file_id']
+                remaining_capacity = file_info['remaining_capacity']
+                
+                # Calcula proporção baseada na capacidade restante
+                proportion = remaining_capacity / total_remaining_capacity
+                redistribution_amount = min(
+                    int(current_deficit * proportion),
+                    remaining_capacity
+                )
+                
+                if redistribution_amount > 0:
+                    # Atualiza quota final
+                    old_quota = final_plan['quotas']['per_file'][file_id][attack_type]['final']
+                    new_quota = old_quota + redistribution_amount
+                    final_plan['quotas']['per_file'][file_id][attack_type]['final'] = new_quota
+                    final_plan['quotas']['per_file'][file_id][attack_type]['redistributed'] = redistribution_amount
+                    
+                    redistributed_total += redistribution_amount
+                    redistribution_log[attack_type]['files_benefited'].append({
+                        'file_id': file_id,
+                        'old_quota': old_quota,
+                        'new_quota': new_quota,
+                        'redistribution_amount': redistribution_amount
+                    })
+                    
+                    print(f"    {file_id}: {old_quota:,} → {new_quota:,} (+{redistribution_amount:,})")
+            
+            # Ajuste fino: distribui amostras restantes
+            remaining_deficit = current_deficit - redistributed_total
+            if remaining_deficit > 0:
+                for file_info in unsaturated_files:
+                    if remaining_deficit <= 0:
+                        break
+                    
+                    file_id = file_info['file_id']
+                    file_data = final_plan['quotas']['per_file'][file_id][attack_type]
+                    
+                    if file_data['final'] < file_data['available']:
+                        additional = min(remaining_deficit, file_data['available'] - file_data['final'])
+                        if additional > 0:
+                            file_data['final'] += additional
+                            file_data['redistributed'] += additional
+                            redistributed_total += additional
+                            remaining_deficit -= additional
+                            print(f"    {file_id}: ajuste fino +{additional:,}")
+            
+            redistribution_log[attack_type]['redistributed'] = redistributed_total
+            redistribution_log[attack_type]['final_deficit'] = max(0, current_deficit - redistributed_total)
+            
+        else:
+            # CASO 2: Capacidade insuficiente - usa toda capacidade disponível e aplica fallback
+            print(f"  ⚠️  Capacidade insuficiente. Usando toda capacidade disponível e aplicando fallback")
+            
+            redistributed_total = 0
+            # Primeira usa toda a capacidade restante
+            for file_info in unsaturated_files:
+                file_id = file_info['file_id']
+                remaining_capacity = file_info['remaining_capacity']
+                
+                if remaining_capacity > 0:
+                    old_quota = final_plan['quotas']['per_file'][file_id][attack_type]['final']
+                    new_quota = file_info['available']  # Usa todas as amostras disponíveis
+                    final_plan['quotas']['per_file'][file_id][attack_type]['final'] = new_quota
+                    final_plan['quotas']['per_file'][file_id][attack_type]['redistributed'] = remaining_capacity
+                    
+                    redistributed_total += remaining_capacity
+                    redistribution_log[attack_type]['files_benefited'].append({
+                        'file_id': file_id,
+                        'old_quota': old_quota,
+                        'new_quota': new_quota,
+                        'redistribution_amount': remaining_capacity
+                    })
+                    
+                    print(f"    {file_id}: {old_quota:,} → {new_quota:,} (+{remaining_capacity:,}) [SATURADO]")
+            
+            redistribution_log[attack_type]['redistributed'] = redistributed_total
+            redistribution_log[attack_type]['final_deficit'] = current_deficit - redistributed_total
+            
+            # Aplica fallback - usar todas as amostras disponíveis de todos os arquivos
+            if redistribution_log[attack_type]['final_deficit'] > 0:
+                print(f"    🔄 Aplicando FALLBACK para {attack_type}")
+                redistribution_log[attack_type]['fallback_applied'] = True
+                fallback_attacks.append(attack_type)
+                
+                # Força usar todas as amostras disponíveis
+                total_fallback = 0
+                for file_id in final_plan['quotas']['per_file']:
+                    file_data = final_plan['quotas']['per_file'][file_id][attack_type]
+                    if file_data['available'] > 0:
+                        old_quota = file_data['final']
+                        file_data['final'] = file_data['available']
+                        total_fallback += file_data['available']
+                        if file_data['available'] > old_quota:
+                            additional = file_data['available'] - old_quota
+                            file_data['redistributed'] += additional
+                            print(f"    {file_id}: FALLBACK {old_quota:,} → {file_data['available']:,}")
+                
+                redistribution_log[attack_type]['final_deficit'] = 0  # Fallback elimina déficit
+    
+    # FASE 3.3: Atualiza resumo final
+    print(f"\n--- ATUALIZANDO RESUMO FINAL ---")
+    
+    for attack_type in final_plan['quotas']['summary']:
+        # Recalcula totais após redistribuição
+        total_final = 0
+        for file_id in final_plan['quotas']['per_file']:
+            total_final += final_plan['quotas']['per_file'][file_id][attack_type]['final']
+        
+        # Atualiza summary
+        old_achievable = final_plan['quotas']['summary'][attack_type]['achievable']
+        final_plan['quotas']['summary'][attack_type]['achievable'] = total_final
+        final_plan['quotas']['summary'][attack_type]['deficit'] = max(
+            0, final_plan['quotas']['summary'][attack_type]['target'] - total_final
+        )
+        
+        # Adiciona informações de redistribuição
+        if attack_type in redistribution_log:
+            final_plan['quotas']['summary'][attack_type]['redistribution'] = redistribution_log[attack_type]
+            final_plan['quotas']['summary'][attack_type]['fallback_applied'] = redistribution_log[attack_type]['fallback_applied']
+        else:
+            final_plan['quotas']['summary'][attack_type]['redistribution'] = None
+            final_plan['quotas']['summary'][attack_type]['fallback_applied'] = False
+        
+        improvement = total_final - old_achievable
+        if improvement > 0:
+            target = final_plan['quotas']['summary'][attack_type]['target']
+            achievement_rate = (total_final / target * 100) if target > 0 else 0
+            print(f"{attack_type}: {old_achievable:,} → {total_final:,} (+{improvement:,}) [{achievement_rate:.1f}%]")
+    
+    # Salva logs de redistribuição
+    final_plan['redistribution_log'] = redistribution_log
+    final_plan['fallback_attacks'] = fallback_attacks
+    
+    # FASE 3.4: Salvamento do plano final
+    final_plan_file = config['metrics_file'].replace('metrics.json', 'final_sampling_plan.json')
+    print(f"\nSalvando plano final em: {final_plan_file}")
+    
+    with open(final_plan_file, 'w') as f:
+        json.dump(final_plan, f, indent=2, ensure_ascii=False)
+    
+    # Estatísticas finais
+    total_redistributions = sum(1 for log in redistribution_log.values() if log['redistributed'] > 0)
+    total_redistributed_samples = sum(log['redistributed'] for log in redistribution_log.values())
+    successful_redistributions = sum(1 for log in redistribution_log.values() 
+                                   if log['redistributed'] > 0 and not log['fallback_applied'])
+    
+    print(f"\n--- RESUMO DA FASE 3 ---")
+    print(f"Tipos de ataque processados: {len(attacks_with_deficit)}")
+    print(f"Redistribuições bem-sucedidas: {successful_redistributions}")
+    print(f"Total de amostras redistribuídas: {total_redistributed_samples:,}")
+    print(f"Tipos com fallback aplicado: {len(fallback_attacks)}")
+    if fallback_attacks:
+        print(f"Ataques com fallback: {', '.join(fallback_attacks[:5])}")
+        if len(fallback_attacks) > 5:
+            print(f"  ... e mais {len(fallback_attacks) - 5}")
+    print(f"Plano final salvo: {final_plan_file}")
+    
+    return final_plan
+
+
 if __name__ == "__main__":
     config = load_config()
     metrics = analyze_and_collect_metrics(config)
     sampling_plan = stratified_sampling_planning(config)
+    feasibility_check_and_redistribution(config)
     print(metrics)
