@@ -7,14 +7,53 @@ import yaml
 import json
 import os
 
+def handle_missing_values(df):
+    """
+    Substitui valores NaN e infinitos pela moda de cada coluna.
+    Exclui a coluna 'label' do tratamento.
+    
+    Args:
+        df (pd.DataFrame): DataFrame de entrada
+        
+    Returns:
+        pd.DataFrame: Novo DataFrame com valores ausentes e infinitos substituídos
+    """
+    # Substituir valores infinitos por NaN primeiro (criar novo DataFrame)
+    df_processed = df.replace([np.inf, -np.inf], np.nan)
+    
+    # Para cada coluna, calcular a moda e substituir valores ausentes
+    # Excluir a coluna 'label' do tratamento
+    columns_to_process = [col for col in df_processed.columns if col != 'Label']
+    
+    for column in columns_to_process:
+        print(f"Handling missing values for column: {column}")
+        if df_processed[column].isnull().any():
+            # Calcular a moda da coluna (ignorando valores NaN)
+            mode_value = df_processed[column].mode()
+            print(f"Mode value: {mode_value}")
+            
+            # Se a coluna tem moda, usar o primeiro valor da moda
+            if not mode_value.empty:
+                fill_value = mode_value.iloc[0]
+            else:
+                # Se não há valores válidos na coluna, usar 0 como fallback
+                fill_value = 0
+            
+            # Substituir valores NaN pela moda (criar nova série)
+            df_processed[column] = df_processed[column].fillna(fill_value)
+    
+    print(f"Valores ausentes tratados. Shape final: {df_processed.shape}")
+    print(f"Colunas processadas: {columns_to_process}")
+    return df_processed
+
 def load_config():
     config = {
-        'input_file': 'data/raw/CSV/MERGED_CSV/Merged01.csv',
+        'input_file': 'data/processed/sampled.csv',
         'output_dir': 'data/processed',
-        'test_size': 0.2,
-        'random_state': 42,
-        'features_to_encode': ['device_type', 'protocol'], #TODO: analisar graficos sem encode e scaling para ver a diferenca e necesidade
-        'features_to_scale': ['packet_size', 'duration', 'packet_count', 'bytes_per_packet', 'packets_per_second']
+        # 'test_size': 0.2,
+        # 'random_state': 42,
+        # 'features_to_encode': ['device_type', 'protocol'], #TODO: analisar graficos sem encode e scaling para ver a diferenca e necesidade
+        # 'features_to_scale': ['packet_size', 'duration', 'packet_count', 'bytes_per_packet', 'packets_per_second']
     }
     
     os.makedirs('config', exist_ok=True)
@@ -30,95 +69,29 @@ def preprocess_data(config_file='configs/preprocessing.yaml'):
         
     print('Loading data...')
     df = pd.read_csv(config['input_file'])
+
+    df = handle_missing_values(df)
     
     print(f"Original shape: {df.shape}")
-    print(f"Label distribution: {df['label'].value_counts().to_dict()}")
+    print(f"Label distribution: {df['Label'].value_counts().to_dict()}")
     
-    feature_cols = [
-        'device_type',
-        'protocol', 
-        'packet_size', 
-        'duration', 
-        'src_port', 
-        'dst_port', 
-        'packet_count',
-        'hour',
-        'day_of_week',
-        'bytes_per_packet',
-        'packets_per_second'
-    ]
-    
-    X = df[feature_cols].copy()
-    y = df['label'].copy()
-    
-    print("Applying categoric encoding")
-    encoders = {}
-    for col in config['features_to_encode']:
-        le = LabelEncoder()
-        X[col] = le.fit_transform(X[col])
-        encoders[col] = le
-    
-    print("Applying normalization...")
-    scaler = StandardScaler()
-    X[config['features_to_scale']] = scaler.fit_transform(X[config['features_to_scale']])
-    
-    y_binary = (y != 'normal').astype(int)
-    y_multiclass = LabelEncoder().fit_transform(y)
-    
-    
-    X_train, X_test, y_train_bin, y_test_bin, y_train_multi, y_test_multi = train_test_split(
-        X, y_binary, y_multiclass,
-        test_size=config['test_size'],
-        random_state=config['random_state'],
-        stratify=y_binary #TODO: ver problemas de balanceamento que essa linha pode causar (se o modelo multiclasse for treinado com esses dados eu posso ter problemas de balanceamento)
-                            #TODO: ver StratifiedKFold do scikit-learn para validação cruzada estratificada multiclasse.
-    )
-    
+    # Salvar o dataset preprocessado
     os.makedirs(config['output_dir'], exist_ok=True)
+    output_file = os.path.join(config['output_dir'], 'preprocessed.csv')
+    df.to_csv(output_file, index=False)
+    print(f"Dataset preprocessado salvo em: {output_file}")
     
-    datasets = {
-        'X_train': X_train,
-        'X_test': X_test,
-        'y_train_binary': y_train_bin,
-        'y_test_binary': y_test_bin,
-        'y_train_multiclass': y_train_multi,
-        'y_test_multiclass': y_test_multi
-    }
-    
-    for name, data in datasets.items():
-        filepath = f"{config['output_dir']}/encoders.pkl"
-        if isinstance(data, pd.DataFrame):
-            data.to_csv(filepath, index=False)
-        else:
-            pd.Series(data).to_csv(filepath, index=False, header=[name])
-            
-    joblib.dump(encoders, f"{config['output_dir']}/encoders.pkl")
-    joblib.dump(scaler, f"{config['output_dir']}/scaler.pkl")
-    
+    # Criar estatísticas do dataset
     stats = {
-        'original_shape': df.shape,
-        'processed_shape': X.shape,
-        'train_samples': len(X_train),
-        'test_samples': len(X_test),
-        'anomaly_rate': int(y_binary.mean()),
-        'feature_names': list(X.columns),
-        'target_distribution': {
-            'normal': int((y_binary == 0).sum()),
-            'anomaly': int((y_binary == 1).sum())
-        }
+        'shape': df.shape,
+        'label_distribution': df['Label'].value_counts().to_dict(),
+        'missing_values_per_column': df.isnull().sum().to_dict(),
+        'total_missing_values': df.isnull().sum().sum()
     }
-    
-    with open(f"{config['output_dir']}/../metrics/dataset_stats.json", 'w') as f:
-        json.dump(stats, f, indent=2)
-    
-    print("Preprocessing finished")
-    print(f"Train: {X_train.shape}, Test: {X_test.shape}")
-    print(f"Anomaly rate: {stats['anomaly_rate']:.3f}")
     
     return stats
 
 if __name__ == "__main__":
     config = load_config()
     stats = preprocess_data()
-    
-    
+    print(stats)

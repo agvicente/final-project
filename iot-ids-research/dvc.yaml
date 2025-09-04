@@ -1,19 +1,31 @@
 stages:
+  check_quality:
+    cmd: python3 dvc_run_quality_check.py
+    deps:
+    - dvc_run_quality_check.py
+    - check_dataset_quality.py
+    outs:
+    - data/metrics/quality_check.json
   sampling:
     cmd: python3 dvc_sampling.py
     deps:
-    - data/raw/CSV/MERGED_CSV/Merged01.csv
+    - data/raw/CSV/MERGED_CSV
     - dvc_sampling.py
-    - configs/sampling.yaml
     outs:
-    - data/processed/
+    - data/processed/sampled.csv
   preprocess:
-    cmd: python3 dvc_pipeline.py
+    cmd: python3 dvc_preprocessing.py
     deps:
-    - data/raw/iot_traffic_v2_medium.csv
+    - data/processed/sampled.csv
     - dvc_preprocessing.py
-    - configs/preprocessing.yaml
     outs:
-    - data/processed/
+    - data/processed/preprocessed.csv
     metrics:
     - data/metrics/dataset_stats.json
+  eda:
+    cmd: python3 src/eda/dvc_eda.py
+    deps:
+    - data/processed/preprocessed.csv
+    - src/eda/dvc_eda.py
+    outs:
+    - src/eda/results/

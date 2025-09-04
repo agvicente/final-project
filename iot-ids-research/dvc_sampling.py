@@ -107,8 +107,8 @@ def load_config():
               arquivo de métricas e taxa de amostragem.
     """
     config = {
-        'data_dir': 'data/raw/CSV/MERGED_CSV/test',
-        'data_output_dir': 'data/processed/test',
+        'data_dir': 'data/raw/CSV/MERGED_CSV',
+        'data_output_dir': 'data/processed',
         'metrics_file': 'data/metrics/metrics.json',
         'sampling_rate': 0.1
     }
