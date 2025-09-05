@@ -1,0 +1,6 @@
+input_file: data/processed/preprocessed.csv
+label_col: Label
+output_dir: src/eda/results
+plots_dir: src/eda/results/plots
+random_state: 42
+tables_dir: src/eda/results/tables

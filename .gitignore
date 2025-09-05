@@ -7,3 +7,19 @@ mlruns/
 __pycache__
 
 iot-ids-research/data
+
+#dvc
+.dvc/cache
+.dvc/tmp
+.dvc/plots
+.dvc/plots/*
+.dvc/plots/
+.dvc/plots/
+
+iot-ids-research/.dvc/
+iot-ids-research/.dvc/cache
+iot-ids-research/.dvc/tmp
+iot-ids-research/.dvc/plots
+iot-ids-research/.dvc/plots/*
+iot-ids-research/.dvc/plots/
+iot-ids-research/.dvc/plots/

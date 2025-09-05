@@ -1,0 +1,68 @@
+schema: '2.0'
+stages:
+  check_quality:
+    cmd: python3 dvc_run_quality_check.py
+    deps:
+    - path: check_dataset_quality.py
+      hash: md5
+      md5: 1554a46adf0e520cb413839852c5ff72
+      size: 12012
+    - path: dvc_run_quality_check.py
+      hash: md5
+      md5: c1f9bf23a62054d24bede9d05c9105ed
+      size: 1428
+    outs:
+    - path: data/metrics/quality_check.json
+      hash: md5
+      md5: ce96ce9f567b575de27ac88dcc96d590
+      size: 12281028
+  sampling:
+    cmd: python3 dvc_sampling.py
+    deps:
+    - path: data/raw/CSV/MERGED_CSV
+      hash: md5
+      md5: 324185704674e88bc2973db30da146d4.dir
+      size: 9745958744
+      nfiles: 67
+    - path: dvc_sampling.py
+      hash: md5
+      md5: 735b9b278ffa87975a798cac8e85b27f
+      size: 66598
+    outs:
+    - path: data/processed/sampled.csv
+      hash: md5
+      md5: d36ab328ae100b0533bc0d1957d26d0e
+      size: 1006075250
+  preprocess:
+    cmd: python3 dvc_preprocessing.py
+    deps:
+    - path: data/processed/sampled.csv
+      hash: md5
+      md5: d36ab328ae100b0533bc0d1957d26d0e
+      size: 1006075250
+    - path: dvc_preprocessing.py
+      hash: md5
+      md5: ccecbc0c4a4d1708660f29f08829d093
+      size: 3554
+    outs:
+    - path: data/processed/preprocessed.csv
+      hash: md5
+      md5: 879645fdff718858f65927631ee476be
+      size: 1006075484
+  eda:
+    cmd: python3 src/eda/dvc_eda.py
+    deps:
+    - path: data/processed/preprocessed.csv
+      hash: md5
+      md5: 879645fdff718858f65927631ee476be
+      size: 1006075484
+    - path: src/eda/dvc_eda.py
+      hash: md5
+      md5: 24d38b7b3e119065a55b01ba781bbb52
+      size: 17799
+    outs:
+    - path: src/eda/results/
+      hash: md5
+      md5: e11e70ed9cf9a2f95062c0df28af966f.dir
+      size: 6191539
+      nfiles: 15

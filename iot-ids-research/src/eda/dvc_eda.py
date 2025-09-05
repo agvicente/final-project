@@ -81,7 +81,7 @@ def initial_data_inspection(df, output_dir):
 
     # Basic info
     dimensions = df.shape
-    memory_usage = df.memory_usage().sum() / 1024**2
+    memory_usage = float(round(df.memory_usage().sum() / 1024**2, 2))
     
     print(f"Dimensions: {dimensions}")
     print(f"Memory Usage: {memory_usage:.2f} MB")
@@ -126,16 +126,21 @@ def initial_data_inspection(df, output_dir):
     
     # Save inspection results
     inspection_results = {
-        'dimensions': dimensions,
-        'memory_usage_mb': memory_usage,
-        'data_types': data_types.to_dict(),
-        'missing_values': missing_values.to_dict(),
-        'infinite_values': infinite_values.to_dict(),
-        'constant_columns': constant_columns[constant_columns].index.tolist(),
-        'duplicated_rows': int(duplicated_rows),
-        'duplicated_percentage': float((duplicated_rows/df.shape[0])*100),
-        'columns': df.columns.tolist()
+        "dimensions": [dimensions[0], dimensions[1]],
+        "memory_usage_mb": memory_usage,
+        "data_types": {str(dtype): count for dtype, count in data_types.to_dict().items()},
+        "missing_values": missing_values.to_dict(),
+        "infinite_values": infinite_values.to_dict(),
+        "constant_columns": constant_columns[constant_columns].index.tolist(),
+        "duplicated_rows": int(duplicated_rows),
+        "duplicated_percentage": float((duplicated_rows/df.shape[0])*100),
+        "columns": df.columns.tolist()
     }
+
+    print("="*50)
+    print("Inspection results")
+    print("="*50)
+    print(inspection_results)
     
     with open(f"{output_dir}/tables/data_inspection.json", 'w') as f:
         json.dump(inspection_results, f, indent=2)

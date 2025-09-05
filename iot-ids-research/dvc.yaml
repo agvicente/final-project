@@ -20,8 +20,6 @@ stages:
     - dvc_preprocessing.py
     outs:
     - data/processed/preprocessed.csv
-    metrics:
-    - data/metrics/dataset_stats.json
   eda:
     cmd: python3 src/eda/dvc_eda.py
     deps:
