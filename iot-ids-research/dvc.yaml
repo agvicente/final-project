@@ -13,17 +13,25 @@ stages:
     - dvc_sampling.py
     outs:
     - data/processed/sampled.csv
+  eda:
+    cmd: python3 src/eda/dvc_eda.py
+    deps:
+    - data/processed/sampled.csv
+    - src/eda/dvc_eda.py
+    outs:
+    - src/eda/results/
   preprocess:
     cmd: python3 dvc_preprocessing.py
     deps:
     - data/processed/sampled.csv
     - dvc_preprocessing.py
+    - configs/preprocessing.yaml
     outs:
-    - data/processed/preprocessed.csv
-  eda:
-    cmd: python3 src/eda/dvc_eda.py
-    deps:
-    - data/processed/preprocessed.csv
-    - src/eda/dvc_eda.py
-    outs:
-    - src/eda/results/
+    - data/processed/train_normalized.csv
+    - data/processed/test_normalized.csv
+    - data/processed/scaler.pkl
+    - data/processed/X_train.npy
+    - data/processed/X_test.npy
+    - data/processed/y_train.npy
+    - data/processed/y_test.npy
+    - data/processed/preprocessing_metadata.json

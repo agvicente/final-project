@@ -36,30 +36,62 @@ stages:
   preprocess:
     cmd: python3 dvc_preprocessing.py
     deps:
+    - path: configs/preprocessing.yaml
+      hash: md5
+      md5: f53cc254625a125d037a1252c44d5bf2
+      size: 113
     - path: data/processed/sampled.csv
       hash: md5
       md5: d36ab328ae100b0533bc0d1957d26d0e
       size: 1006075250
     - path: dvc_preprocessing.py
       hash: md5
-      md5: ccecbc0c4a4d1708660f29f08829d093
-      size: 3554
+      md5: 91f796bdb5f947d41ee879cf4c3c61e3
+      size: 11910
     outs:
-    - path: data/processed/preprocessed.csv
+    - path: data/processed/X_test.npy
       hash: md5
-      md5: 879645fdff718858f65927631ee476be
-      size: 1006075484
+      md5: 2ecc854b4b9efd9c728ef3d339743569
+      size: 280919312
+    - path: data/processed/X_train.npy
+      hash: md5
+      md5: 87a0bb445e0e22af97e5b0041f4f942f
+      size: 1123675616
+    - path: data/processed/preprocessing_metadata.json
+      hash: md5
+      md5: 16bfd719f00c4a25b18c68f266bde4a2
+      size: 57416665
+    - path: data/processed/scaler.pkl
+      hash: md5
+      md5: 026aca439f59abaff4ad5d27e388b23b
+      size: 2191
+    - path: data/processed/test_normalized.csv
+      hash: md5
+      md5: 070e80c7952693305615df8814654663
+      size: 729777672
+    - path: data/processed/train_normalized.csv
+      hash: md5
+      md5: 09aded44c5c94aae34a2d4c82b17c9cd
+      size: 2919120083
+    - path: data/processed/y_test.npy
+      hash: md5
+      md5: 0bf647d76ab94943a4667e1b3fb3b0e9
+      size: 3776150
+    - path: data/processed/y_train.npy
+      hash: md5
+      md5: 5be27cb36a47c53ebfe1e410f92b9677
+      size: 15066227
   eda:
     cmd: python3 src/eda/dvc_eda.py
     deps:
-    - path: data/processed/preprocessed.csv
+    - path: data/processed/sampled.csv
       hash: md5
-      md5: 879645fdff718858f65927631ee476be
-      size: 1006075484
+      md5: d36ab328ae100b0533bc0d1957d26d0e
+      size: 1006075250
     - path: src/eda/dvc_eda.py
       hash: md5
-      md5: 24d38b7b3e119065a55b01ba781bbb52
-      size: 17799
+      md5: 33a57bbd15c289c3b05d49c661a3a97f
+      size: 19396
     outs:
     - path: src/eda/results/
       hash: md5

@@ -14,7 +14,7 @@ def load_config():
     Carrega configuração para EDA seguindo padrão do pipeline DVC
     """
     config = {
-        'input_file': 'data/processed/preprocessed.csv',
+        'input_file': 'data/processed/sampled.csv',
         'output_dir': 'src/eda/results',
         'plots_dir': 'src/eda/results/plots',
         'tables_dir': 'src/eda/results/tables',
@@ -479,6 +479,8 @@ def run_eda(config_file='configs/eda.yaml'):
     
     # Load data
     df = load_ciciot_dataset(config['input_file'])
+
+    df = handle_missing_values(df)
     
     # Run all analyses
     results = {}
@@ -517,6 +519,45 @@ def run_eda(config_file='configs/eda.yaml'):
     print(f"Results saved in: {config['output_dir']}")
     
     return results
+
+def handle_missing_values(df):
+    """
+    Substitui valores NaN e infinitos pela moda de cada coluna.
+    Exclui a coluna 'label' do tratamento.
+
+    Args:
+        df (pd.DataFrame): DataFrame de entrada
+        
+    Returns:
+        pd.DataFrame: Novo DataFrame com valores ausentes e infinitos substituídos
+    """
+    # Substituir valores infinitos por NaN primeiro (criar novo DataFrame)
+    df_processed = df.replace([np.inf, -np.inf], np.nan)
+
+    # Para cada coluna, calcular a moda e substituir valores ausentes
+    # Excluir a coluna 'label' do tratamento
+    columns_to_process = [col for col in df_processed.columns if col != 'Label']
+
+    for column in columns_to_process:
+        print(f"Handling missing values for column: {column}")
+        if df_processed[column].isnull().any():
+            # Calcular a moda da coluna (ignorando valores NaN)
+            mode_value = df_processed[column].mode()
+            print(f"Mode value: {mode_value}")
+            
+            # Se a coluna tem moda, usar o primeiro valor da moda
+            if not mode_value.empty:
+                fill_value = mode_value.iloc[0]
+            else:
+                # Se não há valores válidos na coluna, usar 0 como fallback
+                fill_value = 0
+            
+            # Substituir valores NaN pela moda (criar nova série)
+            df_processed[column] = df_processed[column].fillna(fill_value)
+
+    print(f"Valores ausentes tratados. Shape final: {df_processed.shape}")
+    print(f"Colunas processadas: {columns_to_process}")
+    return df_processed
 
 if __name__ == "__main__":
     config = load_config()

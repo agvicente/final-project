@@ -46,12 +46,134 @@ def handle_missing_values(df):
     print(f"Colunas processadas: {columns_to_process}")
     return df_processed
 
+def normalize_data(df, output_dir):
+    """
+    Normaliza as features usando StandardScaler, excluindo a coluna 'Label'.
+    
+    Args:
+        df (pd.DataFrame): DataFrame de entrada
+        output_dir (str): Diretório para salvar o scaler
+        
+    Returns:
+        pd.DataFrame: DataFrame com features normalizadas
+    """
+    # Separar features da target variable
+    feature_columns = [col for col in df.columns if col != 'Label']
+    features = df[feature_columns]
+    target = df['Label']
+    
+    print(f"Normalizando {len(feature_columns)} features...")
+    print(f"Features: {feature_columns[:5]}{'...' if len(feature_columns) > 5 else ''}")
+    
+    # Aplicar StandardScaler
+    scaler = StandardScaler()
+    features_scaled = scaler.fit_transform(features)
+    
+    # Criar DataFrame com features normalizadas
+    df_normalized = pd.DataFrame(features_scaled, columns=feature_columns, index=df.index)
+    
+    # Adicionar a coluna target de volta
+    df_normalized['Label'] = target
+    
+    # Salvar o scaler para uso futuro
+    os.makedirs(output_dir, exist_ok=True)
+    scaler_file = os.path.join(output_dir, 'scaler.pkl')
+    joblib.dump(scaler, scaler_file)
+    print(f"Scaler salvo em: {scaler_file}")
+    
+    print(f"Normalização concluída. Shape final: {df_normalized.shape}")
+    
+    # Mostrar estatísticas das features normalizadas
+    print("Estatísticas após normalização:")
+    print(f"Média das features: {df_normalized[feature_columns].mean().mean():.6f}")
+    print(f"Desvio padrão das features: {df_normalized[feature_columns].std().mean():.6f}")
+    
+    return df_normalized
+
+def split_and_normalize_data(df, config):
+    """
+    ✅ ABORDAGEM CORRETA: Separa treino/teste ANTES da normalização
+    
+    Evita data leakage fazendo com que o scaler aprenda parâmetros 
+    APENAS dos dados de treino.
+    
+    Args:
+        df (pd.DataFrame): DataFrame limpo (após handle_missing_values)
+        config (dict): Configurações com test_size, random_state, etc.
+        
+    Returns:
+        dict: Contém X_train_scaled, X_test_scaled, y_train, y_test, scaler, feature_columns
+    """
+    print(f"\n{'='*60}")
+    print("✅ SEPARAÇÃO TREINO/TESTE ANTES DA NORMALIZAÇÃO")
+    print("   (Evitando Data Leakage)")
+    print("="*60)
+    
+    # Separar features e target
+    feature_columns = [col for col in df.columns if col != 'Label']
+    X = df[feature_columns]
+    y = df['Label']
+    
+    print(f"📊 Dataset completo:")
+    print(f"   Total de amostras: {len(df):,}")
+    print(f"   Número de features: {len(feature_columns)}")
+    print(f"   Distribuição de labels: {dict(y.value_counts())}")
+    
+    # 1️⃣ PRIMEIRO: Separar treino e teste
+    stratify_param = y if config.get('stratify', True) else None
+    
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, 
+        test_size=config['test_size'], 
+        random_state=config['random_state'],
+        stratify=stratify_param
+    )
+    
+    print(f"\n🔄 Separação realizada:")
+    print(f"   Treino: {len(X_train):,} amostras ({len(X_train)/len(df)*100:.1f}%)")
+    print(f"   Teste:  {len(X_test):,} amostras ({len(X_test)/len(df)*100:.1f}%)")
+    print(f"   Labels treino: {dict(y_train.value_counts())}")
+    print(f"   Labels teste:  {dict(y_test.value_counts())}")
+    
+    # Estatísticas ANTES da normalização
+    print(f"\n📈 Estatísticas ANTES da normalização:")
+    print(f"   Treino - Média: {X_train.mean().mean():.4f}, Std: {X_train.std().mean():.4f}")
+    print(f"   Teste  - Média: {X_test.mean().mean():.4f}, Std: {X_test.std().mean():.4f}")
+    
+    # 2️⃣ SEGUNDO: Normalizar (scaler aprende APENAS do treino)
+    print(f"\n🔧 Normalizando dados...")
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)  # fit_transform no treino
+    X_test_scaled = scaler.transform(X_test)        # apenas transform no teste
+    
+    # Estatísticas APÓS a normalização
+    print(f"\n📈 Estatísticas APÓS a normalização:")
+    print(f"   Treino - Média: {X_train_scaled.mean():.6f}, Std: {X_train_scaled.std():.6f}")
+    print(f"   Teste  - Média: {X_test_scaled.mean():.6f}, Std: {X_test_scaled.std():.6f}")
+    
+    print(f"\n⚠️  IMPORTANTE:")
+    print(f"   - Treino tem média ≈ 0 e std ≈ 1 (esperado)")
+    print(f"   - Teste pode ter valores ligeiramente diferentes (NORMAL!)")
+    print(f"   - Isso simula o cenário real de produção")
+    
+    return {
+        'X_train_scaled': X_train_scaled,
+        'X_test_scaled': X_test_scaled,
+        'y_train': y_train,
+        'y_test': y_test,
+        'scaler': scaler,
+        'feature_columns': feature_columns,
+        'train_indices': X_train.index,
+        'test_indices': X_test.index
+    }
+
 def load_config():
     config = {
         'input_file': 'data/processed/sampled.csv',
         'output_dir': 'data/processed',
-        # 'test_size': 0.2,
-        # 'random_state': 42,
+        'test_size': 0.2,  # 80/20 split (configurável)
+        'random_state': 42,
+        'stratify': True,  # Manter proporção de classes
         # 'features_to_encode': ['device_type', 'protocol'], #TODO: analisar graficos sem encode e scaling para ver a diferenca e necesidade
         # 'features_to_scale': ['packet_size', 'duration', 'packet_count', 'bytes_per_packet', 'packets_per_second']
     }
@@ -62,6 +184,77 @@ def load_config():
     
     return config
 
+def save_split_data(split_results, config):
+    """
+    Salva os dados separados e normalizados em arquivos CSV e pickle
+    
+    Args:
+        split_results (dict): Resultado da função split_and_normalize_data
+        config (dict): Configurações do preprocessing
+    """
+    output_dir = config['output_dir']
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Extrair dados
+    X_train_scaled = split_results['X_train_scaled']
+    X_test_scaled = split_results['X_test_scaled']
+    y_train = split_results['y_train']
+    y_test = split_results['y_test']
+    feature_columns = split_results['feature_columns']
+    scaler = split_results['scaler']
+    
+    print(f"\n💾 Salvando arquivos em: {output_dir}")
+    
+    # 1. Salvar dados de treino como CSV
+    train_df = pd.DataFrame(X_train_scaled, columns=feature_columns, index=y_train.index)
+    train_df['Label'] = y_train
+    train_file = os.path.join(output_dir, 'train_normalized.csv')
+    train_df.to_csv(train_file, index=False)
+    print(f"   ✅ Treino: {train_file}")
+    
+    # 2. Salvar dados de teste como CSV
+    test_df = pd.DataFrame(X_test_scaled, columns=feature_columns, index=y_test.index)
+    test_df['Label'] = y_test
+    test_file = os.path.join(output_dir, 'test_normalized.csv')
+    test_df.to_csv(test_file, index=False)
+    print(f"   ✅ Teste:  {test_file}")
+    
+    # 3. Salvar scaler (CRUCIAL para novos dados)
+    scaler_file = os.path.join(output_dir, 'scaler.pkl')
+    joblib.dump(scaler, scaler_file)
+    print(f"   ✅ Scaler: {scaler_file}")
+    
+    # 4. Salvar arrays numpy para ML (mais eficiente)
+    np.save(os.path.join(output_dir, 'X_train.npy'), X_train_scaled)
+    np.save(os.path.join(output_dir, 'X_test.npy'), X_test_scaled)
+    np.save(os.path.join(output_dir, 'y_train.npy'), y_train.values)
+    np.save(os.path.join(output_dir, 'y_test.npy'), y_test.values)
+    print(f"   ✅ Arrays NumPy salvos para ML")
+    
+    # 5. Salvar metadados
+    metadata = {
+        'feature_columns': feature_columns,
+        'train_indices': split_results['train_indices'].tolist(),
+        'test_indices': split_results['test_indices'].tolist(),
+        'scaler_params': {
+            'mean': scaler.mean_.tolist(),
+            'scale': scaler.scale_.tolist()
+        },
+        'config': config
+    }
+    
+    metadata_file = os.path.join(output_dir, 'preprocessing_metadata.json')
+    with open(metadata_file, 'w') as f:
+        json.dump(metadata, f, indent=2)
+    print(f"   ✅ Metadados: {metadata_file}")
+    
+    return {
+        'train_file': train_file,
+        'test_file': test_file,
+        'scaler_file': scaler_file,
+        'metadata_file': metadata_file
+    }
+
 def preprocess_data(config_file='configs/preprocessing.yaml'):
     with open(config_file) as f:
         #NOTE: safeload impede execucao de codigo malicioso (impede a criação de objetos arbitrários e execução de código)
@@ -70,24 +263,40 @@ def preprocess_data(config_file='configs/preprocessing.yaml'):
     print('Loading data...')
     df = pd.read_csv(config['input_file'])
 
-    df = handle_missing_values(df)
-    
     print(f"Original shape: {df.shape}")
     print(f"Label distribution: {df['Label'].value_counts().to_dict()}")
     
-    # Salvar o dataset preprocessado
-    os.makedirs(config['output_dir'], exist_ok=True)
-    output_file = os.path.join(config['output_dir'], 'preprocessed.csv')
-    df.to_csv(output_file, index=False)
-    print(f"Dataset preprocessado salvo em: {output_file}")
+    # Tratar valores ausentes
+    df_clean = handle_missing_values(df)
     
-    # Criar estatísticas do dataset
+    # ✅ Separar treino/teste ANTES da normalização
+    split_results = split_and_normalize_data(df_clean, config)
+    
+    # Salvar todos os arquivos
+    file_paths = save_split_data(split_results, config)
+    
+    # Criar estatísticas finais
     stats = {
-        'shape': df.shape,
+        'original_shape': df.shape,
+        'clean_shape': df_clean.shape,
+        'train_shape': split_results['X_train_scaled'].shape,
+        'test_shape': split_results['X_test_scaled'].shape,
         'label_distribution': df['Label'].value_counts().to_dict(),
-        'missing_values_per_column': df.isnull().sum().to_dict(),
-        'total_missing_values': df.isnull().sum().sum()
+        'train_label_distribution': dict(split_results['y_train'].value_counts()),
+        'test_label_distribution': dict(split_results['y_test'].value_counts()),
+        'missing_values_treated': df.isnull().sum().sum(),
+        'features_count': len(split_results['feature_columns']),
+        'test_size_used': config['test_size'],
+        'random_state': config['random_state'],
+        'files_created': file_paths
     }
+    
+    print(f"\n📊 RESUMO DO PREPROCESSING:")
+    print(f"   Amostras originais: {stats['original_shape'][0]:,}")
+    print(f"   Features: {stats['features_count']}")
+    print(f"   Treino: {stats['train_shape'][0]:,} amostras")
+    print(f"   Teste: {stats['test_shape'][0]:,} amostras")
+    print(f"   Split usado: {(1-config['test_size'])*100:.0f}/{config['test_size']*100:.0f}")
     
     return stats
 
