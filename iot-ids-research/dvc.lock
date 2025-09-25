@@ -46,41 +46,73 @@ stages:
       size: 1006075250
     - path: dvc_preprocessing.py
       hash: md5
-      md5: 91f796bdb5f947d41ee879cf4c3c61e3
-      size: 11910
+      md5: 67548117ddcf361f8b2a08d9ff974276
+      size: 16318
     outs:
     - path: data/processed/X_test.npy
       hash: md5
-      md5: 2ecc854b4b9efd9c728ef3d339743569
+      md5: 46de34b507d45f6975ffb5de33b012b8
       size: 280919312
     - path: data/processed/X_train.npy
       hash: md5
-      md5: 87a0bb445e0e22af97e5b0041f4f942f
+      md5: c3c333fd839c36aa4fddb5cbf2c5864d
       size: 1123675616
+    - path: data/processed/binary/X_test_binary.npy
+      hash: md5
+      md5: 46de34b507d45f6975ffb5de33b012b8
+      size: 280919312
+    - path: data/processed/binary/X_train_binary.npy
+      hash: md5
+      md5: c3c333fd839c36aa4fddb5cbf2c5864d
+      size: 1123675616
+    - path: data/processed/binary/binary_metadata.json
+      hash: md5
+      md5: 27ff9d4ca9f645f263d06dfdbb44b6d6
+      size: 1000
+    - path: data/processed/binary/scaler.pkl
+      hash: md5
+      md5: 9a840aa98b2ed6def795cab603c4763a
+      size: 2191
+    - path: data/processed/binary/test_binary.csv
+      hash: md5
+      md5: 4d6d5a5247c2e2789eff113b7d95495d
+      size: 718318507
+    - path: data/processed/binary/train_binary.csv
+      hash: md5
+      md5: 9fe8d500c7b942a7efa39276f3cc07dc
+      size: 2873246238
+    - path: data/processed/binary/y_test_binary.npy
+      hash: md5
+      md5: 9f920394577ef9a75d84c9f7aaff99b2
+      size: 7203184
+    - path: data/processed/binary/y_train_binary.npy
+      hash: md5
+      md5: 68ef1a89f8bc91f6cb37956d821419ea
+      size: 28812320
     - path: data/processed/preprocessing_metadata.json
       hash: md5
-      md5: 16bfd719f00c4a25b18c68f266bde4a2
-      size: 57416665
+      md5: 90dc96c79a9be6eb8d524b67bf33bebc
+      size: 57416658
     - path: data/processed/scaler.pkl
       hash: md5
-      md5: 026aca439f59abaff4ad5d27e388b23b
+      md5: 9a840aa98b2ed6def795cab603c4763a
       size: 2191
     - path: data/processed/test_normalized.csv
       hash: md5
-      md5: 070e80c7952693305615df8814654663
-      size: 729777672
+      md5: f3adfc10d77fc8adde7fbd843a65e524
+      size: 731173171
     - path: data/processed/train_normalized.csv
       hash: md5
-      md5: 09aded44c5c94aae34a2d4c82b17c9cd
-      size: 2919120083
+      md5: 5c78b46d12ab08d2bb1c81d2522860bc
+      size: 2924657977
     - path: data/processed/y_test.npy
       hash: md5
-      md5: 0bf647d76ab94943a4667e1b3fb3b0e9
-      size: 3776150
+      md5: dd8d66d8d3efdd162d5a85e0ccd80d09
+      size: 3797387
     - path: data/processed/y_train.npy
       hash: md5
-      md5: 5be27cb36a47c53ebfe1e410f92b9677
-      size: 15066227
+      md5: a170e704f4e53b9c39d59ee2cdf398c7
+      size: 15222584
   eda:
     cmd: python3 src/eda/dvc_eda.py
     deps:

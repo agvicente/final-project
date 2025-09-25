@@ -35,3 +35,11 @@ stages:
     - data/processed/y_train.npy
     - data/processed/y_test.npy
     - data/processed/preprocessing_metadata.json
+    - data/processed/binary/train_binary.csv
+    - data/processed/binary/test_binary.csv
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/scaler.pkl
+    - data/processed/binary/binary_metadata.json

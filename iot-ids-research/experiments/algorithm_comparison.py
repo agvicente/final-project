@@ -6,6 +6,28 @@ from sklearn.neighbors import LocalOutlierFactor
 from sklearn.covariance import EllipticEnvelope
 import time
 
+'''
+Atualize o @algorithm_comparison para que ele implemente a comparação entre os algoritmos, 
+mas usando os dados de saida do preprocessing ao inves dos dados gerados. 
+
+Cada algoritmo de ml deve ser rodado com parametros diferentes, e cada rodada com parametros 
+diferentes deve ser rodado um certo numero de vezes para rigor estatistico. 
+
+O mlflow deve ser usado, junto com o run_id baseado 
+em tipestamp para cada execução, da forma que está no exemplo do arquivo. 
+
+Crie um arquivo dvc_baseline_experiment, que será incluido no pipeline dvc e irá rodar o experimento. 
+
+Os resultados serão para escrever um artigo, os gráficos tabelas e dados relacionados aos experimentos 
+e comparação entre modelos devem ser salvos na pasta experiments/results. Gere gráficos combinados apenas se eles forem 
+correlacionados, se não for, gere graficos e tabelas infividuais. 
+
+Baseie-se principalmente em accuracy, recall, precision e f1-score, mas verifique possiveis graficos 
+que podem enriquecer as analises. 
+Em um primeiro momento rode todos os algoritmos com parametros simples e uma pequena parte dos dados, 
+certifique-se de que todos os algoritmos rodam e depois rode completo.
+'''
+
 def compare_algorithms():
 
     algorithms = {

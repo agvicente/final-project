@@ -90,6 +90,27 @@ def normalize_data(df, output_dir):
     
     return df_normalized
 
+def create_binary_labels(df):
+    """
+    Cria labels binárias para detecção de anomalias:
+    - BENIGN → 0 (benigno)
+    - Qualquer outra label → 1 (malicioso)
+    
+    Args:
+        df (pd.DataFrame): DataFrame com coluna 'Label' original
+        
+    Returns:
+        pd.DataFrame: DataFrame com coluna adicional 'Binary_Label'
+    """
+    df_binary = df.copy()
+    
+    # Criar labels binárias
+    df_binary['Binary_Label'] = df['Label'].apply(
+        lambda x: 0 if 'BENIGN' in str(x).upper() else 1
+    )
+    
+    return df_binary
+
 def split_and_normalize_data(df, config):
     """
     ✅ ABORDAGEM CORRETA: Separa treino/teste ANTES da normalização
@@ -109,21 +130,23 @@ def split_and_normalize_data(df, config):
     print("   (Evitando Data Leakage)")
     print("="*60)
     
-    # Separar features e target
-    feature_columns = [col for col in df.columns if col != 'Label']
+    # Separar features e targets
+    feature_columns = [col for col in df.columns if col not in ['Label', 'Binary_Label']]
     X = df[feature_columns]
     y = df['Label']
+    y_binary = df['Binary_Label']
     
     print(f"📊 Dataset completo:")
     print(f"   Total de amostras: {len(df):,}")
     print(f"   Número de features: {len(feature_columns)}")
     print(f"   Distribuição de labels: {dict(y.value_counts())}")
+    print(f"   Distribuição binária: {dict(y_binary.value_counts())}")
     
     # 1️⃣ PRIMEIRO: Separar treino e teste
-    stratify_param = y if config.get('stratify', True) else None
+    stratify_param = y_binary if config.get('stratify', True) else None
     
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, 
+    X_train, X_test, y_train, y_test, y_binary_train, y_binary_test = train_test_split(
+        X, y, y_binary,
         test_size=config['test_size'], 
         random_state=config['random_state'],
         stratify=stratify_param
@@ -134,6 +157,8 @@ def split_and_normalize_data(df, config):
     print(f"   Teste:  {len(X_test):,} amostras ({len(X_test)/len(df)*100:.1f}%)")
     print(f"   Labels treino: {dict(y_train.value_counts())}")
     print(f"   Labels teste:  {dict(y_test.value_counts())}")
+    print(f"   Binary treino: {dict(y_binary_train.value_counts())}")
+    print(f"   Binary teste:  {dict(y_binary_test.value_counts())}")
     
     # Estatísticas ANTES da normalização
     print(f"\n📈 Estatísticas ANTES da normalização:")
@@ -161,6 +186,8 @@ def split_and_normalize_data(df, config):
         'X_test_scaled': X_test_scaled,
         'y_train': y_train,
         'y_test': y_test,
+        'y_binary_train': y_binary_train,
+        'y_binary_test': y_binary_test,
         'scaler': scaler,
         'feature_columns': feature_columns,
         'train_indices': X_train.index,
@@ -237,8 +264,8 @@ def save_split_data(split_results, config):
         'train_indices': split_results['train_indices'].tolist(),
         'test_indices': split_results['test_indices'].tolist(),
         'scaler_params': {
-            'mean': scaler.mean_.tolist(),
-            'scale': scaler.scale_.tolist()
+            'mean': [float(x) for x in scaler.mean_],
+            'scale': [float(x) for x in scaler.scale_]
         },
         'config': config
     }
@@ -255,6 +282,68 @@ def save_split_data(split_results, config):
         'metadata_file': metadata_file
     }
 
+def save_binary_data(split_results, config):
+    """
+    Salva os dados com labels binárias para detecção de anomalias
+    
+    Args:
+        split_results (dict): Resultado da função split_and_normalize_data
+        config (dict): Configurações do preprocessing
+    """
+    # Criar diretório para dados binários
+    binary_dir = os.path.join(config['output_dir'], 'binary')
+    os.makedirs(binary_dir, exist_ok=True)
+    
+    # Extrair dados
+    X_train_scaled = split_results['X_train_scaled']
+    X_test_scaled = split_results['X_test_scaled']
+    y_binary_train = split_results['y_binary_train']
+    y_binary_test = split_results['y_binary_test']
+    feature_columns = split_results['feature_columns']
+    scaler = split_results['scaler']
+    
+    # 1. Salvar dados de treino binários como CSV
+    train_binary_df = pd.DataFrame(X_train_scaled, columns=feature_columns, index=y_binary_train.index)
+    train_binary_df['Binary_Label'] = y_binary_train
+    train_binary_file = os.path.join(binary_dir, 'train_binary.csv')
+    train_binary_df.to_csv(train_binary_file, index=False)
+    
+    # 2. Salvar dados de teste binários como CSV
+    test_binary_df = pd.DataFrame(X_test_scaled, columns=feature_columns, index=y_binary_test.index)
+    test_binary_df['Binary_Label'] = y_binary_test
+    test_binary_file = os.path.join(binary_dir, 'test_binary.csv')
+    test_binary_df.to_csv(test_binary_file, index=False)
+    
+    # 3. Salvar arrays numpy para ML - versão binária
+    np.save(os.path.join(binary_dir, 'X_train_binary.npy'), X_train_scaled)
+    np.save(os.path.join(binary_dir, 'X_test_binary.npy'), X_test_scaled)
+    np.save(os.path.join(binary_dir, 'y_train_binary.npy'), y_binary_train.values)
+    np.save(os.path.join(binary_dir, 'y_test_binary.npy'), y_binary_test.values)
+    
+    # 4. Copiar scaler para o diretório binário
+    scaler_binary_file = os.path.join(binary_dir, 'scaler.pkl')
+    joblib.dump(scaler, scaler_binary_file)
+    
+    # 5. Salvar metadados específicos para versão binária
+    binary_metadata = {
+        'feature_columns': feature_columns,
+        'binary_mapping': {'0': 'BENIGN', '1': 'MALICIOUS'},
+        'binary_distribution_train': {str(k): int(v) for k, v in y_binary_train.value_counts().items()},
+        'binary_distribution_test': {str(k): int(v) for k, v in y_binary_test.value_counts().items()},
+        'config': config
+    }
+    
+    binary_metadata_file = os.path.join(binary_dir, 'binary_metadata.json')
+    with open(binary_metadata_file, 'w') as f:
+        json.dump(binary_metadata, f, indent=2)
+    
+    return {
+        'train_binary_file': train_binary_file,
+        'test_binary_file': test_binary_file,
+        'scaler_binary_file': scaler_binary_file,
+        'binary_metadata_file': binary_metadata_file
+    }
+
 def preprocess_data(config_file='configs/preprocessing.yaml'):
     with open(config_file) as f:
         #NOTE: safeload impede execucao de codigo malicioso (impede a criação de objetos arbitrários e execução de código)
@@ -269,26 +358,35 @@ def preprocess_data(config_file='configs/preprocessing.yaml'):
     # Tratar valores ausentes
     df_clean = handle_missing_values(df)
     
-    # ✅ Separar treino/teste ANTES da normalização
-    split_results = split_and_normalize_data(df_clean, config)
+    # Criar labels binárias para detecção de anomalias
+    df_with_binary = create_binary_labels(df_clean)
     
-    # Salvar todos os arquivos
+    # ✅ Separar treino/teste ANTES da normalização
+    split_results = split_and_normalize_data(df_with_binary, config)
+    
+    # Salvar arquivos com labels originais
     file_paths = save_split_data(split_results, config)
+    
+    # Salvar arquivos com labels binárias
+    binary_paths = save_binary_data(split_results, config)
     
     # Criar estatísticas finais
     stats = {
-        'original_shape': df.shape,
-        'clean_shape': df_clean.shape,
-        'train_shape': split_results['X_train_scaled'].shape,
-        'test_shape': split_results['X_test_scaled'].shape,
-        'label_distribution': df['Label'].value_counts().to_dict(),
-        'train_label_distribution': dict(split_results['y_train'].value_counts()),
-        'test_label_distribution': dict(split_results['y_test'].value_counts()),
-        'missing_values_treated': df.isnull().sum().sum(),
+        'original_shape': list(df.shape),
+        'clean_shape': list(df_clean.shape),
+        'train_shape': list(split_results['X_train_scaled'].shape),
+        'test_shape': list(split_results['X_test_scaled'].shape),
+        'label_distribution': {str(k): int(v) for k, v in df['Label'].value_counts().items()},
+        'train_label_distribution': {str(k): int(v) for k, v in split_results['y_train'].value_counts().items()},
+        'test_label_distribution': {str(k): int(v) for k, v in split_results['y_test'].value_counts().items()},
+        'binary_train_distribution': {str(k): int(v) for k, v in split_results['y_binary_train'].value_counts().items()},
+        'binary_test_distribution': {str(k): int(v) for k, v in split_results['y_binary_test'].value_counts().items()},
+        'missing_values_treated': int(df.isnull().sum().sum()),
         'features_count': len(split_results['feature_columns']),
         'test_size_used': config['test_size'],
         'random_state': config['random_state'],
-        'files_created': file_paths
+        'files_created': file_paths,
+        'binary_files_created': binary_paths
     }
     
     print(f"\n📊 RESUMO DO PREPROCESSING:")
