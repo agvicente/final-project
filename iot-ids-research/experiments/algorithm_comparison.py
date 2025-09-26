@@ -30,9 +30,9 @@ import gc  # Para limpeza de memória
 warnings.filterwarnings('ignore')
 
 # Configurações globais
-TEST_MODE = True  # Mudar para False para execução completa
+TEST_MODE = False  # Mudar para False para execução completa
 SAMPLE_SIZE = 1000 if TEST_MODE else None  # Tamanho da amostra para teste
-N_RUNS = 3 if TEST_MODE else 10  # Número de execuções para rigor estatístico
+N_RUNS = 2 if TEST_MODE else 5  # Número de execuções para rigor estatístico
 
 # ID único da execução baseado em timestamp
 EXECUTION_ID = int(time.time())
@@ -247,23 +247,54 @@ def get_algorithm_configs():
             'RandomForest': {
                 'class': RandomForestClassifier,
                 'params': [
+                    {'n_estimators': 5, 'max_depth': 10, 'random_state': 42},
+                    {'n_estimators': 5, 'max_depth': 15, 'random_state': 42},
+                    {'n_estimators': 5, 'max_depth': 20, 'random_state': 42},
+                    {'n_estimators': 10, 'max_depth': 10, 'random_state': 42},
+                    {'n_estimators': 10, 'max_depth': 15, 'random_state': 42},
+                    {'n_estimators': 10, 'max_depth': 20, 'random_state': 42},
+                    {'n_estimators': 20, 'max_depth': 10, 'random_state': 42},
+                    {'n_estimators': 20, 'max_depth': 15, 'random_state': 42},
+                    {'n_estimators': 20, 'max_depth': 20, 'random_state': 42},
                     {'n_estimators': 50, 'max_depth': 10, 'random_state': 42},
+                    {'n_estimators': 50, 'max_depth': 15, 'random_state': 42},
+                    {'n_estimators': 50, 'max_depth': 20, 'random_state': 42},
+                    {'n_estimators': 100, 'max_depth': 10, 'random_state': 42},
                     {'n_estimators': 100, 'max_depth': 15, 'random_state': 42},
-                    {'n_estimators': 200, 'max_depth': 20, 'random_state': 42}
+                    {'n_estimators': 100, 'max_depth': 20, 'random_state': 42}
                 ]
             },
             'GradientBoosting': {
                 'class': GradientBoostingClassifier,
                 'params': [
+                    {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
+                    {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 7, 'random_state': 42},
+                    {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 9, 'random_state': 42},
+                    {'n_estimators': 10, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
+                    {'n_estimators': 10, 'learning_rate': 0.1, 'max_depth': 7, 'random_state': 42},
+                    {'n_estimators': 10, 'learning_rate': 0.1, 'max_depth': 9, 'random_state': 42},
+                    {'n_estimators': 20, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
+                    {'n_estimators': 20, 'learning_rate': 0.1, 'max_depth': 7, 'random_state': 42},
+                    {'n_estimators': 20, 'learning_rate': 0.1, 'max_depth': 9, 'random_state': 42},
                     {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
-                    {'n_estimators': 100, 'learning_rate': 0.05, 'max_depth': 7, 'random_state': 42}
+                    {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 7, 'random_state': 42},
+                    {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 9, 'random_state': 42},
+                    {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
+                    {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 7, 'random_state': 42},
+                    {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 9, 'random_state': 42}
                 ]
             },
             'LogisticRegression': {
                 'class': LogisticRegression,
                 'params': [
+                    {'C': 0.1, 'max_iter': 200, 'random_state': 42},
+                    {'C': 0.1, 'max_iter': 500, 'random_state': 42},
                     {'C': 0.1, 'max_iter': 1000, 'random_state': 42},
+                    {'C': 1.0, 'max_iter': 200, 'random_state': 42},
+                    {'C': 1.0, 'max_iter': 500, 'random_state': 42},
                     {'C': 1.0, 'max_iter': 1000, 'random_state': 42},
+                    {'C': 10.0, 'max_iter': 200, 'random_state': 42},
+                    {'C': 10.0, 'max_iter': 500, 'random_state': 42},
                     {'C': 10.0, 'max_iter': 1000, 'random_state': 42}
                 ]
             },
@@ -271,21 +302,39 @@ def get_algorithm_configs():
                 'class': SVC,
                 'params': [
                     {'C': 1.0, 'kernel': 'rbf', 'random_state': 42, 'probability': True},
-                    {'C': 10.0, 'kernel': 'rbf', 'random_state': 42, 'probability': True}
+                    {'C': 5.0, 'kernel': 'rbf', 'random_state': 42, 'probability': True},
+                    {'C': 10.0, 'kernel': 'rbf', 'random_state': 42, 'probability': True},
+                    {'C': 20.0, 'kernel': 'rbf', 'random_state': 42, 'probability': True}
                 ]
             },
             'MLPClassifier': {
                 'class': MLPClassifier,
                 'params': [
-                    {'hidden_layer_sizes': (50,), 'max_iter': 500, 'random_state': 42},
-                    {'hidden_layer_sizes': (100, 50), 'max_iter': 500, 'random_state': 42}
+                    {'hidden_layer_sizes': (5,), 'max_iter': 500, 'random_state': 42},
+                    {'hidden_layer_sizes': (10), 'max_iter': 500, 'random_state': 42},
+                    {'hidden_layer_sizes': (15), 'max_iter': 500, 'random_state': 42},
+                    {'hidden_layer_sizes': (5, 5), 'max_iter': 500, 'random_state': 42},
+                    {'hidden_layer_sizes': (10, 10), 'max_iter': 500, 'random_state': 42},
+                    {'hidden_layer_sizes': (15, 15), 'max_iter': 500, 'random_state': 42},
+                    {'hidden_layer_sizes': (20, 20), 'max_iter': 500, 'random_state': 42},
+                    {'hidden_layer_sizes': (5, 5, 5), 'max_iter': 500, 'random_state': 42},
+                    {'hidden_layer_sizes': (10, 10, 10), 'max_iter': 500, 'random_state': 42},
+                    {'hidden_layer_sizes': (15, 15, 15), 'max_iter': 500, 'random_state': 42},
+                    {'hidden_layer_sizes': (20, 20, 20), 'max_iter': 500, 'random_state': 42}
                 ]
             },
             'IsolationForest': {
                 'class': IsolationForest,
                 'params': [
+                    {'contamination': 0.05, 'n_estimators': 30, 'random_state': 42},
+                    {'contamination': 0.05, 'n_estimators': 50, 'random_state': 42},
+                    {'contamination': 0.05, 'n_estimators': 100, 'random_state': 42},
+                    {'contamination': 0.1, 'n_estimators': 30, 'random_state': 42},
+                    {'contamination': 0.1, 'n_estimators': 50, 'random_state': 42},
                     {'contamination': 0.1, 'n_estimators': 100, 'random_state': 42},
-                    {'contamination': 0.05, 'n_estimators': 100, 'random_state': 42}
+                    {'contamination': 0.2, 'n_estimators': 30, 'random_state': 42},
+                    {'contamination': 0.2, 'n_estimators': 50, 'random_state': 42},
+                    {'contamination': 0.2, 'n_estimators': 100, 'random_state': 42}
                 ],
                 'anomaly_detection': True
             },
@@ -293,7 +342,9 @@ def get_algorithm_configs():
                 'class': OneClassSVM,
                 'params': [
                     {'nu': 0.1, 'kernel': 'rbf'},
-                    {'nu': 0.05, 'kernel': 'rbf'}
+                    {'nu': 0.05, 'kernel': 'rbf'},
+                    {'nu': 0.15, 'kernel': 'rbf'},
+                    {'nu': 0.2, 'kernel': 'rbf'}
                 ],
                 'anomaly_detection': True
             }
@@ -507,6 +558,12 @@ def compare_algorithms():
     """
     Função principal para comparar algoritmos com monitoramento completo
     """
+
+        # Configurar logger se ainda não foi configurado
+    global logger
+    if logger is None:
+        logger, _ = setup_logging()
+
     logger.info(f"🚀 Iniciando experimentos de comparação de algoritmos")
     logger.info(f"   Modo: {'TESTE' if TEST_MODE else 'COMPLETO'}")
     logger.info(f"   Sample size: {SAMPLE_SIZE}")
@@ -677,7 +734,7 @@ def save_results_and_plots(results, output_dir='experiments/results'):
     
     if len(successful_results) > 0:
         # Agrupar por algoritmo e parâmetros
-        agg_results = successful_results.groupby(['algorithm', 'param_set']).agg({
+        agg_results = successful_results.groupby(['algorithm', 'param_id']).agg({
             'accuracy': ['mean', 'std'],
             'precision': ['mean', 'std'],
             'recall': ['mean', 'std'],

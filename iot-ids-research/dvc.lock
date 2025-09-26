@@ -155,25 +155,25 @@ stages:
       size: 28812320
     - path: dvc_baseline_experiment.py
       hash: md5
-      md5: 3ce7bec56af44e5671ac1ac9246d9de0
-      size: 10999
+      md5: 26c8c72a550b923087edd415cd6d3fd9
+      size: 10963
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: 9ae3a87965907f50d54489b0e8a64957
-      size: 17355
+      md5: a666da6a2dd47c4cd48064e010da8b4a
+      size: 38011
     outs:
     - path: experiments/artifacts/
       hash: md5
-      md5: 1609aa560431b0227f81286622327d7c.dir
-      size: 1060
+      md5: 03abbff094abd8c9e649729a2b520775.dir
+      size: 1058
       nfiles: 1
     - path: experiments/logs/
       hash: md5
-      md5: 393f1d07aefc5a7458f4c0a59c00ad90.dir
-      size: 2743
-      nfiles: 1
+      md5: ee5803a9f8f40c66590dfa30f1a25829.dir
+      size: 110970
+      nfiles: 2
     - path: experiments/results/
       hash: md5
-      md5: e6551ba111f1422d15a5cb483d9a0605.dir
-      size: 669360
+      md5: c7629d089aa2e1768aa78e837114c554.dir
+      size: 677949
       nfiles: 7

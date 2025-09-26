@@ -95,8 +95,6 @@ Binary Distribution:
 
 **Statistical Validation**:
 - Kolmogorov-Smirnov test for distribution comparison
-- Chi-square test for independence verification
-- Bootstrap sampling (n=1000) for stability assessment
 
 ### 3.2 Experimental Design
 

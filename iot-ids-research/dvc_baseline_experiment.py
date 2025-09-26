@@ -6,7 +6,6 @@ Este script é usado no pipeline DVC para executar experimentos sistemáticos
 de comparação entre diferentes algoritmos de Machine Learning para detecção
 de anomalias em dados de IoT.
 
-Autor: Sistema de Experimentação
 Data: 2025
 """
 
@@ -85,7 +84,7 @@ def load_experiment_config():
         'experiment': {
             'name': 'baseline_comparison',
             'version': '1.0',
-            'test_mode': True,  # Mudar para False para experimento completo
+            'test_mode': False,  # Mudar para False para experimento completo
             'description': 'Comparação de algoritmos de ML para detecção de anomalias em IoT'
         },
         'data': {
@@ -170,10 +169,10 @@ def run_experiments(config):
         if not test_mode:
             # Para modo completo, sobrescrever as configurações
             import algorithm_comparison
-            algorithm_comparison.TEST_MODE = False
+            algorithm_comparison.TEST_MODE = True
             algorithm_comparison.SAMPLE_SIZE = config['data']['sample_size_full']
             algorithm_comparison.N_RUNS = config['algorithms']['n_runs_full']
-            logger.info("   🔄 Configurações atualizadas para modo completo")
+            logger.info("   🔄 Configurações atualizadas para modo teste")
         
         # Executar experimentos
         logger.info("   🔬 Executando comparação de algoritmos...")
