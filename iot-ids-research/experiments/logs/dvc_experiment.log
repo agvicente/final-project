@@ -1,0 +1,17 @@
+2025-09-25 15:46:55,672 - INFO - ================================================================================
+2025-09-25 15:46:55,673 - INFO - 🧪 INICIANDO EXPERIMENTOS DE BASELINE - IoT IDS
+2025-09-25 15:46:55,673 - INFO - ================================================================================
+2025-09-25 15:46:55,673 - INFO - 🔧 Configurando ambiente de experimentos...
+2025-09-25 15:46:55,674 - INFO -    ✅ Diretório criado/verificado: experiments/results
+2025-09-25 15:46:55,674 - INFO -    ✅ Diretório criado/verificado: experiments/logs
+2025-09-25 15:46:55,675 - INFO -    ✅ Diretório criado/verificado: experiments/models
+2025-09-25 15:46:55,675 - INFO -    ✅ Diretório criado/verificado: experiments/artifacts
+2025-09-25 15:46:55,676 - INFO - ✅ Ambiente configurado com sucesso!
+2025-09-25 15:46:55,676 - INFO - 📄 Carregando configurações de experimento...
+2025-09-25 15:46:55,676 - INFO -    📁 Carregando configuração personalizada: configs/experiment_config.yaml
+2025-09-25 15:46:55,691 - INFO -    ✅ Configuração personalizada carregada
+2025-09-25 15:46:55,692 - INFO - 🚀 Iniciando execução dos experimentos...
+2025-09-25 15:47:00,479 - INFO -    ✅ Módulo de comparação importado com sucesso
+2025-09-25 15:47:00,480 - INFO -    🔧 Modo de execução: COMPLETO
+2025-09-25 15:47:00,480 - INFO -    🔄 Configurações atualizadas para modo completo
+2025-09-25 15:47:00,480 - INFO -    🔬 Executando comparação de algoritmos...

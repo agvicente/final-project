@@ -1,0 +1,21 @@
+algorithms:
+  n_runs: 3
+  n_runs_full: 10
+  random_state: 42
+data:
+  binary_data_dir: data/processed/binary/
+  sample_size_full: null
+  sample_size_test: 1000
+experiment:
+  description: "Compara\xE7\xE3o de algoritmos de ML para detec\xE7\xE3o de anomalias\
+    \ em IoT"
+  name: baseline_comparison
+  test_mode: false
+  version: '1.0'
+mlflow:
+  experiment_prefix: IoT-IDS-Baseline
+  tracking_uri: http://127.0.0.1:5000
+output:
+  artifacts_dir: experiments/artifacts
+  models_dir: experiments/models
+  results_dir: experiments/results

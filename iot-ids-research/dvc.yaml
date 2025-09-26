@@ -43,3 +43,17 @@ stages:
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/scaler.pkl
     - data/processed/binary/binary_metadata.json
+  baseline_experiment:
+    cmd: python3 dvc_baseline_experiment.py
+    deps:
+    - dvc_baseline_experiment.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    outs:
+    - experiments/results/
+    - experiments/logs/
+    - experiments/artifacts/

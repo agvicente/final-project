@@ -130,3 +130,50 @@ stages:
       md5: e11e70ed9cf9a2f95062c0df28af966f.dir
       size: 6191539
       nfiles: 15
+  baseline_experiment:
+    cmd: python3 dvc_baseline_experiment.py
+    deps:
+    - path: data/processed/binary/X_test_binary.npy
+      hash: md5
+      md5: 46de34b507d45f6975ffb5de33b012b8
+      size: 280919312
+    - path: data/processed/binary/X_train_binary.npy
+      hash: md5
+      md5: c3c333fd839c36aa4fddb5cbf2c5864d
+      size: 1123675616
+    - path: data/processed/binary/binary_metadata.json
+      hash: md5
+      md5: 27ff9d4ca9f645f263d06dfdbb44b6d6
+      size: 1000
+    - path: data/processed/binary/y_test_binary.npy
+      hash: md5
+      md5: 9f920394577ef9a75d84c9f7aaff99b2
+      size: 7203184
+    - path: data/processed/binary/y_train_binary.npy
+      hash: md5
+      md5: 68ef1a89f8bc91f6cb37956d821419ea
+      size: 28812320
+    - path: dvc_baseline_experiment.py
+      hash: md5
+      md5: 3ce7bec56af44e5671ac1ac9246d9de0
+      size: 10999
+    - path: experiments/algorithm_comparison.py
+      hash: md5
+      md5: 9ae3a87965907f50d54489b0e8a64957
+      size: 17355
+    outs:
+    - path: experiments/artifacts/
+      hash: md5
+      md5: 1609aa560431b0227f81286622327d7c.dir
+      size: 1060
+      nfiles: 1
+    - path: experiments/logs/
+      hash: md5
+      md5: 393f1d07aefc5a7458f4c0a59c00ad90.dir
+      size: 2743
+      nfiles: 1
+    - path: experiments/results/
+      hash: md5
+      md5: e6551ba111f1422d15a5cb483d9a0605.dir
+      size: 669360
+      nfiles: 7
