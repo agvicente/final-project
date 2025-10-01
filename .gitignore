@@ -1,25 +1,87 @@
+# IDE and Editor files
 .vscode/
-env_*
+.idea/
+*.swp
+*.swo
+*~
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+env/
+env_*/
+venv/
+.venv/
+ENV/
+.env
+
+# MLflow
 mlflow.db
 mlruns/
+mlartifacts/
 
-__pycache__
+# Jupyter Notebook
+.ipynb_checkpoints
 
-iot-ids-research/data
+# Data files (managed by DVC)
+iot-ids-research/data/
+iot-ids-research/models/
+*.csv
+*.parquet
+*.pkl
+*.joblib
 
-#dvc
-.dvc/cache
-.dvc/tmp
-.dvc/plots
-.dvc/plots/*
+# DVC - Cache and temporary files
+.dvc/cache/
+.dvc/tmp/
 .dvc/plots/
-.dvc/plots/
+.dvc/logs/
+iot-ids-research/.dvc/cache/
+iot-ids-research/.dvc/tmp/
+iot-ids-research/.dvc/plots/
+iot-ids-research/.dvc/logs/
 
-iot-ids-research/.dvc/
-iot-ids-research/.dvc/cache
-iot-ids-research/.dvc/tmp
-iot-ids-research/.dvc/plots
-iot-ids-research/.dvc/plots/*
-iot-ids-research/.dvc/plots/
-iot-ids-research/.dvc/plots/
+# Experiment logs and temporary results
+iot-ids-research/experiments/logs/
+iot-ids-research/experiments/temp/
+iot-ids-research/experiments/artifacts/mlflow/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*~
+*.orig
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
