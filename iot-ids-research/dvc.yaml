@@ -43,10 +43,11 @@ stages:
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/scaler.pkl
     - data/processed/binary/binary_metadata.json
-  baseline_experiment:
-    cmd: python3 dvc_baseline_experiment.py
+  # === EXPERIMENTOS INDIVIDUAIS (PARALELOS) ===
+  exp_isolation_forest:
+    cmd: python3 experiments/run_single_algorithm.py isolation_forest
     deps:
-    - dvc_baseline_experiment.py
+    - experiments/run_single_algorithm.py
     - experiments/algorithm_comparison.py
     - data/processed/binary/X_train_binary.npy
     - data/processed/binary/X_test_binary.npy
@@ -54,6 +55,107 @@ stages:
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/binary_metadata.json
     outs:
-    - experiments/results/
-    - experiments/logs/
-    - experiments/artifacts/
+    - experiments/results/isolationforest/
+    - experiments/logs/IsolationForest/
+    
+  exp_one_class_svm:
+    cmd: python3 experiments/run_single_algorithm.py one_class_svm
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    outs:
+    - experiments/results/oneclasssvm/
+    - experiments/logs/OneClassSVM/
+    
+  exp_local_outlier_factor:
+    cmd: python3 experiments/run_single_algorithm.py local_outlier_factor
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    outs:
+    - experiments/results/localoutlierfactor/
+    - experiments/logs/LocalOutlierFactor/
+    
+  exp_elliptic_envelope:
+    cmd: python3 experiments/run_single_algorithm.py elliptic_envelope
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    outs:
+    - experiments/results/ellipticenvelope/
+    - experiments/logs/EllipticEnvelope/
+    
+  exp_random_forest:
+    cmd: python3 experiments/run_single_algorithm.py random_forest
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    outs:
+    - experiments/results/randomforestclassifier/
+    - experiments/logs/RandomForestClassifier/
+    
+  exp_logistic_regression:
+    cmd: python3 experiments/run_single_algorithm.py logistic_regression
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    outs:
+    - experiments/results/logisticregression/
+    - experiments/logs/LogisticRegression/
+    
+  exp_gradient_boosting:
+    cmd: python3 experiments/run_single_algorithm.py gradient_boosting
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    outs:
+    - experiments/results/gradientboostingclassifier/
+    - experiments/logs/GradientBoostingClassifier/
+    
+  # === CONSOLIDAÇÃO FINAL ===
+  consolidate_results:
+    cmd: python3 experiments/consolidate_results.py
+    deps:
+    - experiments/consolidate_results.py
+    - experiments/results/isolationforest/
+    - experiments/results/oneclasssvm/
+    - experiments/results/localoutlierfactor/
+    - experiments/results/ellipticenvelope/
+    - experiments/results/randomforestclassifier/
+    - experiments/results/logisticregression/
+    - experiments/results/gradientboostingclassifier/
+    outs:
+    - experiments/final_results/
+    - experiments/final_plots/
+    - experiments/final_tables/
+    - experiments/final_report/

@@ -30,7 +30,7 @@ import gc  # Para limpeza de memória
 warnings.filterwarnings('ignore')
 
 # Configurações globais
-TEST_MODE = False  # Mudar para False para execução completa
+TEST_MODE = True  # Mudar para False para execução completa
 SAMPLE_SIZE = 1000 if TEST_MODE else None  # Tamanho da amostra para teste
 N_RUNS = 2 if TEST_MODE else 5  # Número de execuções para rigor estatístico
 
@@ -208,45 +208,91 @@ def load_binary_data(test_mode=True):
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise
 
-def get_algorithm_configs():
+def get_algorithm_configs(test_mode=None):
     """
     Define configurações de algoritmos para testar
+    
+    Args:
+        test_mode: Override do modo teste (None usa a global TEST_MODE)
     
     Returns:
         dict: Dicionário com algoritmos e suas configurações de parâmetros
     """
     
-    if TEST_MODE:
+    use_test_mode = test_mode if test_mode is not None else TEST_MODE
+    
+    if use_test_mode:
         # Configurações simples para teste
         return {
-            'RandomForest': {
+            'RandomForestClassifier': {
                 'class': RandomForestClassifier,
-                'params': [
+                'param_combinations': [
                     {'n_estimators': 10, 'max_depth': 5, 'random_state': 42},
                     {'n_estimators': 20, 'max_depth': 10, 'random_state': 42}
-                ]
+                ],
+                'n_runs': N_RUNS
             },
             'LogisticRegression': {
                 'class': LogisticRegression,
-                'params': [
+                'param_combinations': [
                     {'C': 1.0, 'max_iter': 100, 'random_state': 42},
                     {'C': 0.1, 'max_iter': 100, 'random_state': 42}
-                ]
+                ],
+                'n_runs': N_RUNS
             },
             'IsolationForest': {
                 'class': IsolationForest,
-                'params': [
+                'param_combinations': [
                     {'contamination': 0.1, 'n_estimators': 50, 'random_state': 42},
                 ],
-                'anomaly_detection': True
-            }
+                'anomaly_detection': True,
+                'n_runs': N_RUNS
+            },
+            'OneClassSVM': {
+                'class': OneClassSVM,
+                'param_combinations': [
+                    {'nu': 0.1, 'linear': 'rbf'},
+                ],
+                'anomaly_detection': True,
+                'n_runs': N_RUNS
+            },
+            'LocalOutlierFactor': {
+                'class': LocalOutlierFactor,
+                'param_combinations': [
+                    {'n_neighbors': 5, 'contamination': 0.1},
+                ],
+                'anomaly_detection': True,
+                'n_runs': N_RUNS
+            },
+            'EllipticEnvelope': {
+                'class': EllipticEnvelope,
+                'param_combinations': [
+                    {'contamination': 0.1},
+                ],
+                'anomaly_detection': True,
+                'n_runs': N_RUNS
+            },
+            'MLPClassifier': {
+                'class': MLPClassifier,
+                'param_combinations': [
+                    {'hidden_layer_sizes': (10,), 'max_iter': 200, 'random_state': 42},
+                ],
+                'n_runs': N_RUNS
+            },
+            'GradientBoosting': {
+                'class': GradientBoostingClassifier,
+                'param_combinations': [
+                    {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
+                ],
+                'n_runs': N_RUNS
+            },
         }
     else:
         # Configurações completas para experimento final
         return {
             'RandomForest': {
                 'class': RandomForestClassifier,
-                'params': [
+                'params_combinations': [
                     {'n_estimators': 5, 'max_depth': 10, 'random_state': 42},
                     {'n_estimators': 5, 'max_depth': 15, 'random_state': 42},
                     {'n_estimators': 5, 'max_depth': 20, 'random_state': 42},
@@ -266,7 +312,7 @@ def get_algorithm_configs():
             },
             'GradientBoosting': {
                 'class': GradientBoostingClassifier,
-                'params': [
+                'params_combinations': [
                     {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
                     {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 7, 'random_state': 42},
                     {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 9, 'random_state': 42},
@@ -286,7 +332,7 @@ def get_algorithm_configs():
             },
             'LogisticRegression': {
                 'class': LogisticRegression,
-                'params': [
+                'params_combinations': [
                     {'C': 0.1, 'max_iter': 200, 'random_state': 42},
                     {'C': 0.1, 'max_iter': 500, 'random_state': 42},
                     {'C': 0.1, 'max_iter': 1000, 'random_state': 42},
@@ -300,32 +346,25 @@ def get_algorithm_configs():
             },
             'SVC': {
                 'class': SVC,
-                'params': [
-                    {'C': 1.0, 'kernel': 'rbf', 'random_state': 42, 'probability': True},
-                    {'C': 5.0, 'kernel': 'rbf', 'random_state': 42, 'probability': True},
-                    {'C': 10.0, 'kernel': 'rbf', 'random_state': 42, 'probability': True},
-                    {'C': 20.0, 'kernel': 'rbf', 'random_state': 42, 'probability': True}
+                'params_combinations': [
+                    {'C': 1.0, 'linear': 'rbf', 'random_state': 42, 'probability': True},
+                    {'C': 5.0, 'linear': 'rbf', 'random_state': 42, 'probability': True},
+                    {'C': 10.0, 'linear': 'rbf', 'random_state': 42, 'probability': True},
+                    {'C': 20.0, 'linear': 'rbf', 'random_state': 42, 'probability': True}
                 ]
             },
             'MLPClassifier': {
                 'class': MLPClassifier,
-                'params': [
-                    {'hidden_layer_sizes': (5,), 'max_iter': 500, 'random_state': 42},
-                    {'hidden_layer_sizes': (10), 'max_iter': 500, 'random_state': 42},
-                    {'hidden_layer_sizes': (15), 'max_iter': 500, 'random_state': 42},
-                    {'hidden_layer_sizes': (5, 5), 'max_iter': 500, 'random_state': 42},
-                    {'hidden_layer_sizes': (10, 10), 'max_iter': 500, 'random_state': 42},
-                    {'hidden_layer_sizes': (15, 15), 'max_iter': 500, 'random_state': 42},
-                    {'hidden_layer_sizes': (20, 20), 'max_iter': 500, 'random_state': 42},
-                    {'hidden_layer_sizes': (5, 5, 5), 'max_iter': 500, 'random_state': 42},
-                    {'hidden_layer_sizes': (10, 10, 10), 'max_iter': 500, 'random_state': 42},
-                    {'hidden_layer_sizes': (15, 15, 15), 'max_iter': 500, 'random_state': 42},
-                    {'hidden_layer_sizes': (20, 20, 20), 'max_iter': 500, 'random_state': 42}
+                'params_combinations': [
+                    {'hidden_layer_sizes': (10,), 'max_iter': 200, 'random_state': 42},
+                    {'hidden_layer_sizes': (20,), 'max_iter': 200, 'random_state': 42},
+                    {'hidden_layer_sizes': (50,), 'max_iter': 200, 'random_state': 42},
+                    {'hidden_layer_sizes': (100,), 'max_iter': 200, 'random_state': 42},
                 ]
             },
             'IsolationForest': {
                 'class': IsolationForest,
-                'params': [
+                'params_combinations': [
                     {'contamination': 0.05, 'n_estimators': 30, 'random_state': 42},
                     {'contamination': 0.05, 'n_estimators': 50, 'random_state': 42},
                     {'contamination': 0.05, 'n_estimators': 100, 'random_state': 42},
@@ -340,11 +379,11 @@ def get_algorithm_configs():
             },
             'OneClassSVM': {
                 'class': OneClassSVM,
-                'params': [
-                    {'nu': 0.1, 'kernel': 'rbf'},
-                    {'nu': 0.05, 'kernel': 'rbf'},
-                    {'nu': 0.15, 'kernel': 'rbf'},
-                    {'nu': 0.2, 'kernel': 'rbf'}
+                'params_combinations': [
+                    {'nu': 0.1, 'linear': 'rbf'},
+                    {'nu': 0.05, 'linear': 'rbf'},
+                    {'nu': 0.15, 'linear': 'rbf'},
+                    {'nu': 0.2, 'linear': 'rbf'}
                 ],
                 'anomaly_detection': True
             }
@@ -558,8 +597,7 @@ def compare_algorithms():
     """
     Função principal para comparar algoritmos com monitoramento completo
     """
-
-        # Configurar logger se ainda não foi configurado
+    # Configurar logger se ainda não foi configurado
     global logger
     if logger is None:
         logger, _ = setup_logging()
