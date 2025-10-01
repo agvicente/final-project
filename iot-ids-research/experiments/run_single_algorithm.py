@@ -62,17 +62,17 @@ def run_algorithm_experiments(algorithm_name, test_mode=False):
     start_time = time.time()
     
     try:
+        # Configurar logger global temporariamente
+        import algorithm_comparison
+        algorithm_comparison.logger = logger
+        
         # Carregar dados
         logger.info("📊 Carregando dados binários...")
-        memory_before = monitor_memory()
-        log_memory_status(logger, "antes do carregamento", memory_before)
+        log_memory_status("antes do carregamento")
         
-        X_train, X_test, y_train, y_test, metadata = load_binary_data(
-            sample_size=1000 if test_mode else None
-        )
+        X_train, X_test, y_train, y_test = load_binary_data(test_mode=test_mode)
         
-        memory_after_load = monitor_memory()
-        log_memory_status(logger, "após carregamento", memory_after_load)
+        log_memory_status("após carregamento")
         
         # Obter configurações do algoritmo
         all_configs = get_algorithm_configs(test_mode=test_mode)
@@ -82,12 +82,22 @@ def run_algorithm_experiments(algorithm_name, test_mode=False):
             raise ValueError(f"Algoritmo '{algorithm_name}' não encontrado. Disponíveis: {available}")
         
         algorithm_config = all_configs[algorithm_name]
-        param_combinations = algorithm_config['param_combinations']
+        
+        # Compatibilidade: verificar se usa 'params' ou 'param_combinations'
+        if 'param_combinations' in algorithm_config:
+            param_combinations = algorithm_config['param_combinations']
+        elif 'params' in algorithm_config:
+            param_combinations = algorithm_config['params']
+        else:
+            raise ValueError(f"Algoritmo {algorithm_name} não tem configurações de parâmetros definidas")
+            
         n_runs = algorithm_config.get('n_runs', 2 if test_mode else 5)
+        is_anomaly_detection = algorithm_config.get('anomaly_detection', False)
         
         logger.info(f"🎯 Algoritmo: {algorithm_name}")
         logger.info(f"📋 Configurações: {len(param_combinations)}")
         logger.info(f"🔄 Execuções: {n_runs}")
+        logger.info(f"🔍 Detecção de anomalia: {is_anomaly_detection}")
         
         # Preparar diretórios de saída
         results_dir = Path('experiments/results') / algorithm_name.lower().replace(' ', '_')
@@ -112,8 +122,9 @@ def run_algorithm_experiments(algorithm_name, test_mode=False):
                     X_test=X_test,
                     y_train=y_train,
                     y_test=y_test,
-                    run_id=f"{algorithm_name}_{config_idx}_{run_idx}",
-                    logger=logger
+                    is_anomaly_detection=is_anomaly_detection,
+                    run_id=run_idx,
+                    param_id=config_idx
                 )
                 
                 if result:
@@ -162,6 +173,8 @@ def run_algorithm_experiments(algorithm_name, test_mode=False):
         
     except Exception as e:
         logger.error(f"❌ ERRO: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise
     
     finally:

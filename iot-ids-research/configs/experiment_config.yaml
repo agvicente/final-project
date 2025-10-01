@@ -1,6 +1,6 @@
 algorithms:
   n_runs: 1
-  n_runs_full: 10
+  n_runs_full: 5
   random_state: 42
 data:
   binary_data_dir: data/processed/binary/

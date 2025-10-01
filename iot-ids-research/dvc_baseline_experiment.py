@@ -93,8 +93,8 @@ def load_experiment_config():
             'sample_size_full': None
         },
         'algorithms': {
-            'n_runs': 3,  # Para teste rápido
-            'n_runs_full': 10,  # Para experimento completo
+            'n_runs': 1,  # Para teste rápido
+            'n_runs_full': 5,  # Para experimento completo
             'random_state': 42
         },
         'mlflow': {

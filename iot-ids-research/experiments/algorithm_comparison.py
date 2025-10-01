@@ -251,7 +251,7 @@ def get_algorithm_configs(test_mode=None):
             'OneClassSVM': {
                 'class': OneClassSVM,
                 'param_combinations': [
-                    {'nu': 0.1, 'linear': 'rbf'},
+                    {'nu': 0.1, 'kernel': 'linear'},
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
@@ -286,13 +286,20 @@ def get_algorithm_configs(test_mode=None):
                 ],
                 'n_runs': N_RUNS
             },
+            'SVC': {
+                'class': SVC,
+                'param_combinations': [
+                    {'C': 1.0, 'kernel': 'linear', 'random_state': 42, 'probability': True},
+                ],
+                'n_runs': N_RUNS
+            },
         }
     else:
         # Configurações completas para experimento final
         return {
             'RandomForest': {
                 'class': RandomForestClassifier,
-                'params_combinations': [
+                'param_combinations': [
                     {'n_estimators': 5, 'max_depth': 10, 'random_state': 42},
                     {'n_estimators': 5, 'max_depth': 15, 'random_state': 42},
                     {'n_estimators': 5, 'max_depth': 20, 'random_state': 42},
@@ -312,7 +319,7 @@ def get_algorithm_configs(test_mode=None):
             },
             'GradientBoosting': {
                 'class': GradientBoostingClassifier,
-                'params_combinations': [
+                'param_combinations': [
                     {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
                     {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 7, 'random_state': 42},
                     {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 9, 'random_state': 42},
@@ -332,7 +339,7 @@ def get_algorithm_configs(test_mode=None):
             },
             'LogisticRegression': {
                 'class': LogisticRegression,
-                'params_combinations': [
+                'param_combinations': [
                     {'C': 0.1, 'max_iter': 200, 'random_state': 42},
                     {'C': 0.1, 'max_iter': 500, 'random_state': 42},
                     {'C': 0.1, 'max_iter': 1000, 'random_state': 42},
@@ -346,16 +353,16 @@ def get_algorithm_configs(test_mode=None):
             },
             'SVC': {
                 'class': SVC,
-                'params_combinations': [
-                    {'C': 1.0, 'linear': 'rbf', 'random_state': 42, 'probability': True},
-                    {'C': 5.0, 'linear': 'rbf', 'random_state': 42, 'probability': True},
-                    {'C': 10.0, 'linear': 'rbf', 'random_state': 42, 'probability': True},
-                    {'C': 20.0, 'linear': 'rbf', 'random_state': 42, 'probability': True}
+                'param_combinations': [
+                    {'C': 1.0, 'kernel': 'linear', 'random_state': 42, 'probability': True},
+                    {'C': 5.0, 'kernel': 'linear', 'random_state': 42, 'probability': True},
+                    {'C': 10.0, 'kernel': 'linear', 'random_state': 42, 'probability': True},
+                    {'C': 20.0, 'kernel': 'linear', 'random_state': 42, 'probability': True}
                 ]
             },
             'MLPClassifier': {
                 'class': MLPClassifier,
-                'params_combinations': [
+                'param_combinations': [
                     {'hidden_layer_sizes': (10,), 'max_iter': 200, 'random_state': 42},
                     {'hidden_layer_sizes': (20,), 'max_iter': 200, 'random_state': 42},
                     {'hidden_layer_sizes': (50,), 'max_iter': 200, 'random_state': 42},
@@ -364,7 +371,7 @@ def get_algorithm_configs(test_mode=None):
             },
             'IsolationForest': {
                 'class': IsolationForest,
-                'params_combinations': [
+                'param_combinations': [
                     {'contamination': 0.05, 'n_estimators': 30, 'random_state': 42},
                     {'contamination': 0.05, 'n_estimators': 50, 'random_state': 42},
                     {'contamination': 0.05, 'n_estimators': 100, 'random_state': 42},
@@ -379,11 +386,11 @@ def get_algorithm_configs(test_mode=None):
             },
             'OneClassSVM': {
                 'class': OneClassSVM,
-                'params_combinations': [
-                    {'nu': 0.1, 'linear': 'rbf'},
-                    {'nu': 0.05, 'linear': 'rbf'},
-                    {'nu': 0.15, 'linear': 'rbf'},
-                    {'nu': 0.2, 'linear': 'rbf'}
+                'param_combinations': [
+                    {'nu': 0.1, 'kernel': 'linear'},
+                    {'nu': 0.05, 'kernel': 'linear'},
+                    {'nu': 0.15, 'kernel': 'linear'},
+                    {'nu': 0.2, 'kernel': 'linear'}
                 ],
                 'anomaly_detection': True
             }
