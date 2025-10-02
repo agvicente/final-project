@@ -30,7 +30,7 @@ import gc  # Para limpeza de memória
 warnings.filterwarnings('ignore')
 
 # Configurações globais
-TEST_MODE = True  # Mudar para False para execução completa
+TEST_MODE = False  # Mudar para False para execução completa
 SAMPLE_SIZE = 1000 if TEST_MODE else None  # Tamanho da amostra para teste
 N_RUNS = 2 if TEST_MODE else 5  # Número de execuções para rigor estatístico
 
@@ -127,16 +127,20 @@ def log_memory_status(context=""):
     
     return memory
 
-def load_binary_data(test_mode=True):
+def load_binary_data(test_mode=None):
     """
     Carrega os dados binários preprocessados com monitoramento detalhado
     
     Args:
-        test_mode (bool): Se True, carrega apenas uma amostra pequena
+        test_mode (bool): Se None, usa TEST_MODE global; se True, carrega apenas uma amostra pequena
         
     Returns:
         tuple: X_train, X_test, y_train, y_test
     """
+    # Se test_mode não especificado, usar TEST_MODE global
+    if test_mode is None:
+        test_mode = TEST_MODE
+        
     logger.info(f"📂 Carregando dados binários (test_mode={test_mode})...")
     
     # Monitorar memória antes do carregamento

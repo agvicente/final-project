@@ -78,12 +78,12 @@ def run_algorithm_experiments(algorithm_name, test_mode=None, execution_timestam
         logger.info("📊 Carregando dados binários...")
         log_memory_status("antes do carregamento")
         
-        X_train, X_test, y_train, y_test = load_binary_data(test_mode=test_mode)
+        X_train, X_test, y_train, y_test = load_binary_data(test_mode=TEST_MODE)
         
         log_memory_status("após carregamento")
         
         # Obter configurações do algoritmo
-        all_configs = get_algorithm_configs(test_mode=test_mode)
+        all_configs = get_algorithm_configs(test_mode=TEST_MODE)
         
         if algorithm_name not in all_configs:
             available = list(all_configs.keys())
