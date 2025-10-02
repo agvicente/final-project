@@ -25,24 +25,29 @@ def get_or_create_shared_timestamp():
     Obtém ou cria um timestamp compartilhado para toda a rodada de experimentos.
     
     Returns:
-        str: Timestamp no formato YYYYMMDD_HHMMSS
+        str: Timestamp Unix para garantir unicidade
     """
     timestamp_file = Path('experiments/.current_run_timestamp')
     
     if timestamp_file.exists():
         # Ler timestamp existente
-        with open(timestamp_file, 'r') as f:
-            return f.read().strip()
-    else:
-        # Criar novo timestamp
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        
-        # Salvar timestamp para outros algoritmos usarem
-        timestamp_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(timestamp_file, 'w') as f:
-            f.write(timestamp)
-        
-        return timestamp
+        try:
+            with open(timestamp_file, 'r') as f:
+                existing_timestamp = f.read().strip()
+                if existing_timestamp:
+                    return existing_timestamp
+        except:
+            pass
+    
+    # Criar novo timestamp Unix (mais confiável)
+    timestamp = str(int(time.time()))
+    
+    # Salvar timestamp para outros algoritmos usarem
+    timestamp_file.parent.mkdir(parents=True, exist_ok=True)
+    with open(timestamp_file, 'w') as f:
+        f.write(timestamp)
+    
+    return timestamp
 
 def cleanup_shared_timestamp():
     """Remove o arquivo de timestamp compartilhado (usado pela consolidação)"""

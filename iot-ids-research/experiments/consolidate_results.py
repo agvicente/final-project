@@ -21,13 +21,17 @@ def get_shared_timestamp():
     Obtém o timestamp compartilhado da rodada atual.
     
     Returns:
-        str: Timestamp no formato YYYYMMDD_HHMMSS ou None se não existir
+        str: Timestamp Unix ou None se não existir
     """
     timestamp_file = Path('experiments/.current_run_timestamp')
     
     if timestamp_file.exists():
-        with open(timestamp_file, 'r') as f:
-            return f.read().strip()
+        try:
+            with open(timestamp_file, 'r') as f:
+                timestamp = f.read().strip()
+                return timestamp if timestamp else None
+        except:
+            return None
     else:
         return None
 
@@ -757,7 +761,7 @@ def consolidate_all_results(test_mode=None):
     # Usar timestamp compartilhado da rodada ou criar novo se não existir
     shared_timestamp = get_shared_timestamp()
     if shared_timestamp is None:
-        shared_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        shared_timestamp = str(int(time.time()))
     
     consolidation_folder = f"{shared_timestamp}_consolidation"
     
