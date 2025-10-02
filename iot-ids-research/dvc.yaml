@@ -57,9 +57,6 @@ stages:
     - data/processed/binary/y_train_binary.npy
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/binary_metadata.json
-    outs:
-    - experiments/results/
-    - experiments/logs/IsolationForest/
     
   exp_one_class_svm:
     cmd: python3 experiments/run_single_algorithm.py one_class_svm
@@ -71,9 +68,6 @@ stages:
     - data/processed/binary/y_train_binary.npy
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/binary_metadata.json
-    outs:
-    - experiments/results/
-    - experiments/logs/OneClassSVM/
     
   exp_random_forest:
     cmd: python3 experiments/run_single_algorithm.py random_forest
@@ -85,9 +79,6 @@ stages:
     - data/processed/binary/y_train_binary.npy
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/binary_metadata.json
-    outs:
-    - experiments/results/
-    - experiments/logs/RandomForestClassifier/
     
   exp_logistic_regression:
     cmd: python3 experiments/run_single_algorithm.py logistic_regression
@@ -99,9 +90,6 @@ stages:
     - data/processed/binary/y_train_binary.npy
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/binary_metadata.json
-    outs:
-    - experiments/results/
-    - experiments/logs/LogisticRegression/
 
   exp_svc:
     cmd: python3 experiments/run_single_algorithm.py svc
@@ -113,9 +101,6 @@ stages:
     - data/processed/binary/y_train_binary.npy
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/binary_metadata.json
-    outs:
-    - experiments/results/
-    - experiments/logs/SVC/
 
   # === CONSOLIDAÇÃO DE RESULTADOS ===
   # Consolida os resultados de todos os algoritmos
