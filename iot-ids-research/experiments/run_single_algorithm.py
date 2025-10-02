@@ -56,7 +56,7 @@ def setup_algorithm_logging(algorithm_name, test_mode=False):
     
     return logger
 
-def run_algorithm_experiments(algorithm_name, test_mode=None):
+def run_algorithm_experiments(algorithm_name, test_mode=None, execution_timestamp=None):
     """Executa todos os experimentos para um algoritmo específico"""
     # Se test_mode não foi especificado, usar o TEST_MODE global
     if test_mode is None:
@@ -107,9 +107,12 @@ def run_algorithm_experiments(algorithm_name, test_mode=None):
         logger.info(f"🔄 Execuções: {n_runs}")
         logger.info(f"🔍 Detecção de anomalia: {is_anomaly_detection}")
         
-        # Preparar diretórios de saída baseados no modo
+        # Preparar diretórios de saída baseados no modo com timestamp
         mode_folder = 'test' if test_mode else 'full'
-        results_dir = Path('experiments/results') / mode_folder / algorithm_name.lower().replace(' ', '_')
+        timestamp = execution_timestamp if execution_timestamp else int(time.time())
+        algorithm_folder = algorithm_name.lower().replace(' ', '_')
+        timestamped_folder = f"{timestamp}_{algorithm_folder}"
+        results_dir = Path('experiments/results') / mode_folder / timestamped_folder
         results_dir.mkdir(parents=True, exist_ok=True)
         
         logger.info(f"💾 Salvando resultados em: {results_dir}")
@@ -228,16 +231,20 @@ def main():
     test_mode = TEST_MODE
     
     mode_str = 'TESTE' if test_mode else 'COMPLETO'
+    mode_folder = 'test' if test_mode else 'full'
+    timestamp = int(time.time())
+    algorithm_folder = algorithm_name.lower().replace(' ', '_')
+    timestamped_folder = f"{timestamp}_{algorithm_folder}"
     
     print(f"🧪 Modo de execução: {mode_str}")
-    mode_folder = 'test' if test_mode else 'full'
     print(f"📁 Resultados em: experiments/results/{mode_folder}/")
     print(f"📄 Logs em: experiments/logs/")
+    print(f"🕐 Timestamp da execução: {timestamp}")
     
     try:
-        results_count = run_algorithm_experiments(algorithm_name, test_mode=test_mode)
+        results_count = run_algorithm_experiments(algorithm_name, test_mode=test_mode, execution_timestamp=timestamp)
         print(f"✅ Sucesso: {results_count} experimentos para {algorithm_name}")
-        print(f"💾 Resultados salvos em: experiments/results/{mode_folder}/{algorithm_name.lower().replace(' ', '_')}/")
+        print(f"💾 Resultados salvos em: experiments/results/{mode_folder}/{timestamped_folder}/")
         sys.exit(0)
     except Exception as e:
         print(f"❌ Erro: {str(e)}")

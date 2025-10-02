@@ -60,8 +60,27 @@ def load_all_results(test_mode=None):
     all_summaries = []
     all_detailed_results = []
     algorithms = []
+    execution_history = []
     
+    # Listar todas as execuções com timestamp (ordenadas por timestamp)
+    timestamped_dirs = []
     for algo_dir in results_base.iterdir():
+        if algo_dir.is_dir() and '_' in algo_dir.name:
+            try:
+                # Extrair timestamp do nome da pasta (formato: timestamp_algorithm)
+                timestamp_str = algo_dir.name.split('_')[0]
+                timestamp = int(timestamp_str)
+                timestamped_dirs.append((timestamp, algo_dir))
+            except (ValueError, IndexError):
+                # Se não conseguir extrair timestamp, usar como está
+                timestamped_dirs.append((0, algo_dir))
+    
+    # Ordenar por timestamp (mais recente primeiro)
+    timestamped_dirs.sort(key=lambda x: x[0], reverse=True)
+    
+    print(f"📋 Encontradas {len(timestamped_dirs)} execuções com timestamp")
+    
+    for timestamp, algo_dir in timestamped_dirs:
         if algo_dir.is_dir():
             summary_file = algo_dir / "summary.json"
             results_file = algo_dir / "results.json"
@@ -69,18 +88,45 @@ def load_all_results(test_mode=None):
             if summary_file.exists():
                 with open(summary_file) as f:
                     summary = json.load(f)
+                    # Adicionar informações de timestamp
+                    summary['execution_timestamp'] = timestamp
+                    summary['execution_folder'] = algo_dir.name
+                    
                     algorithms.append(summary['algorithm'])
                     all_summaries.append(summary)
+                    
+                    # Registrar no histórico
+                    execution_history.append({
+                        'timestamp': timestamp,
+                        'algorithm': summary['algorithm'],
+                        'folder': algo_dir.name,
+                        'mode': mode_str
+                    })
             
             # Carregar resultados detalhados
             if results_file.exists():
                 with open(results_file) as f:
                     detailed_results = json.load(f)
                     if detailed_results:
+                        # Adicionar timestamp aos resultados detalhados
+                        for result in detailed_results:
+                            result['execution_timestamp'] = timestamp
+                            result['execution_folder'] = algo_dir.name
                         all_detailed_results.extend(detailed_results)
     
-    print(f"✅ Carregados: {len(algorithms)} algoritmos, {len(all_detailed_results)} experimentos")
-    return all_summaries, all_detailed_results, algorithms
+    # Mostrar histórico de execuções
+    if execution_history:
+        print(f"\n📅 HISTÓRICO DE EXECUÇÕES ({mode_str}):")
+        for i, exec_info in enumerate(execution_history[:10]):  # Mostrar últimas 10
+            from datetime import datetime
+            dt = datetime.fromtimestamp(exec_info['timestamp'])
+            print(f"   {i+1:2d}. {dt.strftime('%Y-%m-%d %H:%M:%S')} - {exec_info['algorithm']} ({exec_info['folder']})")
+        
+        if len(execution_history) > 10:
+            print(f"   ... e mais {len(execution_history) - 10} execuções anteriores")
+    
+    print(f"✅ Carregados: {len(set(algorithms))} algoritmos únicos, {len(all_detailed_results)} experimentos, {len(execution_history)} execuções")
+    return all_summaries, all_detailed_results, algorithms, execution_history
 
 def generate_confusion_matrices(detailed_df, plots_dir):
     """Gera matrizes de confusão para cada algoritmo"""
@@ -654,7 +700,7 @@ def consolidate_all_results(test_mode=None):
     print("📊 Iniciando consolidação avançada de resultados...")
     
     # Carregar todos os resultados (detecta automaticamente o modo)
-    all_summaries, all_detailed_results, algorithms = load_all_results(test_mode)
+    all_summaries, all_detailed_results, algorithms, execution_history = load_all_results(test_mode)
     
     if not all_summaries:
         print("❌ Nenhum resultado encontrado!")
@@ -724,9 +770,27 @@ def consolidate_all_results(test_mode=None):
         df_detailed.to_csv(final_results_dir / 'detailed_results.csv', index=False)
         df_detailed.to_json(final_results_dir / 'detailed_results.json', orient='records', indent=2)
     
+    # Salvar histórico de execuções
+    if execution_history:
+        with open(final_results_dir / 'execution_history.json', 'w') as f:
+            json.dump(execution_history, f, indent=2)
+        
+        # Criar arquivo de histórico legível
+        with open(final_results_dir / 'execution_history.md', 'w') as f:
+            f.write(f"# 📅 Histórico de Execuções - {mode_str}\n\n")
+            f.write(f"Total de execuções: {len(execution_history)}\n\n")
+            f.write("| # | Data/Hora | Algoritmo | Pasta | Timestamp |\n")
+            f.write("|---|-----------|-----------|-------|----------|\n")
+            
+            for i, exec_info in enumerate(execution_history, 1):
+                from datetime import datetime
+                dt = datetime.fromtimestamp(exec_info['timestamp'])
+                f.write(f"| {i} | {dt.strftime('%Y-%m-%d %H:%M:%S')} | {exec_info['algorithm']} | `{exec_info['folder']}` | {exec_info['timestamp']} |\n")
+    
     print(f"\n🎉 CONSOLIDAÇÃO AVANÇADA COMPLETA! ({mode_str})")
-    print(f"   📊 Algoritmos processados: {len(algorithms)}")
+    print(f"   📊 Algoritmos únicos: {len(set(algorithms))}")
     print(f"   🔬 Experimentos analisados: {len(all_detailed_results)}")
+    print(f"   📅 Execuções históricas: {len(execution_history)}")
     print(f"   📈 Gráficos gerados: 10+ análises avançadas")
     print(f"   📋 Tabelas: Resumo + estatísticas detalhadas")
     print(f"   📄 Relatório: Análise completa com recomendações")
