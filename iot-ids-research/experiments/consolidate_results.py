@@ -577,8 +577,8 @@ def generate_final_report(df, algorithms, report_dir, test_mode=False):
     fastest_algo = df.loc[fastest_idx]
     
     # Análise estatística avançada
-    accuracy_cv = df['best_accuracy'].std() / df['best_accuracy'].mean()
-    f1_cv = df['best_f1'].std() / df['best_f1'].mean()
+    accuracy_cv = df['best_accuracy'].std() / max(df['best_accuracy'].mean(), 0.0001)
+    f1_cv = df['best_f1'].std() / max(df['best_f1'].mean(), 0.0001)
     
     report_content = f"""# 📊 Relatório Final de Experimentos - IoT Anomaly Detection {"(MODO TESTE)" if test_mode else "(MODO COMPLETO)"}
 
@@ -610,7 +610,7 @@ def generate_final_report(df, algorithms, report_dir, test_mode=False):
 - **Tempo**: {fastest_algo['execution_time']:.2f}s
 - **Accuracy**: {fastest_algo['best_accuracy']:.4f}
 - **F1-Score**: {fastest_algo['best_f1']:.4f}
-- **Eficiência**: {fastest_algo['best_f1']/fastest_algo['execution_time']:.4f} F1/segundo
+- **Eficiência**: {fastest_algo['best_f1']/max(fastest_algo['execution_time'], 0.001):.4f} F1/segundo
 
 ## 📋 Resultados Detalhados
 
@@ -619,7 +619,7 @@ def generate_final_report(df, algorithms, report_dir, test_mode=False):
 """
     
     for _, row in df.iterrows():
-        efficiency = row['best_f1'] / row['execution_time'] if row['execution_time'] > 0 else 0
+        efficiency = row['best_f1'] / max(row['execution_time'], 0.001)
         report_content += f"| {row['algorithm']} | {row['best_accuracy']:.4f} | {row['mean_accuracy']:.4f} | {row['best_f1']:.4f} | {row['mean_f1']:.4f} | {row['execution_time']:.1f} | {row['total_experiments']} | {efficiency:.4f} |\n"
     
     report_content += f"""
@@ -628,17 +628,17 @@ def generate_final_report(df, algorithms, report_dir, test_mode=False):
 ### Métricas de Performance
 - **Accuracy Média Geral**: {df['best_accuracy'].mean():.4f} ± {df['best_accuracy'].std():.4f}
 - **F1-Score Médio Geral**: {df['best_f1'].mean():.4f} ± {df['best_f1'].std():.4f}
-- **Algoritmo mais Consistente (menor CV)**: {df.loc[df['best_f1'].index, 'algorithm'].iloc[np.argmin([abs(row['best_f1'] - row['mean_f1'])/row['mean_f1'] for _, row in df.iterrows()])]}
+- **Algoritmo mais Consistente (menor CV)**: {df.loc[df['best_f1'].index, 'algorithm'].iloc[np.argmin([abs(row['best_f1'] - row['mean_f1'])/max(row['mean_f1'], 0.0001) for _, row in df.iterrows()])]}
 
 ### Métricas de Eficiência
 - **Tempo Médio por Algoritmo**: {df['execution_time'].mean():.2f}s ± {df['execution_time'].std():.2f}s
 - **Total de Experimentos Executados**: {df['total_experiments'].sum()}
-- **Experimentos por Minuto**: {df['total_experiments'].sum() / (df['execution_time'].sum()/60):.1f}
+- **Experimentos por Minuto**: {df['total_experiments'].sum() / max(df['execution_time'].sum()/60, 0.001):.1f}
 
 ### Rankings
 1. **Por Performance (F1)**: {', '.join(df.nlargest(3, 'best_f1')['algorithm'].tolist())}
 2. **Por Velocidade**: {', '.join(df.nsmallest(3, 'execution_time')['algorithm'].tolist())}
-3. **Por Eficiência (F1/tempo)**: {', '.join(df.assign(efficiency=df['best_f1']/df['execution_time']).nlargest(3, 'efficiency')['algorithm'].tolist())}
+3. **Por Eficiência (F1/tempo)**: {', '.join(df.assign(efficiency=df['best_f1']/df['execution_time'].replace(0, 0.001)).nlargest(3, 'efficiency')['algorithm'].tolist())}
 
 ## 🔧 Configuração dos Experimentos
 
@@ -701,7 +701,7 @@ def generate_final_report(df, algorithms, report_dir, test_mode=False):
             'fastest': {
                 'algorithm': fastest_algo['algorithm'],
                 'time': float(fastest_algo['execution_time']),
-                'efficiency': float(fastest_algo['best_f1']/fastest_algo['execution_time'])
+                'efficiency': float(fastest_algo['best_f1']/max(fastest_algo['execution_time'], 0.001))
             }
         },
         'statistics': {
@@ -710,12 +710,12 @@ def generate_final_report(df, algorithms, report_dir, test_mode=False):
             'mean_f1': float(df['best_f1'].mean()),
             'std_f1': float(df['best_f1'].std()),
             'mean_execution_time': float(df['execution_time'].mean()),
-            'total_experiments_per_minute': float(df['total_experiments'].sum() / (df['execution_time'].sum()/60))
+            'total_experiments_per_minute': float(df['total_experiments'].sum() / max(df['execution_time'].sum()/60, 0.001))
         },
         'rankings': {
             'by_f1': df.nlargest(5, 'best_f1')['algorithm'].tolist(),
             'by_speed': df.nsmallest(5, 'execution_time')['algorithm'].tolist(),
-            'by_efficiency': df.assign(efficiency=df['best_f1']/df['execution_time']).nlargest(5, 'efficiency')['algorithm'].tolist()
+            'by_efficiency': df.assign(efficiency=df['best_f1']/df['execution_time'].replace(0, 0.001)).nlargest(5, 'efficiency')['algorithm'].tolist()
         }
     }
     

@@ -30,7 +30,8 @@ import gc  # Para limpeza de memória
 warnings.filterwarnings('ignore')
 
 # Configurações globais
-TEST_MODE = True# Mudar para False para execução completa
+TEST_MODE = True
+# Mudar para False para execução completa
 SAMPLE_SIZE = 1000 if TEST_MODE else None  # Tamanho da amostra para teste
 N_RUNS = 1 if TEST_MODE else 5  # Número de execuções para rigor estatístico
 
