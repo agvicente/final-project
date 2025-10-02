@@ -17,21 +17,21 @@ warnings.filterwarnings('ignore')
 def load_all_results(test_mode=None):
     """Carrega resultados de todos os algoritmos com dados detalhados"""
     
-    # Detectar automaticamente o modo se não especificado
+    # Se test_mode não especificado, importar TEST_MODE do algorithm_comparison
     if test_mode is None:
-        # Verificar variável de ambiente primeiro
-        env_test_mode = os.getenv('DVC_TEST_MODE', '').lower()
-        if env_test_mode in ['true', '1', 'yes']:
-            test_mode = True
-        elif env_test_mode in ['false', '0', 'no']:
-            test_mode = False
-        else:
-            # Auto-detectar baseado em qual pasta tem mais resultados
+        try:
+            import sys
+            sys.path.append('.')
+            from experiments.algorithm_comparison import TEST_MODE
+            test_mode = TEST_MODE
+            print(f"📋 Usando TEST_MODE do algorithm_comparison.py: {test_mode}")
+        except ImportError:
+            # Fallback: Auto-detectar baseado em qual subpasta tem mais resultados
             test_results_count = 0
             full_results_count = 0
             
-            test_base = Path("experiments/results_test")
-            full_base = Path("experiments/results")
+            test_base = Path("experiments/results/test")
+            full_base = Path("experiments/results/full")
             
             if test_base.exists():
                 test_results_count = len([d for d in test_base.iterdir() if d.is_dir()])
@@ -45,8 +45,9 @@ def load_all_results(test_mode=None):
                 test_mode = False
                 print(f"🚀 Auto-detectado: MODO COMPLETO ({full_results_count} algoritmos)")
     
-    # Escolher diretório baseado no modo
-    results_base = Path("experiments/results_test" if test_mode else "experiments/results")
+    # Usar subpasta baseada no modo
+    mode_folder = 'test' if test_mode else 'full'
+    results_base = Path("experiments/results") / mode_folder
     
     mode_str = "TESTE" if test_mode else "COMPLETO"
     print(f"📁 Carregando resultados do modo: {mode_str}")
@@ -681,17 +682,16 @@ def consolidate_all_results(test_mode=None):
         cm_df = pd.json_normalize(df_detailed['confusion_matrix'])
         df_detailed = pd.concat([df_detailed.drop('confusion_matrix', axis=1), cm_df], axis=1)
     
-    # Criar diretórios de saída baseados no modo
-    suffix = "_test" if detected_test_mode else ""
-    final_plots_dir = Path(f"experiments/final_plots{suffix}")
-    final_tables_dir = Path(f"experiments/final_tables{suffix}")
-    final_report_dir = Path(f"experiments/final_report{suffix}")
-    final_results_dir = Path(f"experiments/final_results{suffix}")
+    # Sempre usar experiments/final_* (sem sufixo)
+    final_plots_dir = Path("experiments/final_plots")
+    final_tables_dir = Path("experiments/final_tables")
+    final_report_dir = Path("experiments/final_report")
+    final_results_dir = Path("experiments/final_results")
     
     for dir_path in [final_plots_dir, final_tables_dir, final_report_dir, final_results_dir]:
         dir_path.mkdir(parents=True, exist_ok=True)
     
-    print(f"📁 Salvando consolidação em: experiments/*{suffix}/")
+    print(f"📁 Salvando consolidação em: experiments/final_*/ (modo: {mode_str})")
     
     # Gerar análises avançadas
     print("📈 Gerando análises avançadas...")
@@ -732,7 +732,7 @@ def consolidate_all_results(test_mode=None):
     print(f"   📄 Relatório: Análise completa com recomendações")
     print(f"   🏆 Melhor F1-Score: {df_summary['best_f1'].max():.4f} ({df_summary.loc[df_summary['best_f1'].idxmax(), 'algorithm']})")
     print(f"   ⚡ Mais rápido: {df_summary.loc[df_summary['execution_time'].idxmin(), 'algorithm']} ({df_summary['execution_time'].min():.2f}s)")
-    print(f"   💾 Resultados em: experiments/*{suffix}/")
+    print(f"   💾 Resultados em: experiments/final_*/")
     
     return True
 

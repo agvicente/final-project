@@ -23,9 +23,8 @@ def setup_algorithm_logging(algorithm_name, test_mode=False):
     """Configura logging específico para o algoritmo"""
     execution_id = int(time.time())
     
-    # Escolher diretório baseado no modo
-    base_log_dir = 'experiments/logs_test' if test_mode else 'experiments/logs'
-    log_dir = Path(base_log_dir) / algorithm_name
+    # Sempre usar experiments/logs
+    log_dir = Path('experiments/logs') / algorithm_name
     log_dir.mkdir(parents=True, exist_ok=True)
     
     log_file = log_dir / f"{algorithm_name}_{execution_id}.log"
@@ -109,8 +108,8 @@ def run_algorithm_experiments(algorithm_name, test_mode=None):
         logger.info(f"🔍 Detecção de anomalia: {is_anomaly_detection}")
         
         # Preparar diretórios de saída baseados no modo
-        base_results_dir = 'experiments/results_test' if test_mode else 'experiments/results'
-        results_dir = Path(base_results_dir) / algorithm_name.lower().replace(' ', '_')
+        mode_folder = 'test' if test_mode else 'full'
+        results_dir = Path('experiments/results') / mode_folder / algorithm_name.lower().replace(' ', '_')
         results_dir.mkdir(parents=True, exist_ok=True)
         
         logger.info(f"💾 Salvando resultados em: {results_dir}")
@@ -225,28 +224,20 @@ def main():
     
     algorithm_name = algorithm_map[algorithm_key]
     
-    # Usar variável de ambiente se definida, senão usar TEST_MODE global
-    env_test_mode = os.getenv('DVC_TEST_MODE', '').lower()
-    if env_test_mode in ['true', '1', 'yes']:
-        test_mode = True
-    elif env_test_mode in ['false', '0', 'no']:
-        test_mode = False
-    else:
-        # Se variável não definida ou inválida, usar TEST_MODE global
-        test_mode = TEST_MODE
+    # Usar apenas TEST_MODE global do algorithm_comparison.py
+    test_mode = TEST_MODE
     
     mode_str = 'TESTE' if test_mode else 'COMPLETO'
-    results_folder = 'results_test' if test_mode else 'results'
-    logs_folder = 'logs_test' if test_mode else 'logs'
     
     print(f"🧪 Modo de execução: {mode_str}")
-    print(f"📁 Resultados em: experiments/{results_folder}/")
-    print(f"📄 Logs em: experiments/{logs_folder}/")
+    mode_folder = 'test' if test_mode else 'full'
+    print(f"📁 Resultados em: experiments/results/{mode_folder}/")
+    print(f"📄 Logs em: experiments/logs/")
     
     try:
         results_count = run_algorithm_experiments(algorithm_name, test_mode=test_mode)
         print(f"✅ Sucesso: {results_count} experimentos para {algorithm_name}")
-        print(f"💾 Resultados salvos em: experiments/{results_folder}/{algorithm_name.lower().replace(' ', '_')}/")
+        print(f"💾 Resultados salvos em: experiments/results/{mode_folder}/{algorithm_name.lower().replace(' ', '_')}/")
         sys.exit(0)
     except Exception as e:
         print(f"❌ Erro: {str(e)}")
