@@ -45,21 +45,11 @@ stages:
     - data/processed/binary/binary_metadata.json
 
   # === EXPERIMENTOS INDIVIDUAIS ===
+  # Ordenados do MENOS complexo para o MAIS complexo computacionalmente
   # Os estágios se adaptam automaticamente ao TEST_MODE do algorithm_comparison.py
   
-  exp_isolation_forest:
-    cmd: python3 experiments/run_single_algorithm.py isolation_forest
-    deps:
-    - experiments/run_single_algorithm.py
-    - experiments/algorithm_comparison.py
-    - data/processed/binary/X_train_binary.npy
-    - data/processed/binary/X_test_binary.npy
-    - data/processed/binary/y_train_binary.npy
-    - data/processed/binary/y_test_binary.npy
-    - data/processed/binary/binary_metadata.json
-    
-  exp_one_class_svm:
-    cmd: python3 experiments/run_single_algorithm.py one_class_svm
+  exp_logistic_regression:
+    cmd: python3 experiments/run_single_algorithm.py logistic_regression
     deps:
     - experiments/run_single_algorithm.py
     - experiments/algorithm_comparison.py
@@ -80,8 +70,8 @@ stages:
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/binary_metadata.json
     
-  exp_logistic_regression:
-    cmd: python3 experiments/run_single_algorithm.py logistic_regression
+  exp_isolation_forest:
+    cmd: python3 experiments/run_single_algorithm.py isolation_forest
     deps:
     - experiments/run_single_algorithm.py
     - experiments/algorithm_comparison.py
@@ -93,6 +83,17 @@ stages:
 
   exp_svc:
     cmd: python3 experiments/run_single_algorithm.py svc
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    
+  exp_one_class_svm:
+    cmd: python3 experiments/run_single_algorithm.py one_class_svm
     deps:
     - experiments/run_single_algorithm.py
     - experiments/algorithm_comparison.py
