@@ -43,7 +43,94 @@ stages:
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/scaler.pkl
     - data/processed/binary/binary_metadata.json
-  # === EXPERIMENTOS INDIVIDUAIS (PARALELOS) ===
+  # === EXPERIMENTOS INDIVIDUAIS - MODO TESTE ===
+  exp_test_isolation_forest:
+    cmd: python3 experiments/run_single_algorithm.py isolation_forest
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    outs:
+    - experiments/results_test/isolationforest/
+    - experiments/logs_test/IsolationForest/
+    
+  exp_test_one_class_svm:
+    cmd: DVC_TEST_MODE=true python3 experiments/run_single_algorithm.py one_class_svm
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    outs:
+    - experiments/results_test/oneclasssvm/
+    - experiments/logs_test/OneClassSVM/
+    
+  exp_test_random_forest:
+    cmd: DVC_TEST_MODE=true python3 experiments/run_single_algorithm.py random_forest
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    outs:
+    - experiments/results_test/randomforestclassifier/
+    - experiments/logs_test/RandomForestClassifier/
+    
+  exp_test_logistic_regression:
+    cmd: DVC_TEST_MODE=true python3 experiments/run_single_algorithm.py logistic_regression
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    outs:
+    - experiments/results_test/logisticregression/
+    - experiments/logs_test/LogisticRegression/
+
+  exp_test_svc:
+    cmd: DVC_TEST_MODE=true python3 experiments/run_single_algorithm.py svc
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    outs:
+    - experiments/results_test/svc/
+    - experiments/logs_test/SVC/
+    
+  # === CONSOLIDAÇÃO TESTE ===
+  consolidate_test_results:
+    cmd: DVC_TEST_MODE=true python3 experiments/consolidate_results.py
+    deps:
+    - experiments/consolidate_results.py
+    - experiments/results_test/isolationforest/
+    - experiments/results_test/oneclasssvm/
+    - experiments/results_test/randomforestclassifier/
+    - experiments/results_test/logisticregression/
+    - experiments/results_test/svc/
+    outs:
+    - experiments/final_results_test/
+    - experiments/final_plots_test/
+    - experiments/final_tables_test/
+    - experiments/final_report_test/
+
+  # === EXPERIMENTOS INDIVIDUAIS - MODO COMPLETO ===
   exp_isolation_forest:
     cmd: python3 experiments/run_single_algorithm.py isolation_forest
     deps:
@@ -144,7 +231,7 @@ stages:
     
   # === CONSOLIDAÇÃO FINAL ===
   consolidate_results:
-    cmd: python3 experiments/consolidate_results.py
+    cmd: DVC_TEST_MODE=false python3 experiments/consolidate_results.py
     deps:
     - experiments/consolidate_results.py
     - experiments/results/isolationforest/

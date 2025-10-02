@@ -1,0 +1,57 @@
+{
+  "summary": {
+    "total_algorithms": 5,
+    "total_experiments": 14,
+    "total_execution_time": 42.012539863586426,
+    "accuracy_cv": 0.044771829621407314,
+    "f1_cv": 0.02425263043141263
+  },
+  "best_results": {
+    "best_accuracy": {
+      "algorithm": "RandomForestClassifier",
+      "value": 0.984,
+      "stability": 0.0040000000000000036
+    },
+    "best_f1": {
+      "algorithm": "RandomForestClassifier",
+      "value": 0.9918032786885246,
+      "stability": 0.002074478850435102
+    },
+    "fastest": {
+      "algorithm": "SVC",
+      "time": 7.555041074752808,
+      "efficiency": 0.13045157538624302
+    }
+  },
+  "statistics": {
+    "mean_accuracy": 0.9559999999999998,
+    "std_accuracy": 0.04280186911806538,
+    "mean_f1": 0.9765884724555558,
+    "std_f1": 0.023684839306042385,
+    "mean_execution_time": 8.402507972717284,
+    "total_experiments_per_minute": 19.99403041871444
+  },
+  "rankings": {
+    "by_f1": [
+      "RandomForestClassifier",
+      "LogisticRegression",
+      "SVC",
+      "OneClassSVM",
+      "IsolationForest"
+    ],
+    "by_speed": [
+      "SVC",
+      "IsolationForest",
+      "LogisticRegression",
+      "RandomForestClassifier",
+      "OneClassSVM"
+    ],
+    "by_efficiency": [
+      "SVC",
+      "IsolationForest",
+      "LogisticRegression",
+      "RandomForestClassifier",
+      "OneClassSVM"
+    ]
+  }
+}

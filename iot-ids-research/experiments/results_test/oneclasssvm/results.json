@@ -1,0 +1,60 @@
+[
+  {
+    "algorithm": "OneClassSVM",
+    "params": {
+      "nu": 0.1,
+      "kernel": "linear"
+    },
+    "accuracy": 0.972,
+    "precision": 0.99581589958159,
+    "recall": 0.9754098360655737,
+    "f1_score": 0.9855072463768116,
+    "roc_auc": 0.009562841530054645,
+    "training_time": 0.004637241363525391,
+    "prediction_time": 0.0005435943603515625,
+    "total_time": 0.006667137145996094,
+    "memory_usage_mb": 0.375,
+    "confusion_matrix": {
+      "tn": 5,
+      "fp": 1,
+      "fn": 6,
+      "tp": 238
+    },
+    "success": true,
+    "error": null,
+    "run_id": 0,
+    "param_id": 0,
+    "config_index": 0,
+    "run_index": 0,
+    "test_mode": true
+  },
+  {
+    "algorithm": "OneClassSVM",
+    "params": {
+      "nu": 0.1,
+      "kernel": "linear"
+    },
+    "accuracy": 0.972,
+    "precision": 0.99581589958159,
+    "recall": 0.9754098360655737,
+    "f1_score": 0.9855072463768116,
+    "roc_auc": 0.009562841530054645,
+    "training_time": 0.0028078556060791016,
+    "prediction_time": 0.00041484832763671875,
+    "total_time": 0.0054552555084228516,
+    "memory_usage_mb": 0.0,
+    "confusion_matrix": {
+      "tn": 5,
+      "fp": 1,
+      "fn": 6,
+      "tp": 238
+    },
+    "success": true,
+    "error": null,
+    "run_id": 1,
+    "param_id": 0,
+    "config_index": 0,
+    "run_index": 1,
+    "test_mode": true
+  }
+]

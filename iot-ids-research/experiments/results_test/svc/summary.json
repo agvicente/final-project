@@ -1,0 +1,14 @@
+{
+  "algorithm": "SVC",
+  "total_experiments": 2,
+  "configurations": 1,
+  "runs_per_config": 2,
+  "execution_time": 7.555041074752808,
+  "best_accuracy": 0.972,
+  "mean_accuracy": 0.972,
+  "best_f1": 0.9855670103092784,
+  "mean_f1": 0.9855670103092784,
+  "test_mode": true,
+  "results_path": "experiments/results_test/svc",
+  "timestamp": 1759359142.3189583
+}

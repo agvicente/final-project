@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Consolidador de resultados de todos os experimentos
+Consolidador de resultados com análises detalhadas e avançadas
 """
 
 import json
@@ -10,11 +10,54 @@ import seaborn as sns
 from pathlib import Path
 import numpy as np
 import os
+from sklearn.metrics import confusion_matrix
+import warnings
+warnings.filterwarnings('ignore')
 
-def load_all_results():
-    """Carrega resultados de todos os algoritmos"""
-    results_base = Path("experiments/results")
-    all_results = []
+def load_all_results(test_mode=None):
+    """Carrega resultados de todos os algoritmos com dados detalhados"""
+    
+    # Detectar automaticamente o modo se não especificado
+    if test_mode is None:
+        # Verificar variável de ambiente primeiro
+        env_test_mode = os.getenv('DVC_TEST_MODE', '').lower()
+        if env_test_mode in ['true', '1', 'yes']:
+            test_mode = True
+        elif env_test_mode in ['false', '0', 'no']:
+            test_mode = False
+        else:
+            # Auto-detectar baseado em qual pasta tem mais resultados
+            test_results_count = 0
+            full_results_count = 0
+            
+            test_base = Path("experiments/results_test")
+            full_base = Path("experiments/results")
+            
+            if test_base.exists():
+                test_results_count = len([d for d in test_base.iterdir() if d.is_dir()])
+            if full_base.exists():
+                full_results_count = len([d for d in full_base.iterdir() if d.is_dir()])
+            
+            if test_results_count > full_results_count:
+                test_mode = True
+                print(f"🧪 Auto-detectado: MODO TESTE ({test_results_count} algoritmos)")
+            else:
+                test_mode = False
+                print(f"🚀 Auto-detectado: MODO COMPLETO ({full_results_count} algoritmos)")
+    
+    # Escolher diretório baseado no modo
+    results_base = Path("experiments/results_test" if test_mode else "experiments/results")
+    
+    mode_str = "TESTE" if test_mode else "COMPLETO"
+    print(f"📁 Carregando resultados do modo: {mode_str}")
+    print(f"📂 Diretório: {results_base}")
+    
+    if not results_base.exists():
+        print(f"❌ Diretório de resultados não encontrado: {results_base}")
+        return [], [], []
+    
+    all_summaries = []
+    all_detailed_results = []
     algorithms = []
     
     for algo_dir in results_base.iterdir():
@@ -26,21 +69,296 @@ def load_all_results():
                 with open(summary_file) as f:
                     summary = json.load(f)
                     algorithms.append(summary['algorithm'])
-                    all_results.append(summary)
+                    all_summaries.append(summary)
             
-            # Carregar resultados detalhados se disponível
+            # Carregar resultados detalhados
             if results_file.exists():
                 with open(results_file) as f:
                     detailed_results = json.load(f)
                     if detailed_results:
-                        # Adicionar dados detalhados ao último sumário
-                        if all_results:
-                            all_results[-1]['detailed_results'] = detailed_results
+                        all_detailed_results.extend(detailed_results)
     
-    return all_results, algorithms
+    print(f"✅ Carregados: {len(algorithms)} algoritmos, {len(all_detailed_results)} experimentos")
+    return all_summaries, all_detailed_results, algorithms
+
+def generate_confusion_matrices(detailed_df, plots_dir):
+    """Gera matrizes de confusão para cada algoritmo"""
+    print("   📊 Gerando matrizes de confusão...")
+    
+    algorithms = detailed_df['algorithm'].unique()
+    
+    # Criar subplots para todas as matrizes
+    n_algos = len(algorithms)
+    n_cols = min(3, n_algos)
+    n_rows = (n_algos + n_cols - 1) // n_cols
+    
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(5*n_cols, 4*n_rows))
+    if n_algos == 1:
+        axes = [axes]
+    elif n_rows == 1:
+        axes = axes if hasattr(axes, '__len__') else [axes]
+    else:
+        axes = axes.flatten()
+    
+    for i, algorithm in enumerate(algorithms):
+        algo_data = detailed_df[detailed_df['algorithm'] == algorithm]
+        
+        # Agregar matriz de confusão (somar todas as execuções)
+        total_tn = algo_data['tn'].sum()
+        total_fp = algo_data['fp'].sum()
+        total_fn = algo_data['fn'].sum()
+        total_tp = algo_data['tp'].sum()
+        
+        # Matriz agregada
+        cm = np.array([[total_tn, total_fp], 
+                       [total_fn, total_tp]])
+        
+        # Plot individual
+        ax = axes[i] if i < len(axes) else plt.subplot(n_rows, n_cols, i+1)
+        
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                   xticklabels=['Normal', 'Anomalia'],
+                   yticklabels=['Normal', 'Anomalia'],
+                   ax=ax)
+        
+        ax.set_title(f'{algorithm}\nTotal: {cm.sum()} amostras', fontsize=10, fontweight='bold')
+        ax.set_xlabel('Predição')
+        ax.set_ylabel('Real')
+    
+    # Remover subplots vazios
+    for i in range(len(algorithms), len(axes)):
+        axes[i].remove()
+    
+    plt.tight_layout()
+    plt.savefig(plots_dir / 'confusion_matrices.png', dpi=300, bbox_inches='tight')
+    plt.close()
+
+def generate_boxplots(detailed_df, plots_dir):
+    """Gera boxplots de distribuições das métricas"""
+    print("   📦 Gerando boxplots de distribuições...")
+    
+    metrics = ['accuracy', 'precision', 'recall', 'f1_score']
+    
+    fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+    axes = axes.flatten()
+    
+    for i, metric in enumerate(metrics):
+        sns.boxplot(data=detailed_df, x='algorithm', y=metric, ax=axes[i])
+        axes[i].set_title(f'Distribuição de {metric.title()}', fontsize=12, fontweight='bold')
+        axes[i].set_xlabel('Algoritmo', fontsize=10)
+        axes[i].set_ylabel(metric.title(), fontsize=10)
+        axes[i].tick_params(axis='x', rotation=45)
+        axes[i].grid(axis='y', alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(plots_dir / 'metrics_boxplots.png', dpi=300, bbox_inches='tight')
+    plt.close()
+
+def generate_correlation_heatmap(detailed_df, plots_dir):
+    """Gera heatmap de correlação entre métricas"""
+    print("   🔥 Gerando heatmap de correlação...")
+    
+    # Selecionar métricas numéricas
+    correlation_cols = ['accuracy', 'precision', 'recall', 'f1_score', 
+                       'training_time', 'prediction_time', 'memory_usage_mb']
+    
+    # Filtrar colunas que existem
+    available_cols = [col for col in correlation_cols if col in detailed_df.columns]
+    correlation_data = detailed_df[available_cols]
+    
+    # Calcular matriz de correlação
+    corr_matrix = correlation_data.corr()
+    
+    # Plot
+    plt.figure(figsize=(10, 8))
+    mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
+    
+    sns.heatmap(corr_matrix, mask=mask, annot=True, cmap='RdBu_r', center=0,
+                square=True, linewidths=0.5, cbar_kws={"shrink": .8}, fmt='.3f')
+    
+    plt.title('Correlação entre Métricas de Performance', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    plt.savefig(plots_dir / 'correlation_heatmap.png', dpi=300, bbox_inches='tight')
+    plt.close()
+
+def generate_performance_analysis(detailed_df, plots_dir):
+    """Gera análises de performance detalhadas"""
+    print("   ⚡ Gerando análises de performance...")
+    
+    fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+    
+    # 1. Tempo de treino vs Accuracy
+    axes[0,0].scatter(detailed_df['training_time'], detailed_df['accuracy'], 
+                     alpha=0.6, s=50)
+    axes[0,0].set_xlabel('Tempo de Treinamento (s)')
+    axes[0,0].set_ylabel('Accuracy')
+    axes[0,0].set_title('Tempo de Treinamento vs Accuracy')
+    axes[0,0].grid(alpha=0.3)
+    
+    # 2. Memória vs F1-Score
+    axes[0,1].scatter(detailed_df['memory_usage_mb'], detailed_df['f1_score'], 
+                     alpha=0.6, s=50, c=detailed_df['accuracy'], cmap='viridis')
+    axes[0,1].set_xlabel('Uso de Memória (MB)')
+    axes[0,1].set_ylabel('F1-Score')
+    axes[0,1].set_title('Uso de Memória vs F1-Score')
+    axes[0,1].grid(alpha=0.3)
+    
+    # 3. Precision vs Recall
+    for algorithm in detailed_df['algorithm'].unique():
+        algo_data = detailed_df[detailed_df['algorithm'] == algorithm]
+        axes[1,0].scatter(algo_data['recall'], algo_data['precision'], 
+                         label=algorithm, alpha=0.7, s=50)
+    axes[1,0].set_xlabel('Recall')
+    axes[1,0].set_ylabel('Precision')
+    axes[1,0].set_title('Precision vs Recall por Algoritmo')
+    axes[1,0].legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    axes[1,0].grid(alpha=0.3)
+    
+    # 4. Tempo total por algoritmo
+    algo_times = detailed_df.groupby('algorithm')['total_time'].agg(['mean', 'std'])
+    axes[1,1].bar(range(len(algo_times)), algo_times['mean'], 
+                 yerr=algo_times['std'], capsize=5, alpha=0.7)
+    axes[1,1].set_xticks(range(len(algo_times)))
+    axes[1,1].set_xticklabels(algo_times.index, rotation=45, ha='right')
+    axes[1,1].set_ylabel('Tempo Total (s)')
+    axes[1,1].set_title('Tempo Total Médio por Algoritmo')
+    axes[1,1].grid(axis='y', alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(plots_dir / 'performance_analysis.png', dpi=300, bbox_inches='tight')
+    plt.close()
+
+def generate_parameter_analysis(detailed_df, plots_dir):
+    """Gera análises dos parâmetros e seu impacto"""
+    print("   🔧 Gerando análises de parâmetros...")
+    
+    algorithms = detailed_df['algorithm'].unique()
+    
+    # Análise por algoritmo dos parâmetros
+    fig, axes = plt.subplots(len(algorithms), 1, figsize=(12, 4*len(algorithms)))
+    if len(algorithms) == 1:
+        axes = [axes]
+    
+    for i, algorithm in enumerate(algorithms):
+        algo_data = detailed_df[detailed_df['algorithm'] == algorithm]
+        
+        # Agrupar por configuração de parâmetros
+        param_groups = algo_data.groupby('config_index').agg({
+            'f1_score': ['mean', 'std', 'count'],
+            'accuracy': 'mean',
+            'total_time': 'mean'
+        }).round(4)
+        
+        param_groups.columns = ['f1_mean', 'f1_std', 'n_runs', 'acc_mean', 'time_mean']
+        
+        # Plot F1-Score por configuração
+        x_pos = range(len(param_groups))
+        axes[i].bar(x_pos, param_groups['f1_mean'], 
+                   yerr=param_groups['f1_std'], capsize=5, alpha=0.7)
+        
+        axes[i].set_title(f'{algorithm} - F1-Score por Configuração de Parâmetros')
+        axes[i].set_xlabel('Configuração de Parâmetros')
+        axes[i].set_ylabel('F1-Score Médio')
+        axes[i].set_xticks(x_pos)
+        axes[i].set_xticklabels([f'Config {j}' for j in range(len(param_groups))])
+        axes[i].grid(axis='y', alpha=0.3)
+        
+        # Adicionar valores no topo das barras
+        for j, (mean_val, std_val) in enumerate(zip(param_groups['f1_mean'], param_groups['f1_std'])):
+            axes[i].text(j, mean_val + std_val + 0.01, f'{mean_val:.3f}', 
+                        ha='center', va='bottom', fontsize=9)
+    
+    plt.tight_layout()
+    plt.savefig(plots_dir / 'parameter_analysis.png', dpi=300, bbox_inches='tight')
+    plt.close()
+
+def generate_anomaly_detection_analysis(detailed_df, plots_dir):
+    """Análise específica para algoritmos de detecção de anomalias"""
+    print("   🔍 Gerando análise de detecção de anomalias...")
+    
+    # Identificar algoritmos de detecção de anomalias
+    anomaly_algorithms = []
+    supervised_algorithms = []
+    
+    for algorithm in detailed_df['algorithm'].unique():
+        # Assumir que algoritmos com ROC AUC muito baixo são de detecção de anomalias
+        algo_data = detailed_df[detailed_df['algorithm'] == algorithm]
+        avg_roc = algo_data['roc_auc'].mean() if 'roc_auc' in algo_data.columns else 0.5
+        
+        if avg_roc < 0.3 or 'Isolation' in algorithm or 'OneClass' in algorithm or 'Outlier' in algorithm or 'Elliptic' in algorithm:
+            anomaly_algorithms.append(algorithm)
+        else:
+            supervised_algorithms.append(algorithm)
+    
+    fig, axes = plt.subplots(1, 2, figsize=(15, 6))
+    
+    # 1. Comparação Anomaly vs Supervised
+    categories = []
+    f1_scores = []
+    accuracy_scores = []
+    
+    if anomaly_algorithms:
+        anomaly_data = detailed_df[detailed_df['algorithm'].isin(anomaly_algorithms)]
+        categories.append('Detecção de\nAnomalias')
+        f1_scores.append(anomaly_data['f1_score'].mean())
+        accuracy_scores.append(anomaly_data['accuracy'].mean())
+    
+    if supervised_algorithms:
+        supervised_data = detailed_df[detailed_df['algorithm'].isin(supervised_algorithms)]
+        categories.append('Supervisionados')
+        f1_scores.append(supervised_data['f1_score'].mean())
+        accuracy_scores.append(supervised_data['accuracy'].mean())
+    
+    x_pos = range(len(categories))
+    width = 0.35
+    
+    axes[0].bar([x - width/2 for x in x_pos], f1_scores, width, label='F1-Score', alpha=0.7)
+    axes[0].bar([x + width/2 for x in x_pos], accuracy_scores, width, label='Accuracy', alpha=0.7)
+    axes[0].set_xlabel('Categoria de Algoritmo')
+    axes[0].set_ylabel('Score Médio')
+    axes[0].set_title('Comparação: Detecção de Anomalias vs Supervisionados')
+    axes[0].set_xticks(x_pos)
+    axes[0].set_xticklabels(categories)
+    axes[0].legend()
+    axes[0].grid(axis='y', alpha=0.3)
+    
+    # 2. Análise de False Positives vs False Negatives
+    algorithms_sample = detailed_df['algorithm'].unique()[:6]  # Limitar para visualização
+    fp_rates = []
+    fn_rates = []
+    algo_names = []
+    
+    for algorithm in algorithms_sample:
+        algo_data = detailed_df[detailed_df['algorithm'] == algorithm]
+        total_fp = algo_data['fp'].sum()
+        total_fn = algo_data['fn'].sum()
+        total_tn = algo_data['tn'].sum()
+        total_tp = algo_data['tp'].sum()
+        
+        fp_rate = total_fp / (total_fp + total_tn) if (total_fp + total_tn) > 0 else 0
+        fn_rate = total_fn / (total_fn + total_tp) if (total_fn + total_tp) > 0 else 0
+        
+        fp_rates.append(fp_rate)
+        fn_rates.append(fn_rate)
+        algo_names.append(algorithm)
+    
+    x_pos = range(len(algo_names))
+    axes[1].bar([x - width/2 for x in x_pos], fp_rates, width, label='Taxa de Falsos Positivos', alpha=0.7)
+    axes[1].bar([x + width/2 for x in x_pos], fn_rates, width, label='Taxa de Falsos Negativos', alpha=0.7)
+    axes[1].set_xlabel('Algoritmo')
+    axes[1].set_ylabel('Taxa de Erro')
+    axes[1].set_title('Análise de Falsos Positivos vs Falsos Negativos')
+    axes[1].set_xticks(x_pos)
+    axes[1].set_xticklabels(algo_names, rotation=45, ha='right')
+    axes[1].legend()
+    axes[1].grid(axis='y', alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(plots_dir / 'anomaly_detection_analysis.png', dpi=300, bbox_inches='tight')
+    plt.close()
 
 def generate_comparison_plots(df, plots_dir):
-    """Gera gráficos comparativos"""
+    """Gera gráficos comparativos básicos (mantidos do original)"""
     plots_dir.mkdir(parents=True, exist_ok=True)
     
     # Configurar estilo
@@ -103,8 +421,50 @@ def generate_comparison_plots(df, plots_dir):
     plt.savefig(plots_dir / 'execution_time.png', dpi=300, bbox_inches='tight')
     plt.close()
 
+def generate_detailed_statistics_table(detailed_df, tables_dir):
+    """Gera tabela com estatísticas detalhadas"""
+    print("   📋 Gerando tabelas estatísticas detalhadas...")
+    
+    # Estatísticas por algoritmo
+    stats = detailed_df.groupby('algorithm').agg({
+        'accuracy': ['mean', 'std', 'min', 'max'],
+        'precision': ['mean', 'std', 'min', 'max'], 
+        'recall': ['mean', 'std', 'min', 'max'],
+        'f1_score': ['mean', 'std', 'min', 'max'],
+        'training_time': ['mean', 'std', 'min', 'max'],
+        'memory_usage_mb': ['mean', 'std', 'min', 'max'],
+        'total_time': 'count'
+    }).round(4)
+    
+    # Flatten column names
+    stats.columns = ['_'.join(col).strip() for col in stats.columns.values]
+    stats = stats.rename(columns={'total_time_count': 'total_experiments'})
+    
+    # Salvar estatísticas detalhadas
+    stats.to_csv(tables_dir / 'detailed_statistics.csv')
+    
+    # Gerar tabela markdown com estatísticas principais
+    main_stats = detailed_df.groupby('algorithm').agg({
+        'accuracy': ['mean', 'std'],
+        'f1_score': ['mean', 'std'], 
+        'training_time': 'mean',
+        'total_time': 'count'
+    }).round(4)
+    
+    main_stats.columns = ['Accuracy_Mean', 'Accuracy_Std', 'F1_Mean', 'F1_Std', 'Training_Time', 'Experiments']
+    
+    with open(tables_dir / 'detailed_statistics.md', 'w') as f:
+        f.write("# 📊 Estatísticas Detalhadas dos Experimentos\n\n")
+        f.write("## Resumo por Algoritmo\n\n")
+        f.write(main_stats.to_markdown(floatfmt='.4f'))
+        f.write("\n\n## Legenda\n")
+        f.write("- **Accuracy/F1 Mean**: Valor médio across todas as execuções\n")
+        f.write("- **Accuracy/F1 Std**: Desvio padrão (estabilidade)\n")
+        f.write("- **Training_Time**: Tempo médio de treinamento (s)\n")
+        f.write("- **Experiments**: Total de experimentos executados\n")
+
 def generate_summary_table(df, tables_dir):
-    """Gera tabelas resumo"""
+    """Gera tabelas resumo (mantida do original)"""
     tables_dir.mkdir(parents=True, exist_ok=True)
     
     # Tabela principal
@@ -129,8 +489,8 @@ def generate_summary_table(df, tables_dir):
         f.write(markdown_table)
         f.write("\n")
 
-def generate_final_report(df, algorithms, report_dir):
-    """Gera relatório final"""
+def generate_final_report(df, algorithms, report_dir, test_mode=False):
+    """Gera relatório final melhorado"""
     report_dir.mkdir(parents=True, exist_ok=True)
     
     # Encontrar melhores algoritmos
@@ -142,25 +502,32 @@ def generate_final_report(df, algorithms, report_dir):
     best_f1_algo = df.loc[best_f1_idx]
     fastest_algo = df.loc[fastest_idx]
     
-    report_content = f"""# 📊 Relatório Final de Experimentos - IoT Anomaly Detection
+    # Análise estatística avançada
+    accuracy_cv = df['best_accuracy'].std() / df['best_accuracy'].mean()
+    f1_cv = df['best_f1'].std() / df['best_f1'].mean()
+    
+    report_content = f"""# 📊 Relatório Final de Experimentos - IoT Anomaly Detection {"(MODO TESTE)" if test_mode else "(MODO COMPLETO)"}
 
 ## 🎯 Resumo Executivo
 
+- **Modo de Execução**: {"🧪 TESTE (dados reduzidos)" if test_mode else "🚀 COMPLETO (dataset completo)"}
 - **Total de Algoritmos Testados**: {len(algorithms)}
 - **Total de Experimentos**: {df['total_experiments'].sum()}
-- **Tempo Total de Execução**: {df['execution_time'].sum():.2f} segundos
+- **Tempo Total de Execução**: {df['execution_time'].sum():.2f} segundos ({df['execution_time'].sum()/60:.1f} minutos)
+- **Coeficiente de Variação Accuracy**: {accuracy_cv:.3f} ({"baixa" if accuracy_cv < 0.1 else "média" if accuracy_cv < 0.3 else "alta"} variabilidade)
+- **Coeficiente de Variação F1-Score**: {f1_cv:.3f} ({"baixa" if f1_cv < 0.1 else "média" if f1_cv < 0.3 else "alta"} variabilidade)
 
 ## 🏆 Melhores Resultados
 
 ### 🎯 Melhor Accuracy
 - **Algoritmo**: {best_accuracy_algo['algorithm']}
-- **Accuracy**: {best_accuracy_algo['best_accuracy']:.4f}
+- **Accuracy**: {best_accuracy_algo['best_accuracy']:.4f} (±{(best_accuracy_algo['best_accuracy'] - best_accuracy_algo['mean_accuracy']):.4f})
 - **F1-Score**: {best_accuracy_algo['best_f1']:.4f}
 - **Tempo**: {best_accuracy_algo['execution_time']:.2f}s
 
 ### 🎯 Melhor F1-Score
 - **Algoritmo**: {best_f1_algo['algorithm']}
-- **F1-Score**: {best_f1_algo['best_f1']:.4f}  
+- **F1-Score**: {best_f1_algo['best_f1']:.4f} (±{(best_f1_algo['best_f1'] - best_f1_algo['mean_f1']):.4f})
 - **Accuracy**: {best_f1_algo['best_accuracy']:.4f}
 - **Tempo**: {best_f1_algo['execution_time']:.2f}s
 
@@ -169,113 +536,203 @@ def generate_final_report(df, algorithms, report_dir):
 - **Tempo**: {fastest_algo['execution_time']:.2f}s
 - **Accuracy**: {fastest_algo['best_accuracy']:.4f}
 - **F1-Score**: {fastest_algo['best_f1']:.4f}
+- **Eficiência**: {fastest_algo['best_f1']/fastest_algo['execution_time']:.4f} F1/segundo
 
 ## 📋 Resultados Detalhados
 
-| Algoritmo | Best Accuracy | Mean Accuracy | Best F1 | Mean F1 | Tempo (s) | Experimentos |
-|-----------|---------------|---------------|---------|---------|-----------|--------------|
+| Algoritmo | Best Accuracy | Mean Accuracy | Best F1 | Mean F1 | Tempo (s) | Experimentos | Eficiência |
+|-----------|---------------|---------------|---------|---------|-----------|--------------|------------|
 """
     
     for _, row in df.iterrows():
-        report_content += f"| {row['algorithm']} | {row['best_accuracy']:.4f} | {row['mean_accuracy']:.4f} | {row['best_f1']:.4f} | {row['mean_f1']:.4f} | {row['execution_time']:.1f} | {row['total_experiments']} |\n"
+        efficiency = row['best_f1'] / row['execution_time'] if row['execution_time'] > 0 else 0
+        report_content += f"| {row['algorithm']} | {row['best_accuracy']:.4f} | {row['mean_accuracy']:.4f} | {row['best_f1']:.4f} | {row['mean_f1']:.4f} | {row['execution_time']:.1f} | {row['total_experiments']} | {efficiency:.4f} |\n"
     
     report_content += f"""
-## 📊 Análise Estatística
+## 📊 Análise Estatística Avançada
 
-- **Média de Accuracy**: {df['best_accuracy'].mean():.4f}
-- **Desvio Padrão Accuracy**: {df['best_accuracy'].std():.4f}
-- **Média de F1-Score**: {df['best_f1'].mean():.4f}
-- **Desvio Padrão F1-Score**: {df['best_f1'].std():.4f}
+### Métricas de Performance
+- **Accuracy Média Geral**: {df['best_accuracy'].mean():.4f} ± {df['best_accuracy'].std():.4f}
+- **F1-Score Médio Geral**: {df['best_f1'].mean():.4f} ± {df['best_f1'].std():.4f}
+- **Algoritmo mais Consistente (menor CV)**: {df.loc[df['best_f1'].index, 'algorithm'].iloc[np.argmin([abs(row['best_f1'] - row['mean_f1'])/row['mean_f1'] for _, row in df.iterrows()])]}
+
+### Métricas de Eficiência
+- **Tempo Médio por Algoritmo**: {df['execution_time'].mean():.2f}s ± {df['execution_time'].std():.2f}s
+- **Total de Experimentos Executados**: {df['total_experiments'].sum()}
+- **Experimentos por Minuto**: {df['total_experiments'].sum() / (df['execution_time'].sum()/60):.1f}
+
+### Rankings
+1. **Por Performance (F1)**: {', '.join(df.nlargest(3, 'best_f1')['algorithm'].tolist())}
+2. **Por Velocidade**: {', '.join(df.nsmallest(3, 'execution_time')['algorithm'].tolist())}
+3. **Por Eficiência (F1/tempo)**: {', '.join(df.assign(efficiency=df['best_f1']/df['execution_time']).nlargest(3, 'efficiency')['algorithm'].tolist())}
 
 ## 🔧 Configuração dos Experimentos
 
 - **Configurações por Algoritmo**: {df['configurations'].mean():.1f} (média)
 - **Execuções por Configuração**: {df['runs_per_config'].mean():.1f} (média)
-- **Tempo Médio por Algoritmo**: {df['execution_time'].mean():.2f}s
+- **Rigor Estatístico**: ✅ Múltiplas execuções para cada configuração
+- **Validação**: ✅ Holdout test set independente
+
+## 📈 Gráficos e Análises Geradas
+
+1. **Gráficos Básicos**: Comparações de accuracy, F1-score, tempo de execução
+2. **Análises Avançadas**: 
+   - 📊 Matrizes de confusão agregadas
+   - 📦 Boxplots de distribuições
+   - 🔥 Heatmap de correlações
+   - ⚡ Análises de performance detalhadas
+   - 🔧 Impacto de parâmetros
+   - 🔍 Análise específica de detecção de anomalias
+
+## 💡 Recomendações
+
+### Para Produção
+- **Melhor Performance**: Use **{best_f1_algo['algorithm']}** (F1: {best_f1_algo['best_f1']:.4f})
+- **Melhor Velocidade**: Use **{fastest_algo['algorithm']}** ({fastest_algo['execution_time']:.2f}s)
+- **Balanceado**: {'Considere trade-off entre performance e velocidade' if best_f1_algo['algorithm'] != fastest_algo['algorithm'] else f"Use **{best_f1_algo['algorithm']}** (melhor em ambos)"}
+
+### Para Pesquisa
+- Investigar parâmetros que causaram maior variabilidade
+- Comparar com outros datasets de IoT
+- Analisar interpretabilidade dos modelos
 
 ---
-*Relatório gerado automaticamente pelo pipeline DVC de experimentos de detecção de anomalias em IoT*
+*Relatório gerado automaticamente pelo pipeline DVC avançado de experimentos de detecção de anomalias em IoT*
+*Data: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}*
 """
     
     with open(report_dir / 'final_report.md', 'w') as f:
         f.write(report_content)
     
-    # Salvar também em JSON para uso programático
+    # Salvar JSON melhorado
     report_json = {
         'summary': {
             'total_algorithms': len(algorithms),
             'total_experiments': int(df['total_experiments'].sum()),
             'total_execution_time': float(df['execution_time'].sum()),
+            'accuracy_cv': float(accuracy_cv),
+            'f1_cv': float(f1_cv)
         },
         'best_results': {
             'best_accuracy': {
                 'algorithm': best_accuracy_algo['algorithm'],
-                'value': float(best_accuracy_algo['best_accuracy'])
+                'value': float(best_accuracy_algo['best_accuracy']),
+                'stability': float(abs(best_accuracy_algo['best_accuracy'] - best_accuracy_algo['mean_accuracy']))
             },
             'best_f1': {
                 'algorithm': best_f1_algo['algorithm'],
-                'value': float(best_f1_algo['best_f1'])
+                'value': float(best_f1_algo['best_f1']),
+                'stability': float(abs(best_f1_algo['best_f1'] - best_f1_algo['mean_f1']))
             },
             'fastest': {
                 'algorithm': fastest_algo['algorithm'],
-                'time': float(fastest_algo['execution_time'])
+                'time': float(fastest_algo['execution_time']),
+                'efficiency': float(fastest_algo['best_f1']/fastest_algo['execution_time'])
             }
         },
         'statistics': {
             'mean_accuracy': float(df['best_accuracy'].mean()),
             'std_accuracy': float(df['best_accuracy'].std()),
             'mean_f1': float(df['best_f1'].mean()),
-            'std_f1': float(df['best_f1'].std())
+            'std_f1': float(df['best_f1'].std()),
+            'mean_execution_time': float(df['execution_time'].mean()),
+            'total_experiments_per_minute': float(df['total_experiments'].sum() / (df['execution_time'].sum()/60))
+        },
+        'rankings': {
+            'by_f1': df.nlargest(5, 'best_f1')['algorithm'].tolist(),
+            'by_speed': df.nsmallest(5, 'execution_time')['algorithm'].tolist(),
+            'by_efficiency': df.assign(efficiency=df['best_f1']/df['execution_time']).nlargest(5, 'efficiency')['algorithm'].tolist()
         }
     }
     
     with open(report_dir / 'final_report.json', 'w') as f:
         json.dump(report_json, f, indent=2)
 
-def consolidate_all_results():
-    """Função principal de consolidação"""
-    print("📊 Iniciando consolidação de resultados...")
+def consolidate_all_results(test_mode=None):
+    """Função principal de consolidação com análises avançadas"""
+    print("📊 Iniciando consolidação avançada de resultados...")
     
-    # Carregar todos os resultados
-    all_results, algorithms = load_all_results()
+    # Carregar todos os resultados (detecta automaticamente o modo)
+    all_summaries, all_detailed_results, algorithms = load_all_results(test_mode)
     
-    if not all_results:
+    if not all_summaries:
         print("❌ Nenhum resultado encontrado!")
         return False
     
+    # Detectar modo baseado nos resultados
+    detected_test_mode = False
+    if all_summaries and 'test_mode' in all_summaries[0]:
+        detected_test_mode = all_summaries[0]['test_mode']
+    elif test_mode is not None:
+        detected_test_mode = test_mode
+    
+    mode_str = "TESTE" if detected_test_mode else "COMPLETO"
+    
     print(f"✅ Carregados resultados de {len(algorithms)} algoritmos")
+    print(f"📋 Total de {len(all_detailed_results)} experimentos individuais")
+    print(f"🧪 Modo: {mode_str}")
     
-    # Criar DataFrame
-    df = pd.DataFrame(all_results)
+    # Criar DataFrames
+    df_summary = pd.DataFrame(all_summaries)
+    df_detailed = pd.DataFrame(all_detailed_results)
     
-    # Criar diretórios de saída
-    final_plots_dir = Path("experiments/final_plots")
-    final_tables_dir = Path("experiments/final_tables")
-    final_report_dir = Path("experiments/final_report")
-    final_results_dir = Path("experiments/final_results")
+    # Expandir confusion_matrix para colunas separadas
+    if not df_detailed.empty and 'confusion_matrix' in df_detailed.columns:
+        cm_df = pd.json_normalize(df_detailed['confusion_matrix'])
+        df_detailed = pd.concat([df_detailed.drop('confusion_matrix', axis=1), cm_df], axis=1)
+    
+    # Criar diretórios de saída baseados no modo
+    suffix = "_test" if detected_test_mode else ""
+    final_plots_dir = Path(f"experiments/final_plots{suffix}")
+    final_tables_dir = Path(f"experiments/final_tables{suffix}")
+    final_report_dir = Path(f"experiments/final_report{suffix}")
+    final_results_dir = Path(f"experiments/final_results{suffix}")
     
     for dir_path in [final_plots_dir, final_tables_dir, final_report_dir, final_results_dir]:
         dir_path.mkdir(parents=True, exist_ok=True)
     
-    # Gerar outputs
-    print("📈 Gerando gráficos...")
-    generate_comparison_plots(df, final_plots_dir)
+    print(f"📁 Salvando consolidação em: experiments/*{suffix}/")
     
-    print("📋 Gerando tabelas...")
-    generate_summary_table(df, final_tables_dir)
+    # Gerar análises avançadas
+    print("📈 Gerando análises avançadas...")
     
-    print("📄 Gerando relatório...")
-    generate_final_report(df, algorithms, final_report_dir)
+    # Gráficos básicos (mantidos)
+    generate_comparison_plots(df_summary, final_plots_dir)
     
-    # Salvar DataFrame consolidado
-    df.to_csv(final_results_dir / 'consolidated_results.csv', index=False)
-    df.to_json(final_results_dir / 'consolidated_results.json', orient='records', indent=2)
+    # Análises detalhadas (NOVAS)
+    if not df_detailed.empty:
+        generate_confusion_matrices(df_detailed, final_plots_dir)
+        generate_boxplots(df_detailed, final_plots_dir)
+        generate_correlation_heatmap(df_detailed, final_plots_dir)
+        generate_performance_analysis(df_detailed, final_plots_dir)
+        generate_parameter_analysis(df_detailed, final_plots_dir)
+        generate_anomaly_detection_analysis(df_detailed, final_plots_dir)
     
-    print(f"✅ Consolidação completa!")
-    print(f"   - Algoritmos processados: {len(algorithms)}")
-    print(f"   - Total de experimentos: {df['total_experiments'].sum()}")
-    print(f"   - Melhor Accuracy: {df['best_accuracy'].max():.4f} ({df.loc[df['best_accuracy'].idxmax(), 'algorithm']})")
-    print(f"   - Melhor F1-Score: {df['best_f1'].max():.4f} ({df.loc[df['best_f1'].idxmax(), 'algorithm']})")
+    print("📋 Gerando tabelas avançadas...")
+    generate_summary_table(df_summary, final_tables_dir)
+    if not df_detailed.empty:
+        generate_detailed_statistics_table(df_detailed, final_tables_dir)
+    
+    print("📄 Gerando relatório avançado...")
+    generate_final_report(df_summary, algorithms, final_report_dir, detected_test_mode)
+    
+    # Salvar DataFrames consolidados
+    df_summary.to_csv(final_results_dir / 'consolidated_results.csv', index=False)
+    df_summary.to_json(final_results_dir / 'consolidated_results.json', orient='records', indent=2)
+    
+    if not df_detailed.empty:
+        df_detailed.to_csv(final_results_dir / 'detailed_results.csv', index=False)
+        df_detailed.to_json(final_results_dir / 'detailed_results.json', orient='records', indent=2)
+    
+    print(f"\n🎉 CONSOLIDAÇÃO AVANÇADA COMPLETA! ({mode_str})")
+    print(f"   📊 Algoritmos processados: {len(algorithms)}")
+    print(f"   🔬 Experimentos analisados: {len(all_detailed_results)}")
+    print(f"   📈 Gráficos gerados: 10+ análises avançadas")
+    print(f"   📋 Tabelas: Resumo + estatísticas detalhadas")
+    print(f"   📄 Relatório: Análise completa com recomendações")
+    print(f"   🏆 Melhor F1-Score: {df_summary['best_f1'].max():.4f} ({df_summary.loc[df_summary['best_f1'].idxmax(), 'algorithm']})")
+    print(f"   ⚡ Mais rápido: {df_summary.loc[df_summary['execution_time'].idxmin(), 'algorithm']} ({df_summary['execution_time'].min():.2f}s)")
+    print(f"   💾 Resultados em: experiments/*{suffix}/")
     
     return True
 
@@ -285,4 +742,6 @@ if __name__ == "__main__":
         exit(0 if success else 1)
     except Exception as e:
         print(f"❌ Erro na consolidação: {str(e)}")
+        import traceback
+        traceback.print_exc()
         exit(1)

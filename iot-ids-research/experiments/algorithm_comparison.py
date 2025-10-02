@@ -279,7 +279,7 @@ def get_algorithm_configs(test_mode=None):
                 ],
                 'n_runs': N_RUNS
             },
-            'GradientBoosting': {
+            'GradientBoostingClassifier': {
                 'class': GradientBoostingClassifier,
                 'param_combinations': [
                     {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
@@ -317,7 +317,7 @@ def get_algorithm_configs(test_mode=None):
                     {'n_estimators': 100, 'max_depth': 20, 'random_state': 42}
                 ]
             },
-            'GradientBoosting': {
+            'GradientBoostingClassifier': {
                 'class': GradientBoostingClassifier,
                 'param_combinations': [
                     {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},

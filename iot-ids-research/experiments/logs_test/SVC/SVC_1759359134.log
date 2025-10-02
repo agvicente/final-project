@@ -1,0 +1,118 @@
+2025-10-01 22:52:14,762 - INFO - [run_algorithm_experiments:68] - 🔬 INICIANDO EXPERIMENTOS: SVC
+2025-10-01 22:52:14,762 - INFO - [run_algorithm_experiments:69] - 🧪 Modo: TESTE
+2025-10-01 22:52:14,763 - INFO - [run_algorithm_experiments:70] - 📁 Pasta: experiments/results_test/
+2025-10-01 22:52:14,763 - INFO - [run_algorithm_experiments:79] - 📊 Carregando dados binários...
+2025-10-01 22:52:14,764 - INFO - [log_memory_status:122] - 💾 Memória (antes do carregamento):
+2025-10-01 22:52:14,764 - INFO - [log_memory_status:123] -    RSS: 265.8 MB
+2025-10-01 22:52:14,764 - INFO - [log_memory_status:124] -    VMS: 1129.5 MB
+2025-10-01 22:52:14,764 - INFO - [log_memory_status:125] -    Uso: 0.8%
+2025-10-01 22:52:14,764 - INFO - [log_memory_status:126] -    Disponível: 28966.6 MB
+2025-10-01 22:52:14,765 - INFO - [load_binary_data:140] - 📂 Carregando dados binários (test_mode=True)...
+2025-10-01 22:52:14,765 - INFO - [log_memory_status:122] - 💾 Memória (antes do carregamento):
+2025-10-01 22:52:14,765 - INFO - [log_memory_status:123] -    RSS: 265.8 MB
+2025-10-01 22:52:14,766 - INFO - [log_memory_status:124] -    VMS: 1129.5 MB
+2025-10-01 22:52:14,766 - INFO - [log_memory_status:125] -    Uso: 0.8%
+2025-10-01 22:52:14,766 - INFO - [log_memory_status:126] -    Disponível: 28966.6 MB
+2025-10-01 22:52:14,766 - INFO - [load_binary_data:147] -    📄 Carregando X_train_binary.npy...
+2025-10-01 22:52:15,363 - INFO - [load_binary_data:150] -    📄 Carregando X_test_binary.npy...
+2025-10-01 22:52:15,518 - INFO - [load_binary_data:153] -    📄 Carregando y_train_binary.npy...
+2025-10-01 22:52:15,535 - INFO - [load_binary_data:156] -    📄 Carregando y_test_binary.npy...
+2025-10-01 22:52:15,541 - INFO - [log_memory_status:122] - 💾 Memória (após carregamento):
+2025-10-01 22:52:15,541 - INFO - [log_memory_status:123] -    RSS: 1639.7 MB
+2025-10-01 22:52:15,541 - INFO - [log_memory_status:124] -    VMS: 2503.4 MB
+2025-10-01 22:52:15,541 - INFO - [log_memory_status:125] -    Uso: 5.1%
+2025-10-01 22:52:15,541 - INFO - [log_memory_status:126] -    Disponível: 27661.5 MB
+2025-10-01 22:52:15,542 - INFO - [load_binary_data:162] - 📊 Dados originais carregados:
+2025-10-01 22:52:15,542 - INFO - [load_binary_data:163] -    Treino: (3601524, 39) (1071.6 MB)
+2025-10-01 22:52:15,542 - INFO - [load_binary_data:164] -    Teste: (900382, 39) (267.9 MB)
+2025-10-01 22:52:15,542 - INFO - [load_binary_data:165] -    Memória usada pelos dados: +1373.9 MB
+2025-10-01 22:52:15,542 - INFO - [load_binary_data:168] - 🔄 Aplicando amostragem para modo teste (sample_size=1000)...
+2025-10-01 22:52:15,542 - INFO - [load_binary_data:174] -    Amostras selecionadas - Treino: 1000, Teste: 250
+2025-10-01 22:52:21,709 - INFO - [log_memory_status:122] - 💾 Memória (após amostragem):
+2025-10-01 22:52:21,709 - INFO - [log_memory_status:123] -    RSS: 350.2 MB
+2025-10-01 22:52:21,710 - INFO - [log_memory_status:124] -    VMS: 1213.0 MB
+2025-10-01 22:52:21,710 - INFO - [log_memory_status:125] -    Uso: 1.1%
+2025-10-01 22:52:21,710 - INFO - [log_memory_status:126] -    Disponível: 28778.2 MB
+2025-10-01 22:52:21,710 - INFO - [load_binary_data:189] - 📊 Dados após amostragem:
+2025-10-01 22:52:21,710 - INFO - [load_binary_data:190] -    Treino: (1000, 39)
+2025-10-01 22:52:21,710 - INFO - [load_binary_data:191] -    Teste: (250, 39)
+2025-10-01 22:52:21,711 - INFO - [load_binary_data:197] - 📈 Distribuição de classes:
+2025-10-01 22:52:21,711 - INFO - [load_binary_data:198] -    Treino - Benigno: 23, Malicioso: 977
+2025-10-01 22:52:21,711 - INFO - [load_binary_data:199] -    Teste  - Benigno: 6, Malicioso: 244
+2025-10-01 22:52:21,711 - INFO - [load_binary_data:200] -    Proporção treino: 97.7% malicioso
+2025-10-01 22:52:21,711 - INFO - [load_binary_data:201] -    Proporção teste:  97.6% malicioso
+2025-10-01 22:52:21,711 - INFO - [load_binary_data:203] - ✅ Dados carregados com sucesso!
+2025-10-01 22:52:21,712 - INFO - [log_memory_status:122] - 💾 Memória (após carregamento):
+2025-10-01 22:52:21,712 - INFO - [log_memory_status:123] -    RSS: 350.2 MB
+2025-10-01 22:52:21,712 - INFO - [log_memory_status:124] -    VMS: 1213.0 MB
+2025-10-01 22:52:21,713 - INFO - [log_memory_status:125] -    Uso: 1.1%
+2025-10-01 22:52:21,713 - INFO - [log_memory_status:126] -    Disponível: 28778.2 MB
+2025-10-01 22:52:21,713 - INFO - [run_algorithm_experiments:106] - 🎯 Algoritmo: SVC
+2025-10-01 22:52:21,713 - INFO - [run_algorithm_experiments:107] - 📋 Configurações: 1
+2025-10-01 22:52:21,713 - INFO - [run_algorithm_experiments:108] - 🔄 Execuções: 2
+2025-10-01 22:52:21,713 - INFO - [run_algorithm_experiments:109] - 🔍 Detecção de anomalia: False
+2025-10-01 22:52:21,714 - INFO - [run_algorithm_experiments:116] - 💾 Salvando resultados em: experiments/results_test/svc
+2025-10-01 22:52:21,714 - INFO - [run_algorithm_experiments:123] - 🔧 Config 1/1: {'C': 1.0, 'kernel': 'linear', 'random_state': 42, 'probability': True}
+2025-10-01 22:52:21,714 - INFO - [run_algorithm_experiments:127] -    📋 Run 1/2 (1/2)
+2025-10-01 22:52:21,714 - INFO - [run_single_experiment:409] -       🔬 Iniciando experimento: SVC (run 1, param_set 1)
+2025-10-01 22:52:21,714 - INFO - [run_single_experiment:410] -          Parâmetros: {'C': 1.0, 'kernel': 'linear', 'random_state': 42, 'probability': True}
+2025-10-01 22:52:21,715 - INFO - [run_single_experiment:411] -          Detecção de anomalia: False
+2025-10-01 22:52:21,715 - INFO - [run_single_experiment:415] -          💾 Memória antes: 350.2 MB
+2025-10-01 22:52:21,715 - INFO - [run_single_experiment:419] -          ⚙️ Inicializando SVC...
+2025-10-01 22:52:21,716 - INFO - [run_single_experiment:427] -          💾 Memória após init: +0.0 MB, tempo: 0.000s
+2025-10-01 22:52:21,716 - INFO - [run_single_experiment:430] -          🔄 Treinando modelo...
+2025-10-01 22:52:21,716 - INFO - [run_single_experiment:453] -          📊 Dados para treino: 1,000 amostras
+2025-10-01 22:52:21,750 - INFO - [run_single_experiment:457] -          🎯 Realizando predições...
+2025-10-01 22:52:21,751 - INFO - [run_single_experiment:469] -          ⏱️ Tempo de treino: 0.034s
+2025-10-01 22:52:21,751 - INFO - [run_single_experiment:470] -          ⏱️ Tempo de predição: 0.001s
+2025-10-01 22:52:21,751 - INFO - [run_single_experiment:471] -          💾 Memória do treino: +0.4 MB
+2025-10-01 22:52:21,751 - INFO - [run_single_experiment:474] -          📊 Calculando métricas...
+2025-10-01 22:52:21,767 - INFO - [run_single_experiment:492] -          📈 ROC AUC calculado via predict_proba
+2025-10-01 22:52:21,767 - INFO - [run_single_experiment:505] -          📊 RESULTADOS:
+2025-10-01 22:52:21,767 - INFO - [run_single_experiment:506] -             Accuracy:  0.9720
+2025-10-01 22:52:21,767 - INFO - [run_single_experiment:507] -             Precision: 0.9917
+2025-10-01 22:52:21,768 - INFO - [run_single_experiment:508] -             Recall:    0.9795
+2025-10-01 22:52:21,768 - INFO - [run_single_experiment:509] -             F1-Score:  0.9856
+2025-10-01 22:52:21,768 - INFO - [run_single_experiment:511] -             ROC AUC:   0.9495
+2025-10-01 22:52:21,768 - INFO - [run_single_experiment:512] -          📊 MATRIZ DE CONFUSÃO:
+2025-10-01 22:52:21,768 - INFO - [run_single_experiment:513] -             TN: 4, FP: 2
+2025-10-01 22:52:21,768 - INFO - [run_single_experiment:514] -             FN: 5, TP: 239
+2025-10-01 22:52:21,768 - INFO - [run_single_experiment:515] -          ⏱️ Tempo métricas: 0.016s
+2025-10-01 22:52:21,769 - INFO - [run_single_experiment:516] -          ⏱️ Tempo total: 0.036s
+2025-10-01 22:52:21,769 - INFO - [run_single_experiment:538] -          🧹 Limpando memória do modelo...
+2025-10-01 22:52:21,895 - INFO - [run_single_experiment:555] -          🧹 Limpeza: -0.4 MB liberados em 0.125s
+2025-10-01 22:52:21,895 - INFO - [run_single_experiment:556] -          ✅ Experimento concluído com sucesso!
+2025-10-01 22:52:22,016 - INFO - [run_algorithm_experiments:127] -    📋 Run 2/2 (2/2)
+2025-10-01 22:52:22,016 - INFO - [run_single_experiment:409] -       🔬 Iniciando experimento: SVC (run 2, param_set 1)
+2025-10-01 22:52:22,016 - INFO - [run_single_experiment:410] -          Parâmetros: {'C': 1.0, 'kernel': 'linear', 'random_state': 42, 'probability': True}
+2025-10-01 22:52:22,016 - INFO - [run_single_experiment:411] -          Detecção de anomalia: False
+2025-10-01 22:52:22,017 - INFO - [run_single_experiment:415] -          💾 Memória antes: 351.0 MB
+2025-10-01 22:52:22,017 - INFO - [run_single_experiment:419] -          ⚙️ Inicializando SVC...
+2025-10-01 22:52:22,018 - INFO - [run_single_experiment:427] -          💾 Memória após init: +0.0 MB, tempo: 0.000s
+2025-10-01 22:52:22,018 - INFO - [run_single_experiment:430] -          🔄 Treinando modelo...
+2025-10-01 22:52:22,018 - INFO - [run_single_experiment:453] -          📊 Dados para treino: 1,000 amostras
+2025-10-01 22:52:22,050 - INFO - [run_single_experiment:457] -          🎯 Realizando predições...
+2025-10-01 22:52:22,052 - INFO - [run_single_experiment:469] -          ⏱️ Tempo de treino: 0.033s
+2025-10-01 22:52:22,052 - INFO - [run_single_experiment:470] -          ⏱️ Tempo de predição: 0.001s
+2025-10-01 22:52:22,052 - INFO - [run_single_experiment:471] -          💾 Memória do treino: +0.0 MB
+2025-10-01 22:52:22,052 - INFO - [run_single_experiment:474] -          📊 Calculando métricas...
+2025-10-01 22:52:22,066 - INFO - [run_single_experiment:492] -          📈 ROC AUC calculado via predict_proba
+2025-10-01 22:52:22,066 - INFO - [run_single_experiment:505] -          📊 RESULTADOS:
+2025-10-01 22:52:22,067 - INFO - [run_single_experiment:506] -             Accuracy:  0.9720
+2025-10-01 22:52:22,067 - INFO - [run_single_experiment:507] -             Precision: 0.9917
+2025-10-01 22:52:22,067 - INFO - [run_single_experiment:508] -             Recall:    0.9795
+2025-10-01 22:52:22,067 - INFO - [run_single_experiment:509] -             F1-Score:  0.9856
+2025-10-01 22:52:22,067 - INFO - [run_single_experiment:511] -             ROC AUC:   0.9495
+2025-10-01 22:52:22,067 - INFO - [run_single_experiment:512] -          📊 MATRIZ DE CONFUSÃO:
+2025-10-01 22:52:22,068 - INFO - [run_single_experiment:513] -             TN: 4, FP: 2
+2025-10-01 22:52:22,068 - INFO - [run_single_experiment:514] -             FN: 5, TP: 239
+2025-10-01 22:52:22,068 - INFO - [run_single_experiment:515] -          ⏱️ Tempo métricas: 0.014s
+2025-10-01 22:52:22,068 - INFO - [run_single_experiment:516] -          ⏱️ Tempo total: 0.035s
+2025-10-01 22:52:22,068 - INFO - [run_single_experiment:538] -          🧹 Limpando memória do modelo...
+2025-10-01 22:52:22,195 - INFO - [run_single_experiment:555] -          🧹 Limpeza: 0.0 MB liberados em 0.126s
+2025-10-01 22:52:22,195 - INFO - [run_single_experiment:556] -          ✅ Experimento concluído com sucesso!
+2025-10-01 22:52:22,315 - INFO - [run_algorithm_experiments:152] - 💾 Salvando 2 resultados...
+2025-10-01 22:52:22,319 - INFO - [run_algorithm_experiments:181] - ✅ Resultados salvos: experiments/results_test/svc
+2025-10-01 22:52:22,319 - INFO - [run_algorithm_experiments:182] - 🎯 Melhor Accuracy: 0.9720
+2025-10-01 22:52:22,319 - INFO - [run_algorithm_experiments:183] - 🎯 Melhor F1: 0.9856
+2025-10-01 22:52:22,319 - INFO - [run_algorithm_experiments:186] - 🏁 CONCLUÍDO EM 7.56s

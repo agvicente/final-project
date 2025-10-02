@@ -1,0 +1,177 @@
+2025-10-01 22:52:00,083 - INFO - [run_algorithm_experiments:68] - 🔬 INICIANDO EXPERIMENTOS: LogisticRegression
+2025-10-01 22:52:00,083 - INFO - [run_algorithm_experiments:69] - 🧪 Modo: TESTE
+2025-10-01 22:52:00,084 - INFO - [run_algorithm_experiments:70] - 📁 Pasta: experiments/results_test/
+2025-10-01 22:52:00,084 - INFO - [run_algorithm_experiments:79] - 📊 Carregando dados binários...
+2025-10-01 22:52:00,085 - INFO - [log_memory_status:122] - 💾 Memória (antes do carregamento):
+2025-10-01 22:52:00,085 - INFO - [log_memory_status:123] -    RSS: 265.4 MB
+2025-10-01 22:52:00,085 - INFO - [log_memory_status:124] -    VMS: 1129.5 MB
+2025-10-01 22:52:00,085 - INFO - [log_memory_status:125] -    Uso: 0.8%
+2025-10-01 22:52:00,086 - INFO - [log_memory_status:126] -    Disponível: 28914.7 MB
+2025-10-01 22:52:00,086 - INFO - [load_binary_data:140] - 📂 Carregando dados binários (test_mode=True)...
+2025-10-01 22:52:00,086 - INFO - [log_memory_status:122] - 💾 Memória (antes do carregamento):
+2025-10-01 22:52:00,087 - INFO - [log_memory_status:123] -    RSS: 265.4 MB
+2025-10-01 22:52:00,087 - INFO - [log_memory_status:124] -    VMS: 1129.5 MB
+2025-10-01 22:52:00,087 - INFO - [log_memory_status:125] -    Uso: 0.8%
+2025-10-01 22:52:00,087 - INFO - [log_memory_status:126] -    Disponível: 28914.7 MB
+2025-10-01 22:52:00,087 - INFO - [load_binary_data:147] -    📄 Carregando X_train_binary.npy...
+2025-10-01 22:52:00,678 - INFO - [load_binary_data:150] -    📄 Carregando X_test_binary.npy...
+2025-10-01 22:52:00,837 - INFO - [load_binary_data:153] -    📄 Carregando y_train_binary.npy...
+2025-10-01 22:52:00,854 - INFO - [load_binary_data:156] -    📄 Carregando y_test_binary.npy...
+2025-10-01 22:52:00,860 - INFO - [log_memory_status:122] - 💾 Memória (após carregamento):
+2025-10-01 22:52:00,860 - INFO - [log_memory_status:123] -    RSS: 1639.4 MB
+2025-10-01 22:52:00,861 - INFO - [log_memory_status:124] -    VMS: 2503.4 MB
+2025-10-01 22:52:00,861 - INFO - [log_memory_status:125] -    Uso: 5.1%
+2025-10-01 22:52:00,861 - INFO - [log_memory_status:126] -    Disponível: 27542.2 MB
+2025-10-01 22:52:00,861 - INFO - [load_binary_data:162] - 📊 Dados originais carregados:
+2025-10-01 22:52:00,861 - INFO - [load_binary_data:163] -    Treino: (3601524, 39) (1071.6 MB)
+2025-10-01 22:52:00,861 - INFO - [load_binary_data:164] -    Teste: (900382, 39) (267.9 MB)
+2025-10-01 22:52:00,862 - INFO - [load_binary_data:165] -    Memória usada pelos dados: +1373.9 MB
+2025-10-01 22:52:00,862 - INFO - [load_binary_data:168] - 🔄 Aplicando amostragem para modo teste (sample_size=1000)...
+2025-10-01 22:52:00,862 - INFO - [load_binary_data:174] -    Amostras selecionadas - Treino: 1000, Teste: 250
+2025-10-01 22:52:07,341 - INFO - [log_memory_status:122] - 💾 Memória (após amostragem):
+2025-10-01 22:52:07,342 - INFO - [log_memory_status:123] -    RSS: 349.9 MB
+2025-10-01 22:52:07,342 - INFO - [log_memory_status:124] -    VMS: 1213.0 MB
+2025-10-01 22:52:07,342 - INFO - [log_memory_status:125] -    Uso: 1.1%
+2025-10-01 22:52:07,342 - INFO - [log_memory_status:126] -    Disponível: 28662.0 MB
+2025-10-01 22:52:07,342 - INFO - [load_binary_data:189] - 📊 Dados após amostragem:
+2025-10-01 22:52:07,343 - INFO - [load_binary_data:190] -    Treino: (1000, 39)
+2025-10-01 22:52:07,343 - INFO - [load_binary_data:191] -    Teste: (250, 39)
+2025-10-01 22:52:07,343 - INFO - [load_binary_data:197] - 📈 Distribuição de classes:
+2025-10-01 22:52:07,343 - INFO - [load_binary_data:198] -    Treino - Benigno: 23, Malicioso: 977
+2025-10-01 22:52:07,343 - INFO - [load_binary_data:199] -    Teste  - Benigno: 6, Malicioso: 244
+2025-10-01 22:52:07,343 - INFO - [load_binary_data:200] -    Proporção treino: 97.7% malicioso
+2025-10-01 22:52:07,344 - INFO - [load_binary_data:201] -    Proporção teste:  97.6% malicioso
+2025-10-01 22:52:07,344 - INFO - [load_binary_data:203] - ✅ Dados carregados com sucesso!
+2025-10-01 22:52:07,344 - INFO - [log_memory_status:122] - 💾 Memória (após carregamento):
+2025-10-01 22:52:07,345 - INFO - [log_memory_status:123] -    RSS: 349.9 MB
+2025-10-01 22:52:07,345 - INFO - [log_memory_status:124] -    VMS: 1213.0 MB
+2025-10-01 22:52:07,345 - INFO - [log_memory_status:125] -    Uso: 1.1%
+2025-10-01 22:52:07,345 - INFO - [log_memory_status:126] -    Disponível: 28662.0 MB
+2025-10-01 22:52:07,345 - INFO - [run_algorithm_experiments:106] - 🎯 Algoritmo: LogisticRegression
+2025-10-01 22:52:07,346 - INFO - [run_algorithm_experiments:107] - 📋 Configurações: 2
+2025-10-01 22:52:07,346 - INFO - [run_algorithm_experiments:108] - 🔄 Execuções: 2
+2025-10-01 22:52:07,346 - INFO - [run_algorithm_experiments:109] - 🔍 Detecção de anomalia: False
+2025-10-01 22:52:07,346 - INFO - [run_algorithm_experiments:116] - 💾 Salvando resultados em: experiments/results_test/logisticregression
+2025-10-01 22:52:07,346 - INFO - [run_algorithm_experiments:123] - 🔧 Config 1/2: {'C': 1.0, 'max_iter': 100, 'random_state': 42}
+2025-10-01 22:52:07,347 - INFO - [run_algorithm_experiments:127] -    📋 Run 1/2 (1/4)
+2025-10-01 22:52:07,347 - INFO - [run_single_experiment:409] -       🔬 Iniciando experimento: LogisticRegression (run 1, param_set 1)
+2025-10-01 22:52:07,347 - INFO - [run_single_experiment:410] -          Parâmetros: {'C': 1.0, 'max_iter': 100, 'random_state': 42}
+2025-10-01 22:52:07,347 - INFO - [run_single_experiment:411] -          Detecção de anomalia: False
+2025-10-01 22:52:07,348 - INFO - [run_single_experiment:415] -          💾 Memória antes: 349.9 MB
+2025-10-01 22:52:07,348 - INFO - [run_single_experiment:419] -          ⚙️ Inicializando LogisticRegression...
+2025-10-01 22:52:07,349 - INFO - [run_single_experiment:427] -          💾 Memória após init: +0.0 MB, tempo: 0.000s
+2025-10-01 22:52:07,349 - INFO - [run_single_experiment:430] -          🔄 Treinando modelo...
+2025-10-01 22:52:07,349 - INFO - [run_single_experiment:453] -          📊 Dados para treino: 1,000 amostras
+2025-10-01 22:52:07,367 - INFO - [run_single_experiment:457] -          🎯 Realizando predições...
+2025-10-01 22:52:07,368 - INFO - [run_single_experiment:469] -          ⏱️ Tempo de treino: 0.019s
+2025-10-01 22:52:07,368 - INFO - [run_single_experiment:470] -          ⏱️ Tempo de predição: 0.000s
+2025-10-01 22:52:07,368 - INFO - [run_single_experiment:471] -          💾 Memória do treino: +0.9 MB
+2025-10-01 22:52:07,369 - INFO - [run_single_experiment:474] -          📊 Calculando métricas...
+2025-10-01 22:52:07,385 - INFO - [run_single_experiment:492] -          📈 ROC AUC calculado via predict_proba
+2025-10-01 22:52:07,385 - INFO - [run_single_experiment:505] -          📊 RESULTADOS:
+2025-10-01 22:52:07,385 - INFO - [run_single_experiment:506] -             Accuracy:  0.9720
+2025-10-01 22:52:07,385 - INFO - [run_single_experiment:507] -             Precision: 0.9917
+2025-10-01 22:52:07,385 - INFO - [run_single_experiment:508] -             Recall:    0.9795
+2025-10-01 22:52:07,386 - INFO - [run_single_experiment:509] -             F1-Score:  0.9856
+2025-10-01 22:52:07,386 - INFO - [run_single_experiment:511] -             ROC AUC:   0.9788
+2025-10-01 22:52:07,386 - INFO - [run_single_experiment:512] -          📊 MATRIZ DE CONFUSÃO:
+2025-10-01 22:52:07,386 - INFO - [run_single_experiment:513] -             TN: 4, FP: 2
+2025-10-01 22:52:07,386 - INFO - [run_single_experiment:514] -             FN: 5, TP: 239
+2025-10-01 22:52:07,386 - INFO - [run_single_experiment:515] -          ⏱️ Tempo métricas: 0.016s
+2025-10-01 22:52:07,387 - INFO - [run_single_experiment:516] -          ⏱️ Tempo total: 0.021s
+2025-10-01 22:52:07,387 - INFO - [run_single_experiment:538] -          🧹 Limpando memória do modelo...
+2025-10-01 22:52:07,521 - INFO - [run_single_experiment:555] -          🧹 Limpeza: -0.4 MB liberados em 0.134s
+2025-10-01 22:52:07,522 - INFO - [run_single_experiment:556] -          ✅ Experimento concluído com sucesso!
+2025-10-01 22:52:07,648 - INFO - [run_algorithm_experiments:127] -    📋 Run 2/2 (2/4)
+2025-10-01 22:52:07,649 - INFO - [run_single_experiment:409] -       🔬 Iniciando experimento: LogisticRegression (run 2, param_set 1)
+2025-10-01 22:52:07,649 - INFO - [run_single_experiment:410] -          Parâmetros: {'C': 1.0, 'max_iter': 100, 'random_state': 42}
+2025-10-01 22:52:07,649 - INFO - [run_single_experiment:411] -          Detecção de anomalia: False
+2025-10-01 22:52:07,650 - INFO - [run_single_experiment:415] -          💾 Memória antes: 351.1 MB
+2025-10-01 22:52:07,650 - INFO - [run_single_experiment:419] -          ⚙️ Inicializando LogisticRegression...
+2025-10-01 22:52:07,651 - INFO - [run_single_experiment:427] -          💾 Memória após init: +0.0 MB, tempo: 0.000s
+2025-10-01 22:52:07,651 - INFO - [run_single_experiment:430] -          🔄 Treinando modelo...
+2025-10-01 22:52:07,651 - INFO - [run_single_experiment:453] -          📊 Dados para treino: 1,000 amostras
+2025-10-01 22:52:07,668 - INFO - [run_single_experiment:457] -          🎯 Realizando predições...
+2025-10-01 22:52:07,669 - INFO - [run_single_experiment:469] -          ⏱️ Tempo de treino: 0.017s
+2025-10-01 22:52:07,669 - INFO - [run_single_experiment:470] -          ⏱️ Tempo de predição: 0.000s
+2025-10-01 22:52:07,670 - INFO - [run_single_experiment:471] -          💾 Memória do treino: +0.0 MB
+2025-10-01 22:52:07,670 - INFO - [run_single_experiment:474] -          📊 Calculando métricas...
+2025-10-01 22:52:07,685 - INFO - [run_single_experiment:492] -          📈 ROC AUC calculado via predict_proba
+2025-10-01 22:52:07,686 - INFO - [run_single_experiment:505] -          📊 RESULTADOS:
+2025-10-01 22:52:07,686 - INFO - [run_single_experiment:506] -             Accuracy:  0.9720
+2025-10-01 22:52:07,686 - INFO - [run_single_experiment:507] -             Precision: 0.9917
+2025-10-01 22:52:07,686 - INFO - [run_single_experiment:508] -             Recall:    0.9795
+2025-10-01 22:52:07,686 - INFO - [run_single_experiment:509] -             F1-Score:  0.9856
+2025-10-01 22:52:07,687 - INFO - [run_single_experiment:511] -             ROC AUC:   0.9788
+2025-10-01 22:52:07,687 - INFO - [run_single_experiment:512] -          📊 MATRIZ DE CONFUSÃO:
+2025-10-01 22:52:07,687 - INFO - [run_single_experiment:513] -             TN: 4, FP: 2
+2025-10-01 22:52:07,687 - INFO - [run_single_experiment:514] -             FN: 5, TP: 239
+2025-10-01 22:52:07,687 - INFO - [run_single_experiment:515] -          ⏱️ Tempo métricas: 0.016s
+2025-10-01 22:52:07,687 - INFO - [run_single_experiment:516] -          ⏱️ Tempo total: 0.020s
+2025-10-01 22:52:07,688 - INFO - [run_single_experiment:538] -          🧹 Limpando memória do modelo...
+2025-10-01 22:52:07,818 - INFO - [run_single_experiment:555] -          🧹 Limpeza: 0.0 MB liberados em 0.130s
+2025-10-01 22:52:07,819 - INFO - [run_single_experiment:556] -          ✅ Experimento concluído com sucesso!
+2025-10-01 22:52:07,944 - INFO - [run_algorithm_experiments:123] - 🔧 Config 2/2: {'C': 0.1, 'max_iter': 100, 'random_state': 42}
+2025-10-01 22:52:07,945 - INFO - [run_algorithm_experiments:127] -    📋 Run 1/2 (3/4)
+2025-10-01 22:52:07,945 - INFO - [run_single_experiment:409] -       🔬 Iniciando experimento: LogisticRegression (run 1, param_set 2)
+2025-10-01 22:52:07,945 - INFO - [run_single_experiment:410] -          Parâmetros: {'C': 0.1, 'max_iter': 100, 'random_state': 42}
+2025-10-01 22:52:07,945 - INFO - [run_single_experiment:411] -          Detecção de anomalia: False
+2025-10-01 22:52:07,946 - INFO - [run_single_experiment:415] -          💾 Memória antes: 351.1 MB
+2025-10-01 22:52:07,946 - INFO - [run_single_experiment:419] -          ⚙️ Inicializando LogisticRegression...
+2025-10-01 22:52:07,947 - INFO - [run_single_experiment:427] -          💾 Memória após init: +0.0 MB, tempo: 0.000s
+2025-10-01 22:52:07,947 - INFO - [run_single_experiment:430] -          🔄 Treinando modelo...
+2025-10-01 22:52:07,947 - INFO - [run_single_experiment:453] -          📊 Dados para treino: 1,000 amostras
+2025-10-01 22:52:07,960 - INFO - [run_single_experiment:457] -          🎯 Realizando predições...
+2025-10-01 22:52:07,961 - INFO - [run_single_experiment:469] -          ⏱️ Tempo de treino: 0.013s
+2025-10-01 22:52:07,961 - INFO - [run_single_experiment:470] -          ⏱️ Tempo de predição: 0.000s
+2025-10-01 22:52:07,961 - INFO - [run_single_experiment:471] -          💾 Memória do treino: +0.0 MB
+2025-10-01 22:52:07,961 - INFO - [run_single_experiment:474] -          📊 Calculando métricas...
+2025-10-01 22:52:07,976 - INFO - [run_single_experiment:492] -          📈 ROC AUC calculado via predict_proba
+2025-10-01 22:52:07,977 - INFO - [run_single_experiment:505] -          📊 RESULTADOS:
+2025-10-01 22:52:07,977 - INFO - [run_single_experiment:506] -             Accuracy:  0.9720
+2025-10-01 22:52:07,977 - INFO - [run_single_experiment:507] -             Precision: 0.9917
+2025-10-01 22:52:07,977 - INFO - [run_single_experiment:508] -             Recall:    0.9795
+2025-10-01 22:52:07,977 - INFO - [run_single_experiment:509] -             F1-Score:  0.9856
+2025-10-01 22:52:07,978 - INFO - [run_single_experiment:511] -             ROC AUC:   0.9829
+2025-10-01 22:52:07,978 - INFO - [run_single_experiment:512] -          📊 MATRIZ DE CONFUSÃO:
+2025-10-01 22:52:07,978 - INFO - [run_single_experiment:513] -             TN: 4, FP: 2
+2025-10-01 22:52:07,978 - INFO - [run_single_experiment:514] -             FN: 5, TP: 239
+2025-10-01 22:52:07,978 - INFO - [run_single_experiment:515] -          ⏱️ Tempo métricas: 0.015s
+2025-10-01 22:52:07,978 - INFO - [run_single_experiment:516] -          ⏱️ Tempo total: 0.015s
+2025-10-01 22:52:07,979 - INFO - [run_single_experiment:538] -          🧹 Limpando memória do modelo...
+2025-10-01 22:52:08,116 - INFO - [run_single_experiment:555] -          🧹 Limpeza: 0.0 MB liberados em 0.136s
+2025-10-01 22:52:08,116 - INFO - [run_single_experiment:556] -          ✅ Experimento concluído com sucesso!
+2025-10-01 22:52:08,251 - INFO - [run_algorithm_experiments:127] -    📋 Run 2/2 (4/4)
+2025-10-01 22:52:08,251 - INFO - [run_single_experiment:409] -       🔬 Iniciando experimento: LogisticRegression (run 2, param_set 2)
+2025-10-01 22:52:08,251 - INFO - [run_single_experiment:410] -          Parâmetros: {'C': 0.1, 'max_iter': 100, 'random_state': 42}
+2025-10-01 22:52:08,252 - INFO - [run_single_experiment:411] -          Detecção de anomalia: False
+2025-10-01 22:52:08,252 - INFO - [run_single_experiment:415] -          💾 Memória antes: 351.1 MB
+2025-10-01 22:52:08,253 - INFO - [run_single_experiment:419] -          ⚙️ Inicializando LogisticRegression...
+2025-10-01 22:52:08,253 - INFO - [run_single_experiment:427] -          💾 Memória após init: +0.0 MB, tempo: 0.000s
+2025-10-01 22:52:08,253 - INFO - [run_single_experiment:430] -          🔄 Treinando modelo...
+2025-10-01 22:52:08,254 - INFO - [run_single_experiment:453] -          📊 Dados para treino: 1,000 amostras
+2025-10-01 22:52:08,267 - INFO - [run_single_experiment:457] -          🎯 Realizando predições...
+2025-10-01 22:52:08,268 - INFO - [run_single_experiment:469] -          ⏱️ Tempo de treino: 0.014s
+2025-10-01 22:52:08,268 - INFO - [run_single_experiment:470] -          ⏱️ Tempo de predição: 0.000s
+2025-10-01 22:52:08,268 - INFO - [run_single_experiment:471] -          💾 Memória do treino: +0.0 MB
+2025-10-01 22:52:08,268 - INFO - [run_single_experiment:474] -          📊 Calculando métricas...
+2025-10-01 22:52:08,284 - INFO - [run_single_experiment:492] -          📈 ROC AUC calculado via predict_proba
+2025-10-01 22:52:08,284 - INFO - [run_single_experiment:505] -          📊 RESULTADOS:
+2025-10-01 22:52:08,284 - INFO - [run_single_experiment:506] -             Accuracy:  0.9720
+2025-10-01 22:52:08,284 - INFO - [run_single_experiment:507] -             Precision: 0.9917
+2025-10-01 22:52:08,284 - INFO - [run_single_experiment:508] -             Recall:    0.9795
+2025-10-01 22:52:08,284 - INFO - [run_single_experiment:509] -             F1-Score:  0.9856
+2025-10-01 22:52:08,285 - INFO - [run_single_experiment:511] -             ROC AUC:   0.9829
+2025-10-01 22:52:08,285 - INFO - [run_single_experiment:512] -          📊 MATRIZ DE CONFUSÃO:
+2025-10-01 22:52:08,285 - INFO - [run_single_experiment:513] -             TN: 4, FP: 2
+2025-10-01 22:52:08,285 - INFO - [run_single_experiment:514] -             FN: 5, TP: 239
+2025-10-01 22:52:08,285 - INFO - [run_single_experiment:515] -          ⏱️ Tempo métricas: 0.015s
+2025-10-01 22:52:08,285 - INFO - [run_single_experiment:516] -          ⏱️ Tempo total: 0.016s
+2025-10-01 22:52:08,285 - INFO - [run_single_experiment:538] -          🧹 Limpando memória do modelo...
+2025-10-01 22:52:08,419 - INFO - [run_single_experiment:555] -          🧹 Limpeza: 0.0 MB liberados em 0.133s
+2025-10-01 22:52:08,420 - INFO - [run_single_experiment:556] -          ✅ Experimento concluído com sucesso!
+2025-10-01 22:52:08,543 - INFO - [run_algorithm_experiments:152] - 💾 Salvando 4 resultados...
+2025-10-01 22:52:08,547 - INFO - [run_algorithm_experiments:181] - ✅ Resultados salvos: experiments/results_test/logisticregression
+2025-10-01 22:52:08,547 - INFO - [run_algorithm_experiments:182] - 🎯 Melhor Accuracy: 0.9720
+2025-10-01 22:52:08,548 - INFO - [run_algorithm_experiments:183] - 🎯 Melhor F1: 0.9856
+2025-10-01 22:52:08,548 - INFO - [run_algorithm_experiments:186] - 🏁 CONCLUÍDO EM 8.46s
