@@ -19,6 +19,7 @@ from algorithm_comparison import (
     load_binary_data, get_algorithm_configs, run_single_experiment,
     monitor_memory, log_memory_status, TEST_MODE
 )
+from individual_analysis import analyze_single_algorithm
 
 def get_or_create_shared_timestamp():
     """
@@ -219,6 +220,14 @@ def run_algorithm_experiments(algorithm_name, test_mode=None):
             logger.info(f"✅ Resultados salvos: {results_dir}")
             logger.info(f"🎯 Melhor Accuracy: {summary['best_accuracy']:.4f}")
             logger.info(f"🎯 Melhor F1: {summary['best_f1']:.4f}")
+            
+            # Gerar análise individual detalhada
+            logger.info(f"📊 Gerando análise individual...")
+            try:
+                analyze_single_algorithm(results_dir)
+                logger.info(f"✅ Análise individual concluída: {results_dir}/individual_analysis/")
+            except Exception as e:
+                logger.warning(f"⚠️  Erro na análise individual: {str(e)}")
         
         total_time = time.time() - start_time
         logger.info(f"🏁 CONCLUÍDO EM {total_time:.2f}s")

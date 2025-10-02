@@ -98,6 +98,9 @@ iot-ids-research/experiments/final_tables_test/
 iot-ids-research/experiments/final_report/
 iot-ids-research/experiments/final_report_test/
 
+# Individual Analysis Results - Generated automatically
+iot-ids-research/experiments/results/*/individual_analysis/
+
 # MLflow artifacts and models
 iot-ids-research/experiments/models/
 iot-ids-research/experiments/artifacts/
