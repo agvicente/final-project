@@ -10,6 +10,7 @@ import seaborn as sns
 from pathlib import Path
 import numpy as np
 import os
+import time
 from sklearn.metrics import confusion_matrix
 import warnings
 warnings.filterwarnings('ignore')
@@ -728,16 +729,24 @@ def consolidate_all_results(test_mode=None):
         cm_df = pd.json_normalize(df_detailed['confusion_matrix'])
         df_detailed = pd.concat([df_detailed.drop('confusion_matrix', axis=1), cm_df], axis=1)
     
-    # Sempre usar experiments/final_* (sem sufixo)
-    final_plots_dir = Path("experiments/final_plots")
-    final_tables_dir = Path("experiments/final_tables")
-    final_report_dir = Path("experiments/final_report")
-    final_results_dir = Path("experiments/final_results")
+    # Salvar consolidação em experiments/results/ com timestamp
+    mode_folder = 'test' if detected_test_mode else 'full'
+    consolidation_timestamp = int(time.time())
+    consolidation_folder = f"{consolidation_timestamp}_consolidation"
+    
+    # Criar estrutura: experiments/results/test|full/timestamp_consolidation/
+    base_consolidation_dir = Path("experiments/results") / mode_folder / consolidation_folder
+    
+    final_plots_dir = base_consolidation_dir / "plots"
+    final_tables_dir = base_consolidation_dir / "tables"
+    final_report_dir = base_consolidation_dir / "report"
+    final_results_dir = base_consolidation_dir / "data"
     
     for dir_path in [final_plots_dir, final_tables_dir, final_report_dir, final_results_dir]:
         dir_path.mkdir(parents=True, exist_ok=True)
     
-    print(f"📁 Salvando consolidação em: experiments/final_*/ (modo: {mode_str})")
+    print(f"📁 Salvando consolidação em: {base_consolidation_dir}/ (modo: {mode_str})")
+    print(f"🕐 Timestamp da consolidação: {consolidation_timestamp}")
     
     # Gerar análises avançadas
     print("📈 Gerando análises avançadas...")
@@ -796,7 +805,7 @@ def consolidate_all_results(test_mode=None):
     print(f"   📄 Relatório: Análise completa com recomendações")
     print(f"   🏆 Melhor F1-Score: {df_summary['best_f1'].max():.4f} ({df_summary.loc[df_summary['best_f1'].idxmax(), 'algorithm']})")
     print(f"   ⚡ Mais rápido: {df_summary.loc[df_summary['execution_time'].idxmin(), 'algorithm']} ({df_summary['execution_time'].min():.2f}s)")
-    print(f"   💾 Resultados em: experiments/final_*/")
+    print(f"   💾 Resultados em: {base_consolidation_dir}/")
     
     return True
 

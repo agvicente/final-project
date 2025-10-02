@@ -108,9 +108,6 @@ stages:
     cmd: python3 experiments/consolidate_results.py
     deps:
     - experiments/consolidate_results.py
-    - experiments/results/
-    outs:
-    - experiments/final_results/
-    - experiments/final_plots/
-    - experiments/final_tables/
-    - experiments/final_report/
+    # Não declaramos experiments/results/ como dependência pois as pastas
+    # são criadas dinamicamente com timestamp
+    # Cada consolidação cria pasta com timestamp em experiments/results/test|full/
