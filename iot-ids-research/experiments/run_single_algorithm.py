@@ -206,7 +206,7 @@ def main():
         'one_class_svm': 'OneClassSVM',
         'local_outlier_factor': 'LocalOutlierFactor',
         'elliptic_envelope': 'EllipticEnvelope',
-        'random_forest': 'RandomForestClassifier',
+        'random_forest': 'RandomForest',
         'logistic_regression': 'LogisticRegression',
         'gradient_boosting': 'GradientBoostingClassifier',
         'svc': 'SVC',
