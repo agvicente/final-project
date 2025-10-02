@@ -59,7 +59,7 @@ stages:
     - experiments/logs_test/IsolationForest/
     
   exp_test_one_class_svm:
-    cmd: DVC_TEST_MODE=true python3 experiments/run_single_algorithm.py one_class_svm
+    cmd: python3 experiments/run_single_algorithm.py one_class_svm
     deps:
     - experiments/run_single_algorithm.py
     - experiments/algorithm_comparison.py
@@ -73,7 +73,7 @@ stages:
     - experiments/logs_test/OneClassSVM/
     
   exp_test_random_forest:
-    cmd: DVC_TEST_MODE=true python3 experiments/run_single_algorithm.py random_forest
+    cmd: python3 experiments/run_single_algorithm.py random_forest
     deps:
     - experiments/run_single_algorithm.py
     - experiments/algorithm_comparison.py
@@ -87,7 +87,7 @@ stages:
     - experiments/logs_test/RandomForestClassifier/
     
   exp_test_logistic_regression:
-    cmd: DVC_TEST_MODE=true python3 experiments/run_single_algorithm.py logistic_regression
+    cmd: python3 experiments/run_single_algorithm.py logistic_regression
     deps:
     - experiments/run_single_algorithm.py
     - experiments/algorithm_comparison.py
@@ -101,7 +101,7 @@ stages:
     - experiments/logs_test/LogisticRegression/
 
   exp_test_svc:
-    cmd: DVC_TEST_MODE=true python3 experiments/run_single_algorithm.py svc
+    cmd: python3 experiments/run_single_algorithm.py svc
     deps:
     - experiments/run_single_algorithm.py
     - experiments/algorithm_comparison.py
@@ -116,7 +116,7 @@ stages:
     
   # === CONSOLIDAÇÃO TESTE ===
   consolidate_test_results:
-    cmd: DVC_TEST_MODE=true python3 experiments/consolidate_results.py
+    cmd: python3 experiments/consolidate_results.py
     deps:
     - experiments/consolidate_results.py
     - experiments/results_test/isolationforest/
@@ -231,7 +231,7 @@ stages:
     
   # === CONSOLIDAÇÃO FINAL ===
   consolidate_results:
-    cmd: DVC_TEST_MODE=false python3 experiments/consolidate_results.py
+    cmd: python3 experiments/consolidate_results.py
     deps:
     - experiments/consolidate_results.py
     - experiments/results/isolationforest/
