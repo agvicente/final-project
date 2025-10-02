@@ -48,6 +48,7 @@ stages:
   # Ordenados do MENOS complexo para o MAIS complexo computacionalmente
   # Os estágios se adaptam automaticamente ao TEST_MODE do algorithm_comparison.py
   
+  # 1. MAIS RÁPIDO - O(n)
   exp_logistic_regression:
     cmd: python3 experiments/run_single_algorithm.py logistic_regression
     deps:
@@ -59,6 +60,7 @@ stages:
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/binary_metadata.json
     
+  # 2. RÁPIDO - O(n log n)
   exp_random_forest:
     cmd: python3 experiments/run_single_algorithm.py random_forest
     deps:
@@ -70,6 +72,19 @@ stages:
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/binary_metadata.json
     
+  # 3. MODERADO - O(n log n)
+  exp_gradient_boosting:
+    cmd: python3 experiments/run_single_algorithm.py gradient_boosting
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    
+  # 4. RÁPIDO PARA ANOMALIAS - O(n log n)
   exp_isolation_forest:
     cmd: python3 experiments/run_single_algorithm.py isolation_forest
     deps:
@@ -81,6 +96,31 @@ stages:
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/binary_metadata.json
 
+  # 5. MODERADO PARA ANOMALIAS - O(n²)
+  exp_elliptic_envelope:
+    cmd: python3 experiments/run_single_algorithm.py elliptic_envelope
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+
+  # 6. PESADO PARA ANOMALIAS - O(n²)
+  exp_local_outlier_factor:
+    cmd: python3 experiments/run_single_algorithm.py local_outlier_factor
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+
+  # 7. PESADO - O(n²) com kernel linear
   exp_svc:
     cmd: python3 experiments/run_single_algorithm.py svc
     deps:
@@ -92,6 +132,19 @@ stages:
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/binary_metadata.json
     
+  # 8. MUITO PESADO - O(n³) redes neurais
+  exp_mlp:
+    cmd: python3 experiments/run_single_algorithm.py mlp
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    
+  # 9. MAIS PESADO - O(n²) para anomalias
   exp_one_class_svm:
     cmd: python3 experiments/run_single_algorithm.py one_class_svm
     deps:

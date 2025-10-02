@@ -232,16 +232,34 @@ def run_algorithm_experiments(algorithm_name, test_mode=None):
 def main():
     """Função principal"""
     # Mapeamento de nomes
+    # Mapeamento de nomes - ORDENADOS POR COMPLEXIDADE COMPUTACIONAL
     algorithm_map = {
-        'isolation_forest': 'IsolationForest',
-        'one_class_svm': 'OneClassSVM',
-        'local_outlier_factor': 'LocalOutlierFactor',
-        'elliptic_envelope': 'EllipticEnvelope',
-        'random_forest': 'RandomForest',
+        # 1. MAIS RÁPIDO - O(n)
         'logistic_regression': 'LogisticRegression',
+        
+        # 2. RÁPIDO - O(n log n)
+        'random_forest': 'RandomForest',
+        
+        # 3. MODERADO - O(n log n)
         'gradient_boosting': 'GradientBoostingClassifier',
+        
+        # 4. RÁPIDO PARA ANOMALIAS - O(n log n)
+        'isolation_forest': 'IsolationForest',
+        
+        # 5. MODERADO PARA ANOMALIAS - O(n²)
+        'elliptic_envelope': 'EllipticEnvelope',
+        
+        # 6. PESADO PARA ANOMALIAS - O(n²)
+        'local_outlier_factor': 'LocalOutlierFactor',
+        
+        # 7. PESADO - O(n²) com kernel linear
         'svc': 'SVC',
-        'mlp': 'MLPClassifier'
+        
+        # 8. MUITO PESADO - O(n³) redes neurais
+        'mlp': 'MLPClassifier',
+        
+        # 9. MAIS PESADO - O(n²) para anomalias
+        'one_class_svm': 'OneClassSVM'
     }
     
     if len(sys.argv) != 2:
