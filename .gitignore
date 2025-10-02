@@ -102,3 +102,6 @@ iot-ids-research/experiments/final_report_test/
 iot-ids-research/experiments/models/
 iot-ids-research/experiments/artifacts/
 iot-ids-research/experiments/mlflow-tracking/
+
+# Temporary files for shared timestamps
+iot-ids-research/experiments/.current_run_timestamp

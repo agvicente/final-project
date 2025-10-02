@@ -11,9 +11,31 @@ from pathlib import Path
 import numpy as np
 import os
 import time
+from datetime import datetime
 from sklearn.metrics import confusion_matrix
 import warnings
 warnings.filterwarnings('ignore')
+
+def get_shared_timestamp():
+    """
+    Obtém o timestamp compartilhado da rodada atual.
+    
+    Returns:
+        str: Timestamp no formato YYYYMMDD_HHMMSS ou None se não existir
+    """
+    timestamp_file = Path('experiments/.current_run_timestamp')
+    
+    if timestamp_file.exists():
+        with open(timestamp_file, 'r') as f:
+            return f.read().strip()
+    else:
+        return None
+
+def cleanup_shared_timestamp():
+    """Remove o arquivo de timestamp compartilhado após consolidação"""
+    timestamp_file = Path('experiments/.current_run_timestamp')
+    if timestamp_file.exists():
+        timestamp_file.unlink()
 
 def load_all_results(test_mode=None):
     """Carrega resultados de todos os algoritmos com dados detalhados"""
@@ -729,10 +751,15 @@ def consolidate_all_results(test_mode=None):
         cm_df = pd.json_normalize(df_detailed['confusion_matrix'])
         df_detailed = pd.concat([df_detailed.drop('confusion_matrix', axis=1), cm_df], axis=1)
     
-    # Salvar consolidação em experiments/results/ com timestamp
+    # Salvar consolidação em experiments/results/ com timestamp compartilhado
     mode_folder = 'test' if detected_test_mode else 'full'
-    consolidation_timestamp = int(time.time())
-    consolidation_folder = f"{consolidation_timestamp}_consolidation"
+    
+    # Usar timestamp compartilhado da rodada ou criar novo se não existir
+    shared_timestamp = get_shared_timestamp()
+    if shared_timestamp is None:
+        shared_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    
+    consolidation_folder = f"{shared_timestamp}_consolidation"
     
     # Criar estrutura: experiments/results/test|full/timestamp_consolidation/
     base_consolidation_dir = Path("experiments/results") / mode_folder / consolidation_folder
@@ -746,7 +773,7 @@ def consolidate_all_results(test_mode=None):
         dir_path.mkdir(parents=True, exist_ok=True)
     
     print(f"📁 Salvando consolidação em: {base_consolidation_dir}/ (modo: {mode_str})")
-    print(f"🕐 Timestamp da consolidação: {consolidation_timestamp}")
+    print(f"🕐 Timestamp da rodada: {shared_timestamp}")
     
     # Gerar análises avançadas
     print("📈 Gerando análises avançadas...")
@@ -806,6 +833,10 @@ def consolidate_all_results(test_mode=None):
     print(f"   🏆 Melhor F1-Score: {df_summary['best_f1'].max():.4f} ({df_summary.loc[df_summary['best_f1'].idxmax(), 'algorithm']})")
     print(f"   ⚡ Mais rápido: {df_summary.loc[df_summary['execution_time'].idxmin(), 'algorithm']} ({df_summary['execution_time'].min():.2f}s)")
     print(f"   💾 Resultados em: {base_consolidation_dir}/")
+    
+    # Limpar timestamp compartilhado após consolidação bem-sucedida
+    cleanup_shared_timestamp()
+    print(f"🧹 Timestamp da rodada limpo - rodada completa!")
     
     return True
 

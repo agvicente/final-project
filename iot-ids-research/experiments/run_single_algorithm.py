@@ -10,6 +10,7 @@ import json
 import gc
 from pathlib import Path
 import logging
+from datetime import datetime
 
 # Adicionar path do projeto
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,6 +19,36 @@ from algorithm_comparison import (
     load_binary_data, get_algorithm_configs, run_single_experiment,
     monitor_memory, log_memory_status, TEST_MODE
 )
+
+def get_or_create_shared_timestamp():
+    """
+    Obtém ou cria um timestamp compartilhado para toda a rodada de experimentos.
+    
+    Returns:
+        str: Timestamp no formato YYYYMMDD_HHMMSS
+    """
+    timestamp_file = Path('experiments/.current_run_timestamp')
+    
+    if timestamp_file.exists():
+        # Ler timestamp existente
+        with open(timestamp_file, 'r') as f:
+            return f.read().strip()
+    else:
+        # Criar novo timestamp
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        
+        # Salvar timestamp para outros algoritmos usarem
+        timestamp_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(timestamp_file, 'w') as f:
+            f.write(timestamp)
+        
+        return timestamp
+
+def cleanup_shared_timestamp():
+    """Remove o arquivo de timestamp compartilhado (usado pela consolidação)"""
+    timestamp_file = Path('experiments/.current_run_timestamp')
+    if timestamp_file.exists():
+        timestamp_file.unlink()
 
 def setup_algorithm_logging(algorithm_name, test_mode=False):
     """Configura logging específico para o algoritmo"""
@@ -56,7 +87,7 @@ def setup_algorithm_logging(algorithm_name, test_mode=False):
     
     return logger
 
-def run_algorithm_experiments(algorithm_name, test_mode=None, execution_timestamp=None):
+def run_algorithm_experiments(algorithm_name, test_mode=None):
     """Executa todos os experimentos para um algoritmo específico"""
     # Se test_mode não foi especificado, usar o TEST_MODE global
     if test_mode is None:
@@ -107,11 +138,11 @@ def run_algorithm_experiments(algorithm_name, test_mode=None, execution_timestam
         logger.info(f"🔄 Execuções: {n_runs}")
         logger.info(f"🔍 Detecção de anomalia: {is_anomaly_detection}")
         
-        # Preparar diretórios de saída baseados no modo com timestamp
+        # Preparar diretórios de saída baseados no modo com timestamp compartilhado
         mode_folder = 'test' if test_mode else 'full'
-        timestamp = execution_timestamp if execution_timestamp else int(time.time())
+        shared_timestamp = get_or_create_shared_timestamp()
         algorithm_folder = algorithm_name.lower().replace(' ', '_')
-        timestamped_folder = f"{timestamp}_{algorithm_folder}"
+        timestamped_folder = f"{shared_timestamp}_{algorithm_folder}"
         results_dir = Path('experiments/results') / mode_folder / timestamped_folder
         results_dir.mkdir(parents=True, exist_ok=True)
         
@@ -232,17 +263,20 @@ def main():
     
     mode_str = 'TESTE' if test_mode else 'COMPLETO'
     mode_folder = 'test' if test_mode else 'full'
-    timestamp = int(time.time())
-    algorithm_folder = algorithm_name.lower().replace(' ', '_')
-    timestamped_folder = f"{timestamp}_{algorithm_folder}"
     
+    # Obter timestamp compartilhado para esta rodada
+    shared_timestamp = get_or_create_shared_timestamp()
+    algorithm_folder = algorithm_name.lower().replace(' ', '_')
+    timestamped_folder = f"{shared_timestamp}_{algorithm_folder}"
+    
+    print(f"🚀 Executando algoritmo: {algorithm_name}")
     print(f"🧪 Modo de execução: {mode_str}")
     print(f"📁 Resultados em: experiments/results/{mode_folder}/")
     print(f"📄 Logs em: experiments/logs/")
-    print(f"🕐 Timestamp da execução: {timestamp}")
+    print(f"🕐 Timestamp da rodada: {shared_timestamp}")
     
     try:
-        results_count = run_algorithm_experiments(algorithm_name, test_mode=test_mode, execution_timestamp=timestamp)
+        results_count = run_algorithm_experiments(algorithm_name, test_mode=test_mode)
         print(f"✅ Sucesso: {results_count} experimentos para {algorithm_name}")
         print(f"💾 Resultados salvos em: experiments/results/{mode_folder}/{timestamped_folder}/")
         sys.exit(0)

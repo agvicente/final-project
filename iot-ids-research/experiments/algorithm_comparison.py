@@ -30,7 +30,7 @@ import gc  # Para limpeza de memória
 warnings.filterwarnings('ignore')
 
 # Configurações globais
-TEST_MODE = False  # Mudar para False para execução completa
+TEST_MODE = True  # Mudar para False para execução completa
 SAMPLE_SIZE = 1000 if TEST_MODE else None  # Tamanho da amostra para teste
 N_RUNS = 2 if TEST_MODE else 5  # Número de execuções para rigor estatístico
 
@@ -228,7 +228,7 @@ def get_algorithm_configs(test_mode=None):
     if use_test_mode:
         # Configurações simples para teste
         return {
-            'RandomForestClassifier': {
+            'RandomForest': {
                 'class': RandomForestClassifier,
                 'param_combinations': [
                     {'n_estimators': 10, 'max_depth': 5, 'random_state': 42},
