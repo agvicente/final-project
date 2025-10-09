@@ -155,12 +155,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: eecbd6fa12845e115617ea0ffdcc07ab
-      size: 44205
+      md5: ed3039fa0f59813e8707731a1de1a329
+      size: 44301
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: 1e6de86e6dcb8596dc3923d240c7edf2
-      size: 12068
+      md5: cb12ae6edec1d9b7262247050b4f6d3c
+      size: 12299
       isexec: true
   exp_one_class_svm:
     cmd: python3 experiments/run_single_algorithm.py one_class_svm
@@ -219,12 +219,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: eecbd6fa12845e115617ea0ffdcc07ab
-      size: 44205
+      md5: ed3039fa0f59813e8707731a1de1a329
+      size: 44301
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: 1e6de86e6dcb8596dc3923d240c7edf2
-      size: 12068
+      md5: cb12ae6edec1d9b7262247050b4f6d3c
+      size: 12299
       isexec: true
   exp_logistic_regression:
     cmd: python3 experiments/run_single_algorithm.py logistic_regression
@@ -251,12 +251,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: eecbd6fa12845e115617ea0ffdcc07ab
-      size: 44205
+      md5: ed3039fa0f59813e8707731a1de1a329
+      size: 44301
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: 1e6de86e6dcb8596dc3923d240c7edf2
-      size: 12068
+      md5: cb12ae6edec1d9b7262247050b4f6d3c
+      size: 12299
       isexec: true
   exp_svc:
     cmd: python3 experiments/run_single_algorithm.py svc
@@ -322,12 +322,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: eecbd6fa12845e115617ea0ffdcc07ab
-      size: 44205
+      md5: ed3039fa0f59813e8707731a1de1a329
+      size: 44301
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: 1e6de86e6dcb8596dc3923d240c7edf2
-      size: 12068
+      md5: cb12ae6edec1d9b7262247050b4f6d3c
+      size: 12299
       isexec: true
   exp_elliptic_envelope:
     cmd: python3 experiments/run_single_algorithm.py elliptic_envelope
@@ -354,12 +354,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: eecbd6fa12845e115617ea0ffdcc07ab
-      size: 44205
+      md5: ed3039fa0f59813e8707731a1de1a329
+      size: 44301
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: 1e6de86e6dcb8596dc3923d240c7edf2
-      size: 12068
+      md5: cb12ae6edec1d9b7262247050b4f6d3c
+      size: 12299
       isexec: true
   exp_local_outlier_factor:
     cmd: python3 experiments/run_single_algorithm.py local_outlier_factor
@@ -386,12 +386,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: eecbd6fa12845e115617ea0ffdcc07ab
-      size: 44205
+      md5: ed3039fa0f59813e8707731a1de1a329
+      size: 44301
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: 1e6de86e6dcb8596dc3923d240c7edf2
-      size: 12068
+      md5: cb12ae6edec1d9b7262247050b4f6d3c
+      size: 12299
       isexec: true
   exp_mlp:
     cmd: python3 experiments/run_single_algorithm.py mlp
@@ -418,10 +418,106 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: eecbd6fa12845e115617ea0ffdcc07ab
-      size: 44205
+      md5: 484d41c436b18297e5be70f54659ef54
+      size: 45173
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: 1e6de86e6dcb8596dc3923d240c7edf2
-      size: 12068
+      md5: cb12ae6edec1d9b7262247050b4f6d3c
+      size: 12299
+      isexec: true
+  exp_linear_svc:
+    cmd: python3 experiments/run_single_algorithm.py linear_svc
+    deps:
+    - path: data/processed/binary/X_test_binary.npy
+      hash: md5
+      md5: 46de34b507d45f6975ffb5de33b012b8
+      size: 280919312
+    - path: data/processed/binary/X_train_binary.npy
+      hash: md5
+      md5: c3c333fd839c36aa4fddb5cbf2c5864d
+      size: 1123675616
+    - path: data/processed/binary/binary_metadata.json
+      hash: md5
+      md5: 27ff9d4ca9f645f263d06dfdbb44b6d6
+      size: 1000
+    - path: data/processed/binary/y_test_binary.npy
+      hash: md5
+      md5: 9f920394577ef9a75d84c9f7aaff99b2
+      size: 7203184
+    - path: data/processed/binary/y_train_binary.npy
+      hash: md5
+      md5: 68ef1a89f8bc91f6cb37956d821419ea
+      size: 28812320
+    - path: experiments/algorithm_comparison.py
+      hash: md5
+      md5: ed3039fa0f59813e8707731a1de1a329
+      size: 44301
+    - path: experiments/run_single_algorithm.py
+      hash: md5
+      md5: cb12ae6edec1d9b7262247050b4f6d3c
+      size: 12299
+      isexec: true
+  exp_sgd_classifier:
+    cmd: python3 experiments/run_single_algorithm.py sgd_classifier
+    deps:
+    - path: data/processed/binary/X_test_binary.npy
+      hash: md5
+      md5: 46de34b507d45f6975ffb5de33b012b8
+      size: 280919312
+    - path: data/processed/binary/X_train_binary.npy
+      hash: md5
+      md5: c3c333fd839c36aa4fddb5cbf2c5864d
+      size: 1123675616
+    - path: data/processed/binary/binary_metadata.json
+      hash: md5
+      md5: 27ff9d4ca9f645f263d06dfdbb44b6d6
+      size: 1000
+    - path: data/processed/binary/y_test_binary.npy
+      hash: md5
+      md5: 9f920394577ef9a75d84c9f7aaff99b2
+      size: 7203184
+    - path: data/processed/binary/y_train_binary.npy
+      hash: md5
+      md5: 68ef1a89f8bc91f6cb37956d821419ea
+      size: 28812320
+    - path: experiments/algorithm_comparison.py
+      hash: md5
+      md5: ed3039fa0f59813e8707731a1de1a329
+      size: 44301
+    - path: experiments/run_single_algorithm.py
+      hash: md5
+      md5: cb12ae6edec1d9b7262247050b4f6d3c
+      size: 12299
+      isexec: true
+  exp_sgd_one_class_svm:
+    cmd: python3 experiments/run_single_algorithm.py sgd_one_class_svm
+    deps:
+    - path: data/processed/binary/X_test_binary.npy
+      hash: md5
+      md5: 46de34b507d45f6975ffb5de33b012b8
+      size: 280919312
+    - path: data/processed/binary/X_train_binary.npy
+      hash: md5
+      md5: c3c333fd839c36aa4fddb5cbf2c5864d
+      size: 1123675616
+    - path: data/processed/binary/binary_metadata.json
+      hash: md5
+      md5: 27ff9d4ca9f645f263d06dfdbb44b6d6
+      size: 1000
+    - path: data/processed/binary/y_test_binary.npy
+      hash: md5
+      md5: 9f920394577ef9a75d84c9f7aaff99b2
+      size: 7203184
+    - path: data/processed/binary/y_train_binary.npy
+      hash: md5
+      md5: 68ef1a89f8bc91f6cb37956d821419ea
+      size: 28812320
+    - path: experiments/algorithm_comparison.py
+      hash: md5
+      md5: ed3039fa0f59813e8707731a1de1a329
+      size: 44301
+    - path: experiments/run_single_algorithm.py
+      hash: md5
+      md5: cb12ae6edec1d9b7262247050b4f6d3c
+      size: 12299
       isexec: true

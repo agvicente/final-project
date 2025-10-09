@@ -13,16 +13,17 @@ import psutil
 import traceback
 from datetime import datetime
 from sklearn.ensemble import IsolationForest, RandomForestClassifier
-from sklearn.svm import OneClassSVM, SVC
+from sklearn.svm import OneClassSVM, SVC, LinearSVC
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.covariance import EllipticEnvelope
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, SGDClassifier, SGDOneClassSVM
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
-    confusion_matrix, classification_report, roc_auc_score, roc_curve
+    confusion_matrix, classification_report, roc_auc_score, roc_curve,
+    balanced_accuracy_score
 )
 from sklearn.preprocessing import LabelEncoder
 import warnings
@@ -30,8 +31,7 @@ import gc  # Para limpeza de memória
 warnings.filterwarnings('ignore')
 
 # Configurações globais
-TEST_MODE = True
-# Mudar para False para execução completa
+TEST_MODE = False # Mudar para False para execução completa
 SAMPLE_SIZE = 1000 if TEST_MODE else None  # Tamanho da amostra para teste
 N_RUNS = 1 if TEST_MODE else 5  # Número de execuções para rigor estatístico
 
@@ -276,109 +276,106 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 6. PESADO PARA ANOMALIAS - O(n²)
+            # 6. Local Outlier Factor
             'LocalOutlierFactor': {
                 'class': LocalOutlierFactor,
                 'param_combinations': [
-                    {'n_neighbors': 5, 'contamination': 0.1}
+                    {'n_neighbors': 5, 'contamination': 0.1, 'novelty': True}
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
             },
             
-            # 7. PESADO - O(n²) com kernel linear
-            'SVC': {
-                'class': SVC,
+            # 7. PESADO - LinearSVC otimizado para datasets grandes
+            'LinearSVC': {
+                'class': LinearSVC,
                 'param_combinations': [
-                    {'C': 1.0, 'kernel': 'linear', 'random_state': 42, 'probability': True}
+                    {'C': 1.0, 'max_iter': 100, 'dual': False, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 8. MUITO PESADO - O(n³) redes neurais
+            # 8. RÁPIDO - SVM via gradiente estocástico
+            'SGDClassifier': {
+                'class': SGDClassifier,
+                'param_combinations': [
+                    {'loss': 'hinge', 'alpha': 0.0001, 'max_iter': 100, 'random_state': 42}
+                ],
+                'n_runs': N_RUNS
+            },
+            
+            # 9. OTIMIZADO - OneClassSVM via gradiente estocástico
+            'SGDOneClassSVM': {
+                'class': SGDOneClassSVM,
+                'param_combinations': [
+                    {'nu': 0.1, 'max_iter': 100, 'random_state': 42}
+                ],
+                'anomaly_detection': True,
+                'n_runs': N_RUNS
+            },
+            
+            # 10. MLP Classifier
             'MLPClassifier': {
                 'class': MLPClassifier,
                 'param_combinations': [
-                    {'hidden_layer_sizes': (10,), 'max_iter': 100, 'random_state': 42}
+                    {'hidden_layer_sizes': (50,), 'max_iter': 100, 'random_state': 42}
                 ],
-                'n_runs': N_RUNS
-            },
-            
-            # 9. MAIS PESADO - O(n²) para anomalias
-            'OneClassSVM': {
-                'class': OneClassSVM,
-                'param_combinations': [
-                    {'nu': 0.1, 'kernel': 'linear'}
-                ],
-                'anomaly_detection': True,
                 'n_runs': N_RUNS
             }
         }
     else:
-        # Configurações completas para experimento final - MESMA ORDEM POR COMPLEXIDADE
+        # Configurações completas para experimento final
         return {
-            # 1. MAIS RÁPIDO - O(n)
+            # 1. Logistic Regression (configuração original)
             'LogisticRegression': {
                 'class': LogisticRegression,
                 'param_combinations': [
-                    {'C': 0.1, 'max_iter': 200, 'random_state': 42},
-                    {'C': 0.1, 'max_iter': 500, 'random_state': 42},
-                    {'C': 1.0, 'max_iter': 200, 'random_state': 42},
-                    {'C': 1.0, 'max_iter': 500, 'random_state': 42},
-                    {'C': 10.0, 'max_iter': 200, 'random_state': 42},
-                    {'C': 10.0, 'max_iter': 500, 'random_state': 42}
+                    {'C': 0.1, 'max_iter': 1000, 'random_state': 42},
+                    {'C': 1.0, 'max_iter': 1000, 'random_state': 42},
+                    {'C': 10.0, 'max_iter': 1000, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 2. RÁPIDO - O(n log n)
+            # 2. Random Forest (configuração original)
             'RandomForest': {
                 'class': RandomForestClassifier,
                 'param_combinations': [
-                    {'n_estimators': 10, 'max_depth': 10, 'random_state': 42},
-                    {'n_estimators': 10, 'max_depth': 15, 'random_state': 42},
-                    {'n_estimators': 20, 'max_depth': 10, 'random_state': 42},
-                    {'n_estimators': 20, 'max_depth': 15, 'random_state': 42},
                     {'n_estimators': 50, 'max_depth': 10, 'random_state': 42},
-                    {'n_estimators': 50, 'max_depth': 15, 'random_state': 42}
+                    {'n_estimators': 100, 'max_depth': 15, 'random_state': 42},
+                    {'n_estimators': 100, 'max_depth': 20, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 3. MODERADO - O(n log n)
+            # 3. Gradient Boosting (configuração original)
             'GradientBoostingClassifier': {
                 'class': GradientBoostingClassifier,
                 'param_combinations': [
-                    {'n_estimators': 10, 'learning_rate': 0.1, 'max_depth': 3, 'random_state': 42},
-                    {'n_estimators': 10, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
-                    {'n_estimators': 20, 'learning_rate': 0.1, 'max_depth': 3, 'random_state': 42},
-                    {'n_estimators': 20, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
-                    {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 3, 'random_state': 42},
-                    {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42}
+                    {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
+                    {'n_estimators': 100, 'learning_rate': 0.05, 'max_depth': 5, 'random_state': 42},
+                    {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 7, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 4. RÁPIDO PARA ANOMALIAS - O(n log n)
+            # 4. Isolation Forest (configuração original)
             'IsolationForest': {
                 'class': IsolationForest,
                 'param_combinations': [
-                    {'contamination': 0.05, 'n_estimators': 50, 'random_state': 42},
-                    {'contamination': 0.05, 'n_estimators': 100, 'random_state': 42},
-                    {'contamination': 0.1, 'n_estimators': 50, 'random_state': 42},
                     {'contamination': 0.1, 'n_estimators': 100, 'random_state': 42},
-                    {'contamination': 0.2, 'n_estimators': 50, 'random_state': 42},
-                    {'contamination': 0.2, 'n_estimators': 100, 'random_state': 42}
+                    {'contamination': 0.15, 'n_estimators': 100, 'random_state': 42},
+                    {'contamination': 0.2, 'n_estimators': 100, 'random_state': 42},
+                    {'contamination': 0.1, 'n_estimators': 200, 'random_state': 42}
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
             },
             
-            # 5. MODERADO PARA ANOMALIAS - O(n²)
+            # 5. Elliptic Envelope (configuração original)
             'EllipticEnvelope': {
                 'class': EllipticEnvelope,
                 'param_combinations': [
-                    {'contamination': 0.05, 'random_state': 42},
                     {'contamination': 0.1, 'random_state': 42},
                     {'contamination': 0.15, 'random_state': 42},
                     {'contamination': 0.2, 'random_state': 42}
@@ -387,55 +384,62 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 6. PESADO PARA ANOMALIAS - O(n²)
+            # 6. Local Outlier Factor (configuração original)
             'LocalOutlierFactor': {
                 'class': LocalOutlierFactor,
                 'param_combinations': [
-                    {'n_neighbors': 5, 'contamination': 0.05},
-                    {'n_neighbors': 5, 'contamination': 0.1},
-                    {'n_neighbors': 10, 'contamination': 0.05},
-                    {'n_neighbors': 10, 'contamination': 0.1},
-                    {'n_neighbors': 20, 'contamination': 0.05},
-                    {'n_neighbors': 20, 'contamination': 0.1}
+                    {'n_neighbors': 10, 'contamination': 0.1, 'novelty': True},
+                    {'n_neighbors': 20, 'contamination': 0.1, 'novelty': True},
+                    {'n_neighbors': 50, 'contamination': 0.15, 'novelty': True}
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
             },
             
-            # 7. PESADO - O(n²) com kernel linear
-            'SVC': {
-                'class': SVC,
+            # 7. PESADO - LinearSVC otimizado para datasets grandes
+            'LinearSVC': {
+                'class': LinearSVC,
                 'param_combinations': [
-                    {'C': 1.0, 'kernel': 'linear', 'random_state': 42, 'probability': True},
-                    {'C': 5.0, 'kernel': 'linear', 'random_state': 42, 'probability': True},
-                    {'C': 10.0, 'kernel': 'linear', 'random_state': 42, 'probability': True},
-                    {'C': 20.0, 'kernel': 'linear', 'random_state': 42, 'probability': True}
+                    {'C': 1.0, 'max_iter': 1000, 'dual': False, 'random_state': 42},
+                    {'C': 5.0, 'max_iter': 1000, 'dual': False, 'random_state': 42},
+                    {'C': 10.0, 'max_iter': 1000, 'dual': False, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 8. MUITO PESADO - O(n³) redes neurais
+            # 8. RÁPIDO - SVM via gradiente estocástico
+            'SGDClassifier': {
+                'class': SGDClassifier,
+                'param_combinations': [
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.0001, 'max_iter': 1000, 'random_state': 42},
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.001, 'max_iter': 1000, 'random_state': 42},
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.01, 'max_iter': 1000, 'random_state': 42}
+                ],
+                'n_runs': N_RUNS
+            },
+            
+            # 9. OTIMIZADO - OneClassSVM via gradiente estocástico
+            'SGDOneClassSVM': {
+                'class': SGDOneClassSVM,
+                'param_combinations': [
+                    {'nu': 0.05, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
+                    {'nu': 0.1, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
+                    {'nu': 0.15, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
+                    {'nu': 0.2, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42}
+                ],
+                'anomaly_detection': True,
+                'n_runs': N_RUNS
+            },
+            
+            # 10. MLP Classifier (configuração original)
             'MLPClassifier': {
                 'class': MLPClassifier,
                 'param_combinations': [
-                    {'hidden_layer_sizes': (10,), 'max_iter': 300, 'random_state': 42},
-                    {'hidden_layer_sizes': (20,), 'max_iter': 300, 'random_state': 42},
-                    {'hidden_layer_sizes': (50,), 'max_iter': 300, 'random_state': 42},
-                    {'hidden_layer_sizes': (10, 10), 'max_iter': 300, 'random_state': 42}
+                    {'hidden_layer_sizes': (50,), 'max_iter': 200, 'random_state': 42},
+                    {'hidden_layer_sizes': (100,), 'max_iter': 200, 'random_state': 42},
+                    {'hidden_layer_sizes': (50, 25), 'max_iter': 200, 'random_state': 42},
+                    {'hidden_layer_sizes': (100, 50), 'max_iter': 200, 'random_state': 42}
                 ],
-                'n_runs': N_RUNS
-            },
-            
-            # 9. MAIS PESADO - O(n²) para anomalias
-            'OneClassSVM': {
-                'class': OneClassSVM,
-                'param_combinations': [
-                    {'nu': 0.05, 'kernel': 'linear'},
-                    {'nu': 0.1, 'kernel': 'linear'},
-                    {'nu': 0.15, 'kernel': 'linear'},
-                    {'nu': 0.2, 'kernel': 'linear'}
-                ],
-                'anomaly_detection': True,
                 'n_runs': N_RUNS
             }
         }
@@ -519,6 +523,7 @@ def run_single_experiment(algorithm_name, algorithm_class, params, X_train, X_te
         metrics_start = time.time()
         
         accuracy = accuracy_score(y_test, y_pred)
+        balanced_acc = balanced_accuracy_score(y_test, y_pred)
         precision = precision_score(y_test, y_pred, average='binary', zero_division=0)
         recall = recall_score(y_test, y_pred, average='binary', zero_division=0)
         f1 = f1_score(y_test, y_pred, average='binary', zero_division=0)
@@ -547,10 +552,11 @@ def run_single_experiment(algorithm_name, algorithm_class, params, X_train, X_te
         
         # Log detalhado dos resultados
         logger.info(f"         📊 RESULTADOS:")
-        logger.info(f"            Accuracy:  {accuracy:.4f}")
-        logger.info(f"            Precision: {precision:.4f}")
-        logger.info(f"            Recall:    {recall:.4f}")
-        logger.info(f"            F1-Score:  {f1:.4f}")
+        logger.info(f"            Accuracy:          {accuracy:.4f}")
+        logger.info(f"            Balanced Accuracy: {balanced_acc:.4f}")
+        logger.info(f"            Precision:         {precision:.4f}")
+        logger.info(f"            Recall:            {recall:.4f}")
+        logger.info(f"            F1-Score:          {f1:.4f}")
         if roc_auc is not None:
             logger.info(f"            ROC AUC:   {roc_auc:.4f}")
         logger.info(f"         📊 MATRIZ DE CONFUSÃO:")
@@ -563,6 +569,7 @@ def run_single_experiment(algorithm_name, algorithm_class, params, X_train, X_te
             'algorithm': algorithm_name,
             'params': params,
             'accuracy': accuracy,
+            'balanced_accuracy': balanced_acc,
             'precision': precision,
             'recall': recall,
             'f1_score': f1,
@@ -629,6 +636,7 @@ def run_single_experiment(algorithm_name, algorithm_class, params, X_train, X_te
             'algorithm': algorithm_name,
             'params': params,
             'accuracy': 0,
+            'balanced_accuracy': 0,
             'precision': 0,
             'recall': 0,
             'f1_score': 0,
@@ -825,6 +833,7 @@ def save_results_and_plots(results, output_dir='experiments/results'):
         # Agrupar por algoritmo e parâmetros
         agg_results = successful_results.groupby(['algorithm', 'param_id']).agg({
             'accuracy': ['mean', 'std'],
+            'balanced_accuracy': ['mean', 'std'],
             'precision': ['mean', 'std'],
             'recall': ['mean', 'std'],
             'f1_score': ['mean', 'std'],
@@ -866,7 +875,7 @@ def generate_plots(df, output_dir):
     plt.close()
     
     # 2. Gráfico de barras com médias das métricas
-    metrics = ['accuracy', 'precision', 'recall', 'f1_score']
+    metrics = ['accuracy', 'balanced_accuracy', 'precision', 'recall', 'f1_score']
     mean_metrics = df.groupby('algorithm')[metrics].mean()
     
     fig, axes = plt.subplots(2, 2, figsize=(15, 10))
@@ -894,7 +903,7 @@ def generate_plots(df, output_dir):
     plt.close()
     
     # 4. Heatmap de correlação entre métricas
-    correlation_metrics = df[['accuracy', 'precision', 'recall', 'f1_score', 'training_time']].corr()
+    correlation_metrics = df[['accuracy', 'balanced_accuracy', 'precision', 'recall', 'f1_score', 'training_time']].corr()
     
     plt.figure(figsize=(8, 6))
     sns.heatmap(correlation_metrics, annot=True, cmap='coolwarm', center=0, square=True)
@@ -915,7 +924,7 @@ def generate_summary_table(df, output_dir):
     best_results = df.loc[df.groupby('algorithm')['f1_score'].idxmax()]
     
     # Criar tabela resumo
-    summary = best_results[['algorithm', 'accuracy', 'precision', 'recall', 'f1_score', 'training_time']].round(4)
+    summary = best_results[['algorithm', 'accuracy', 'balanced_accuracy', 'precision', 'recall', 'f1_score', 'training_time']].round(4)
     summary = summary.sort_values('f1_score', ascending=False)
     
     # Salvar como CSV
@@ -924,7 +933,7 @@ def generate_summary_table(df, output_dir):
     
     # Criar versão formatada para visualização
     summary_formatted = summary.copy()
-    for col in ['accuracy', 'precision', 'recall', 'f1_score']:
+    for col in ['accuracy', 'balanced_accuracy', 'precision', 'recall', 'f1_score']:
         summary_formatted[col] = summary_formatted[col].apply(lambda x: f"{x:.3f}")
     summary_formatted['training_time'] = summary_formatted['training_time'].apply(lambda x: f"{x:.2f}s")
     
@@ -987,6 +996,8 @@ if __name__ == "__main__":
                 std_f1 = np.std([r['f1_score'] for r in successful_results])
                 avg_accuracy = np.mean([r['accuracy'] for r in successful_results])
                 std_accuracy = np.std([r['accuracy'] for r in successful_results])
+                avg_balanced_acc = np.mean([r['balanced_accuracy'] for r in successful_results])
+                std_balanced_acc = np.std([r['balanced_accuracy'] for r in successful_results])
                 avg_precision = np.mean([r['precision'] for r in successful_results])
                 avg_recall = np.mean([r['recall'] for r in successful_results])
                 avg_training_time = np.mean([r['training_time'] for r in successful_results])
@@ -997,6 +1008,8 @@ if __name__ == "__main__":
                 mlflow.log_metric("std_f1_score", std_f1)
                 mlflow.log_metric("avg_accuracy", avg_accuracy)
                 mlflow.log_metric("std_accuracy", std_accuracy)
+                mlflow.log_metric("avg_balanced_accuracy", avg_balanced_acc)
+                mlflow.log_metric("std_balanced_accuracy", std_balanced_acc)
                 mlflow.log_metric("avg_precision", avg_precision)
                 mlflow.log_metric("avg_recall", avg_recall)
                 mlflow.log_metric("avg_training_time", avg_training_time)
@@ -1010,6 +1023,7 @@ if __name__ == "__main__":
                 logger.info(f"📈 Estatísticas logadas no MLflow:")
                 logger.info(f"   F1-Score médio: {avg_f1:.4f} ± {std_f1:.4f}")
                 logger.info(f"   Accuracy médio: {avg_accuracy:.4f} ± {std_accuracy:.4f}")
+                logger.info(f"   Balanced Accuracy médio: {avg_balanced_acc:.4f} ± {std_balanced_acc:.4f}")
                 logger.info(f"   Taxa de sucesso: {len(successful_results)}/{len(results)} ({len(successful_results)/len(results)*100:.1f}%)")
             
             # Log artifacts (resultados e logs)

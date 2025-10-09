@@ -108,7 +108,7 @@ stages:
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/binary_metadata.json
 
-  # 6. PESADO PARA ANOMALIAS - O(n²)
+  # 6. PESADO PARA ANOMALIAS - Otimizado com Ball Tree
   exp_local_outlier_factor:
     cmd: python3 experiments/run_single_algorithm.py local_outlier_factor
     deps:
@@ -120,9 +120,9 @@ stages:
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/binary_metadata.json
 
-  # 7. PESADO - O(n²) com kernel linear
-  exp_svc:
-    cmd: python3 experiments/run_single_algorithm.py svc
+  # 7. PESADO - LinearSVC otimizado para datasets grandes
+  exp_linear_svc:
+    cmd: python3 experiments/run_single_algorithm.py linear_svc
     deps:
     - experiments/run_single_algorithm.py
     - experiments/algorithm_comparison.py
@@ -132,21 +132,33 @@ stages:
     - data/processed/binary/y_test_binary.npy
     - data/processed/binary/binary_metadata.json
     
-  # 8. MUITO PESADO - O(n³) redes neurais
+  # 8. RÁPIDO - SVM via gradiente estocástico
+  exp_sgd_classifier:
+    cmd: python3 experiments/run_single_algorithm.py sgd_classifier
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    
+  # 9. OTIMIZADO - OneClassSVM via gradiente estocástico
+  exp_sgd_one_class_svm:
+    cmd: python3 experiments/run_single_algorithm.py sgd_one_class_svm
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - data/processed/binary/X_train_binary.npy
+    - data/processed/binary/X_test_binary.npy
+    - data/processed/binary/y_train_binary.npy
+    - data/processed/binary/y_test_binary.npy
+    - data/processed/binary/binary_metadata.json
+    
+  # 10. REDES NEURAIS - Otimizado para CPU sem GPU
   exp_mlp:
     cmd: python3 experiments/run_single_algorithm.py mlp
-    deps:
-    - experiments/run_single_algorithm.py
-    - experiments/algorithm_comparison.py
-    - data/processed/binary/X_train_binary.npy
-    - data/processed/binary/X_test_binary.npy
-    - data/processed/binary/y_train_binary.npy
-    - data/processed/binary/y_test_binary.npy
-    - data/processed/binary/binary_metadata.json
-    
-  # 9. MAIS PESADO - O(n²) para anomalias
-  exp_one_class_svm:
-    cmd: python3 experiments/run_single_algorithm.py one_class_svm
     deps:
     - experiments/run_single_algorithm.py
     - experiments/algorithm_comparison.py
