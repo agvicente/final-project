@@ -13,10 +13,10 @@ import psutil
 import traceback
 from datetime import datetime
 from sklearn.ensemble import IsolationForest, RandomForestClassifier
-from sklearn.svm import OneClassSVM, SVC
+from sklearn.svm import OneClassSVM, SVC, LinearSVC
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.covariance import EllipticEnvelope
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, SGDClassifier, SGDOneClassSVM
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.neural_network import MLPClassifier
@@ -30,8 +30,7 @@ import gc  # Para limpeza de memória
 warnings.filterwarnings('ignore')
 
 # Configurações globais
-TEST_MODE = True
-# Mudar para False para execução completa
+TEST_MODE = False # Mudar para False para execução completa
 SAMPLE_SIZE = 1000 if TEST_MODE else None  # Tamanho da amostra para teste
 N_RUNS = 1 if TEST_MODE else 5  # Número de execuções para rigor estatístico
 
@@ -276,57 +275,75 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 6. PESADO PARA ANOMALIAS - O(n²)
+            # 6. PESADO PARA ANOMALIAS - Otimizado com Ball Tree
             'LocalOutlierFactor': {
                 'class': LocalOutlierFactor,
                 'param_combinations': [
-                    {'n_neighbors': 5, 'contamination': 0.1}
+                    {'n_neighbors': 5, 'contamination': 0.1, 'novelty': True}
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
             },
             
-            # 7. PESADO - O(n²) com kernel linear
-            'SVC': {
-                'class': SVC,
+            # 7. PESADO - LinearSVC otimizado para datasets grandes
+            'LinearSVC': {
+                'class': LinearSVC,
                 'param_combinations': [
-                    {'C': 1.0, 'kernel': 'linear', 'random_state': 42, 'probability': True}
+                    {'C': 1.0, 'max_iter': 100, 'dual': False, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 8. MUITO PESADO - O(n³) redes neurais
+            # 8. RÁPIDO - SVM via gradiente estocástico
+            'SGDClassifier': {
+                'class': SGDClassifier,
+                'param_combinations': [
+                    {'loss': 'hinge', 'alpha': 0.0001, 'max_iter': 100, 'random_state': 42}
+                ],
+                'n_runs': N_RUNS
+            },
+            
+            # 9. OTIMIZADO - OneClassSVM via gradiente estocástico
+            'SGDOneClassSVM': {
+                'class': SGDOneClassSVM,
+                'param_combinations': [
+                    {'nu': 0.1, 'max_iter': 100, 'random_state': 42}
+                ],
+                'anomaly_detection': True,
+                'n_runs': N_RUNS
+            },
+            
+            # 10. REDES NEURAIS - Otimizado para CPU
             'MLPClassifier': {
                 'class': MLPClassifier,
                 'param_combinations': [
-                    {'hidden_layer_sizes': (10,), 'max_iter': 100, 'random_state': 42}
+                    {
+                        'hidden_layer_sizes': (64,), 
+                        'solver': 'sgd',
+                        'batch_size': 2048,
+                        'learning_rate_init': 0.01,
+                        'learning_rate': 'adaptive',
+                        'max_iter': 20,
+                        'early_stopping': True,
+                        'validation_fraction': 0.1,
+                        'n_iter_no_change': 3,
+                        'random_state': 42,
+                        'verbose': False
+                    }
                 ],
-                'n_runs': N_RUNS
-            },
-            
-            # 9. MAIS PESADO - O(n²) para anomalias
-            'OneClassSVM': {
-                'class': OneClassSVM,
-                'param_combinations': [
-                    {'nu': 0.1, 'kernel': 'linear'}
-                ],
-                'anomaly_detection': True,
                 'n_runs': N_RUNS
             }
         }
     else:
-        # Configurações completas para experimento final - MESMA ORDEM POR COMPLEXIDADE
+        # Configurações completas para experimento final - OTIMIZADAS PARA 3M AMOSTRAS
         return {
-            # 1. MAIS RÁPIDO - O(n)
+            # 1. MAIS RÁPIDO - O(n) - Otimizado com solver SAGA
             'LogisticRegression': {
                 'class': LogisticRegression,
                 'param_combinations': [
-                    {'C': 0.1, 'max_iter': 200, 'random_state': 42},
-                    {'C': 0.1, 'max_iter': 500, 'random_state': 42},
-                    {'C': 1.0, 'max_iter': 200, 'random_state': 42},
-                    {'C': 1.0, 'max_iter': 500, 'random_state': 42},
-                    {'C': 10.0, 'max_iter': 200, 'random_state': 42},
-                    {'C': 10.0, 'max_iter': 500, 'random_state': 42}
+                    {'C': 0.1, 'max_iter': 1000, 'solver': 'saga', 'random_state': 42},
+                    {'C': 1.0, 'max_iter': 1000, 'solver': 'saga', 'random_state': 42},
+                    {'C': 10.0, 'max_iter': 1000, 'solver': 'saga', 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
@@ -335,12 +352,9 @@ def get_algorithm_configs(test_mode=None):
             'RandomForest': {
                 'class': RandomForestClassifier,
                 'param_combinations': [
-                    {'n_estimators': 10, 'max_depth': 10, 'random_state': 42},
-                    {'n_estimators': 10, 'max_depth': 15, 'random_state': 42},
-                    {'n_estimators': 20, 'max_depth': 10, 'random_state': 42},
-                    {'n_estimators': 20, 'max_depth': 15, 'random_state': 42},
-                    {'n_estimators': 50, 'max_depth': 10, 'random_state': 42},
-                    {'n_estimators': 50, 'max_depth': 15, 'random_state': 42}
+                    {'n_estimators': 50, 'max_depth': 10, 'min_samples_split': 10, 'random_state': 42},
+                    {'n_estimators': 100, 'max_depth': 15, 'min_samples_split': 10, 'random_state': 42},
+                    {'n_estimators': 100, 'max_depth': 20, 'min_samples_split': 5, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
@@ -349,12 +363,9 @@ def get_algorithm_configs(test_mode=None):
             'GradientBoostingClassifier': {
                 'class': GradientBoostingClassifier,
                 'param_combinations': [
-                    {'n_estimators': 10, 'learning_rate': 0.1, 'max_depth': 3, 'random_state': 42},
-                    {'n_estimators': 10, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
-                    {'n_estimators': 20, 'learning_rate': 0.1, 'max_depth': 3, 'random_state': 42},
-                    {'n_estimators': 20, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
-                    {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 3, 'random_state': 42},
-                    {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42}
+                    {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
+                    {'n_estimators': 100, 'learning_rate': 0.05, 'max_depth': 5, 'random_state': 42},
+                    {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 7, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
@@ -363,12 +374,10 @@ def get_algorithm_configs(test_mode=None):
             'IsolationForest': {
                 'class': IsolationForest,
                 'param_combinations': [
-                    {'contamination': 0.05, 'n_estimators': 50, 'random_state': 42},
-                    {'contamination': 0.05, 'n_estimators': 100, 'random_state': 42},
-                    {'contamination': 0.1, 'n_estimators': 50, 'random_state': 42},
-                    {'contamination': 0.1, 'n_estimators': 100, 'random_state': 42},
-                    {'contamination': 0.2, 'n_estimators': 50, 'random_state': 42},
-                    {'contamination': 0.2, 'n_estimators': 100, 'random_state': 42}
+                    {'contamination': 0.1, 'n_estimators': 100, 'max_samples': 'auto', 'random_state': 42},
+                    {'contamination': 0.15, 'n_estimators': 100, 'max_samples': 'auto', 'random_state': 42},
+                    {'contamination': 0.2, 'n_estimators': 100, 'max_samples': 'auto', 'random_state': 42},
+                    {'contamination': 0.1, 'n_estimators': 200, 'max_samples': 'auto', 'random_state': 42}
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
@@ -378,7 +387,6 @@ def get_algorithm_configs(test_mode=None):
             'EllipticEnvelope': {
                 'class': EllipticEnvelope,
                 'param_combinations': [
-                    {'contamination': 0.05, 'random_state': 42},
                     {'contamination': 0.1, 'random_state': 42},
                     {'contamination': 0.15, 'random_state': 42},
                     {'contamination': 0.2, 'random_state': 42}
@@ -387,55 +395,110 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 6. PESADO PARA ANOMALIAS - O(n²)
+            # 6. PESADO PARA ANOMALIAS - Otimizado com Ball Tree
             'LocalOutlierFactor': {
                 'class': LocalOutlierFactor,
                 'param_combinations': [
-                    {'n_neighbors': 5, 'contamination': 0.05},
-                    {'n_neighbors': 5, 'contamination': 0.1},
-                    {'n_neighbors': 10, 'contamination': 0.05},
-                    {'n_neighbors': 10, 'contamination': 0.1},
-                    {'n_neighbors': 20, 'contamination': 0.05},
-                    {'n_neighbors': 20, 'contamination': 0.1}
+                    {'n_neighbors': 10, 'contamination': 0.1, 'algorithm': 'ball_tree', 'novelty': True},
+                    {'n_neighbors': 20, 'contamination': 0.1, 'algorithm': 'ball_tree', 'novelty': True},
+                    {'n_neighbors': 50, 'contamination': 0.15, 'algorithm': 'ball_tree', 'novelty': True}
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
             },
             
-            # 7. PESADO - O(n²) com kernel linear
-            'SVC': {
-                'class': SVC,
+            # 7. PESADO - LinearSVC otimizado para datasets grandes
+            'LinearSVC': {
+                'class': LinearSVC,
                 'param_combinations': [
-                    {'C': 1.0, 'kernel': 'linear', 'random_state': 42, 'probability': True},
-                    {'C': 5.0, 'kernel': 'linear', 'random_state': 42, 'probability': True},
-                    {'C': 10.0, 'kernel': 'linear', 'random_state': 42, 'probability': True},
-                    {'C': 20.0, 'kernel': 'linear', 'random_state': 42, 'probability': True}
+                    {'C': 1.0, 'max_iter': 1000, 'dual': False, 'random_state': 42},
+                    {'C': 5.0, 'max_iter': 1000, 'dual': False, 'random_state': 42},
+                    {'C': 10.0, 'max_iter': 1000, 'dual': False, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 8. MUITO PESADO - O(n³) redes neurais
+            # 8. RÁPIDO - SVM via gradiente estocástico
+            'SGDClassifier': {
+                'class': SGDClassifier,
+                'param_combinations': [
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.0001, 'max_iter': 1000, 'random_state': 42},
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.001, 'max_iter': 1000, 'random_state': 42},
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.01, 'max_iter': 1000, 'random_state': 42}
+                ],
+                'n_runs': N_RUNS
+            },
+            
+            # 9. OTIMIZADO - OneClassSVM via gradiente estocástico
+            'SGDOneClassSVM': {
+                'class': SGDOneClassSVM,
+                'param_combinations': [
+                    {'nu': 0.05, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
+                    {'nu': 0.1, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
+                    {'nu': 0.15, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
+                    {'nu': 0.2, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42}
+                ],
+                'anomaly_detection': True,
+                'n_runs': N_RUNS
+            },
+            
+            # 10. REDES NEURAIS - Otimizado para CPU sem GPU
             'MLPClassifier': {
                 'class': MLPClassifier,
                 'param_combinations': [
-                    {'hidden_layer_sizes': (10,), 'max_iter': 300, 'random_state': 42},
-                    {'hidden_layer_sizes': (20,), 'max_iter': 300, 'random_state': 42},
-                    {'hidden_layer_sizes': (50,), 'max_iter': 300, 'random_state': 42},
-                    {'hidden_layer_sizes': (10, 10), 'max_iter': 300, 'random_state': 42}
+                    {
+                        'hidden_layer_sizes': (64,), 
+                        'solver': 'sgd',
+                        'batch_size': 2048,
+                        'learning_rate_init': 0.01,
+                        'learning_rate': 'adaptive',
+                        'max_iter': 50,
+                        'early_stopping': True,
+                        'validation_fraction': 0.1,
+                        'n_iter_no_change': 5,
+                        'random_state': 42,
+                        'verbose': False
+                    },
+                    {
+                        'hidden_layer_sizes': (128,), 
+                        'solver': 'sgd',
+                        'batch_size': 2048,
+                        'learning_rate_init': 0.01,
+                        'learning_rate': 'adaptive',
+                        'max_iter': 50,
+                        'early_stopping': True,
+                        'validation_fraction': 0.1,
+                        'n_iter_no_change': 5,
+                        'random_state': 42,
+                        'verbose': False
+                    },
+                    {
+                        'hidden_layer_sizes': (256,), 
+                        'solver': 'sgd',
+                        'batch_size': 2048,
+                        'learning_rate_init': 0.01,
+                        'learning_rate': 'adaptive',
+                        'max_iter': 50,
+                        'early_stopping': True,
+                        'validation_fraction': 0.1,
+                        'n_iter_no_change': 5,
+                        'random_state': 42,
+                        'verbose': False
+                    },
+                    {
+                        'hidden_layer_sizes': (128, 64), 
+                        'solver': 'sgd',
+                        'batch_size': 2048,
+                        'learning_rate_init': 0.01,
+                        'learning_rate': 'adaptive',
+                        'max_iter': 50,
+                        'early_stopping': True,
+                        'validation_fraction': 0.1,
+                        'n_iter_no_change': 5,
+                        'random_state': 42,
+                        'verbose': False
+                    }
                 ],
-                'n_runs': N_RUNS
-            },
-            
-            # 9. MAIS PESADO - O(n²) para anomalias
-            'OneClassSVM': {
-                'class': OneClassSVM,
-                'param_combinations': [
-                    {'nu': 0.05, 'kernel': 'linear'},
-                    {'nu': 0.1, 'kernel': 'linear'},
-                    {'nu': 0.15, 'kernel': 'linear'},
-                    {'nu': 0.2, 'kernel': 'linear'}
-                ],
-                'anomaly_detection': True,
                 'n_runs': N_RUNS
             }
         }

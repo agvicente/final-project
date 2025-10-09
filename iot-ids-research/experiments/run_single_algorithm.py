@@ -245,8 +245,8 @@ def run_algorithm_experiments(algorithm_name, test_mode=None):
 
 def main():
     """Função principal"""
-    # Mapeamento de nomes
     # Mapeamento de nomes - ORDENADOS POR COMPLEXIDADE COMPUTACIONAL
+    # Agora com algoritmos otimizados para datasets grandes (3M amostras)
     algorithm_map = {
         # 1. MAIS RÁPIDO - O(n)
         'logistic_regression': 'LogisticRegression',
@@ -263,17 +263,20 @@ def main():
         # 5. MODERADO PARA ANOMALIAS - O(n²)
         'elliptic_envelope': 'EllipticEnvelope',
         
-        # 6. PESADO PARA ANOMALIAS - O(n²)
+        # 6. PESADO PARA ANOMALIAS - Otimizado com Ball Tree
         'local_outlier_factor': 'LocalOutlierFactor',
         
-        # 7. PESADO - O(n²) com kernel linear
-        'svc': 'SVC',
+        # 7. PESADO - LinearSVC otimizado para datasets grandes
+        'linear_svc': 'LinearSVC',
         
-        # 8. MUITO PESADO - O(n³) redes neurais
-        'mlp': 'MLPClassifier',
+        # 8. RÁPIDO - SVM via gradiente estocástico
+        'sgd_classifier': 'SGDClassifier',
         
-        # 9. MAIS PESADO - O(n²) para anomalias
-        'one_class_svm': 'OneClassSVM'
+        # 9. OTIMIZADO - OneClassSVM via gradiente estocástico
+        'sgd_one_class_svm': 'SGDOneClassSVM',
+        
+        # 10. REDES NEURAIS - Otimizado para CPU sem GPU
+        'mlp': 'MLPClassifier'
     }
     
     if len(sys.argv) != 2:
