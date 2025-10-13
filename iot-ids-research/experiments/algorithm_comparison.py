@@ -33,7 +33,7 @@ warnings.filterwarnings('ignore')
 # Configurações globais
 TEST_MODE = False # Mudar para False para execução completa
 SAMPLE_SIZE = 1000 if TEST_MODE else None  # Tamanho da amostra para teste
-N_RUNS = 1 if TEST_MODE else 5  # Número de execuções para rigor estatístico
+N_RUNS = 1 if TEST_MODE else 3  # Número de execuções para rigor estatístico (reduzido de 5 para 3)
 
 # ID único da execução baseado em timestamp
 EXECUTION_ID = int(time.time())
@@ -324,121 +324,217 @@ def get_algorithm_configs(test_mode=None):
             }
         }
     else:
-        # Configurações completas para experimento final
+        # Configurações completas para experimento final - 10 CONFIGURAÇÕES POR ALGORITMO
+        # Organizadas por complexidade crescente (simples → complexo)
         return {
-            # 1. Logistic Regression (configuração original)
+            # 1. Logistic Regression - 10 configurações (C crescente = menos regularização)
             'LogisticRegression': {
                 'class': LogisticRegression,
                 'param_combinations': [
-                    {'C': 0.1, 'max_iter': 1000, 'random_state': 42},
-                    {'C': 1.0, 'max_iter': 1000, 'random_state': 42},
-                    {'C': 10.0, 'max_iter': 1000, 'random_state': 42}
+                    # Configs 1-3: Regularização forte (mais simples, mais rápido)
+                    {'C': 0.001, 'max_iter': 500, 'random_state': 42},   # Muito regularizado
+                    {'C': 0.01, 'max_iter': 500, 'random_state': 42},
+                    {'C': 0.1, 'max_iter': 500, 'random_state': 42},
+                    # Configs 4-6: Regularização moderada
+                    {'C': 0.5, 'max_iter': 1000, 'random_state': 42},
+                    {'C': 1.0, 'max_iter': 1000, 'random_state': 42},    # Baseline
+                    {'C': 2.0, 'max_iter': 1000, 'random_state': 42},
+                    # Configs 7-10: Menos regularização (modelo mais complexo)
+                    {'C': 5.0, 'max_iter': 1000, 'random_state': 42},
+                    {'C': 10.0, 'max_iter': 1000, 'random_state': 42},
+                    {'C': 50.0, 'max_iter': 1500, 'random_state': 42},
+                    {'C': 100.0, 'max_iter': 1500, 'random_state': 42}   # Modelo mais livre
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 2. Random Forest (configuração original)
+            # 2. Random Forest - 10 configurações (trees e depth crescentes)
             'RandomForest': {
                 'class': RandomForestClassifier,
                 'param_combinations': [
+                    # Configs 1-3: Poucos trees, depth baixo (rápido)
+                    {'n_estimators': 20, 'max_depth': 5, 'random_state': 42},
+                    {'n_estimators': 30, 'max_depth': 7, 'random_state': 42},
                     {'n_estimators': 50, 'max_depth': 10, 'random_state': 42},
-                    {'n_estimators': 100, 'max_depth': 15, 'random_state': 42},
-                    {'n_estimators': 100, 'max_depth': 20, 'random_state': 42}
+                    # Configs 4-6: Moderado
+                    {'n_estimators': 70, 'max_depth': 12, 'random_state': 42},
+                    {'n_estimators': 100, 'max_depth': 15, 'random_state': 42},  # Baseline
+                    {'n_estimators': 100, 'max_depth': 20, 'random_state': 42},
+                    # Configs 7-10: Muitos trees, depth alto (mais complexo)
+                    {'n_estimators': 150, 'max_depth': 20, 'random_state': 42},
+                    {'n_estimators': 200, 'max_depth': 25, 'random_state': 42},
+                    {'n_estimators': 200, 'max_depth': 30, 'random_state': 42},
+                    {'n_estimators': 300, 'max_depth': None, 'random_state': 42}  # Sem limite
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 3. Gradient Boosting (configuração original)
+            # 3. Gradient Boosting - 10 configurações
             'GradientBoostingClassifier': {
                 'class': GradientBoostingClassifier,
                 'param_combinations': [
+                    # Configs 1-3: Poucos estimators, learning rate alto (convergência rápida)
+                    {'n_estimators': 20, 'learning_rate': 0.2, 'max_depth': 3, 'random_state': 42},
+                    {'n_estimators': 30, 'learning_rate': 0.15, 'max_depth': 3, 'random_state': 42},
+                    {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 3, 'random_state': 42},
+                    # Configs 4-6: Moderado
                     {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
                     {'n_estimators': 100, 'learning_rate': 0.05, 'max_depth': 5, 'random_state': 42},
-                    {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 7, 'random_state': 42}
+                    {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
+                    # Configs 7-10: Muitos estimators, mais profundo
+                    {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 7, 'random_state': 42},
+                    {'n_estimators': 150, 'learning_rate': 0.05, 'max_depth': 7, 'random_state': 42},
+                    {'n_estimators': 200, 'learning_rate': 0.05, 'max_depth': 7, 'random_state': 42},
+                    {'n_estimators': 200, 'learning_rate': 0.1, 'max_depth': 10, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 4. Isolation Forest (configuração original)
+            # 4. Isolation Forest - 10 configurações
             'IsolationForest': {
                 'class': IsolationForest,
                 'param_combinations': [
+                    # Configs 1-4: Contamination baixo, poucos trees
+                    {'contamination': 0.05, 'n_estimators': 50, 'random_state': 42},
+                    {'contamination': 0.08, 'n_estimators': 50, 'random_state': 42},
+                    {'contamination': 0.1, 'n_estimators': 50, 'random_state': 42},
                     {'contamination': 0.1, 'n_estimators': 100, 'random_state': 42},
+                    # Configs 5-7: Moderado
+                    {'contamination': 0.12, 'n_estimators': 100, 'random_state': 42},
                     {'contamination': 0.15, 'n_estimators': 100, 'random_state': 42},
-                    {'contamination': 0.2, 'n_estimators': 100, 'random_state': 42},
-                    {'contamination': 0.1, 'n_estimators': 200, 'random_state': 42}
+                    {'contamination': 0.15, 'n_estimators': 150, 'random_state': 42},
+                    # Configs 8-10: Contamination alto, muitos trees
+                    {'contamination': 0.2, 'n_estimators': 150, 'random_state': 42},
+                    {'contamination': 0.2, 'n_estimators': 200, 'random_state': 42},
+                    {'contamination': 0.25, 'n_estimators': 200, 'random_state': 42}
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
             },
             
-            # 5. Elliptic Envelope (configuração original)
+            # 5. Elliptic Envelope - 10 configurações
             'EllipticEnvelope': {
                 'class': EllipticEnvelope,
                 'param_combinations': [
+                    # Configs 1-10: Apenas contamination varia (algoritmo simples)
+                    {'contamination': 0.01, 'random_state': 42},
+                    {'contamination': 0.03, 'random_state': 42},
+                    {'contamination': 0.05, 'random_state': 42},
+                    {'contamination': 0.08, 'random_state': 42},
                     {'contamination': 0.1, 'random_state': 42},
+                    {'contamination': 0.12, 'random_state': 42},
                     {'contamination': 0.15, 'random_state': 42},
-                    {'contamination': 0.2, 'random_state': 42}
+                    {'contamination': 0.18, 'random_state': 42},
+                    {'contamination': 0.2, 'random_state': 42},
+                    {'contamination': 0.25, 'random_state': 42}
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
             },
             
-            # 6. Local Outlier Factor (configuração original)
+            # 6. Local Outlier Factor - 10 configurações
             'LocalOutlierFactor': {
                 'class': LocalOutlierFactor,
                 'param_combinations': [
+                    # Configs 1-3: Poucos neighbors, contamination baixo
+                    {'n_neighbors': 5, 'contamination': 0.05, 'novelty': True},
+                    {'n_neighbors': 5, 'contamination': 0.1, 'novelty': True},
                     {'n_neighbors': 10, 'contamination': 0.1, 'novelty': True},
+                    # Configs 4-7: Moderado
+                    {'n_neighbors': 15, 'contamination': 0.1, 'novelty': True},
                     {'n_neighbors': 20, 'contamination': 0.1, 'novelty': True},
-                    {'n_neighbors': 50, 'contamination': 0.15, 'novelty': True}
+                    {'n_neighbors': 20, 'contamination': 0.15, 'novelty': True},
+                    {'n_neighbors': 30, 'contamination': 0.15, 'novelty': True},
+                    # Configs 8-10: Muitos neighbors, contamination alto
+                    {'n_neighbors': 50, 'contamination': 0.15, 'novelty': True},
+                    {'n_neighbors': 50, 'contamination': 0.2, 'novelty': True},
+                    {'n_neighbors': 100, 'contamination': 0.2, 'novelty': True}
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
             },
             
-            # 7. PESADO - LinearSVC otimizado para datasets grandes
+            # 7. LinearSVC - 10 configurações (C crescente = menos regularização)
             'LinearSVC': {
                 'class': LinearSVC,
                 'param_combinations': [
+                    # Configs 1-3: C baixo (mais regularização), max_iter baixo
+                    {'C': 0.001, 'max_iter': 500, 'dual': False, 'random_state': 42},
+                    {'C': 0.01, 'max_iter': 500, 'dual': False, 'random_state': 42},
+                    {'C': 0.1, 'max_iter': 500, 'dual': False, 'random_state': 42},
+                    # Configs 4-6: Moderado
+                    {'C': 0.5, 'max_iter': 1000, 'dual': False, 'random_state': 42},
                     {'C': 1.0, 'max_iter': 1000, 'dual': False, 'random_state': 42},
+                    {'C': 2.0, 'max_iter': 1000, 'dual': False, 'random_state': 42},
+                    # Configs 7-10: C alto (menos regularização)
                     {'C': 5.0, 'max_iter': 1000, 'dual': False, 'random_state': 42},
-                    {'C': 10.0, 'max_iter': 1000, 'dual': False, 'random_state': 42}
+                    {'C': 10.0, 'max_iter': 1000, 'dual': False, 'random_state': 42},
+                    {'C': 50.0, 'max_iter': 1500, 'dual': False, 'random_state': 42},
+                    {'C': 100.0, 'max_iter': 1500, 'dual': False, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 8. RÁPIDO - SVM via gradiente estocástico
+            # 8. SGDClassifier - 10 configurações
             'SGDClassifier': {
                 'class': SGDClassifier,
                 'param_combinations': [
+                    # Configs 1-3: Alpha alto (mais regularização), max_iter baixo
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.01, 'max_iter': 500, 'random_state': 42},
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.001, 'max_iter': 500, 'random_state': 42},
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.0001, 'max_iter': 500, 'random_state': 42},
+                    # Configs 4-6: Moderado
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.00001, 'max_iter': 1000, 'random_state': 42},
                     {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.0001, 'max_iter': 1000, 'random_state': 42},
                     {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.001, 'max_iter': 1000, 'random_state': 42},
-                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.01, 'max_iter': 1000, 'random_state': 42}
+                    # Configs 7-10: Diferentes losses e penalties
+                    {'loss': 'log_loss', 'penalty': 'l2', 'alpha': 0.0001, 'max_iter': 1000, 'random_state': 42},
+                    {'loss': 'modified_huber', 'penalty': 'l2', 'alpha': 0.0001, 'max_iter': 1000, 'random_state': 42},
+                    {'loss': 'hinge', 'penalty': 'l1', 'alpha': 0.0001, 'max_iter': 1000, 'random_state': 42},
+                    {'loss': 'hinge', 'penalty': 'elasticnet', 'alpha': 0.0001, 'max_iter': 1000, 'l1_ratio': 0.15, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 9. OTIMIZADO - OneClassSVM via gradiente estocástico
+            # 9. SGDOneClassSVM - 10 configurações
             'SGDOneClassSVM': {
                 'class': SGDOneClassSVM,
                 'param_combinations': [
-                    {'nu': 0.05, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
+                    # Configs 1-4: Nu crescente (sensibilidade a outliers)
+                    {'nu': 0.01, 'learning_rate': 'optimal', 'max_iter': 500, 'random_state': 42},
+                    {'nu': 0.03, 'learning_rate': 'optimal', 'max_iter': 500, 'random_state': 42},
+                    {'nu': 0.05, 'learning_rate': 'optimal', 'max_iter': 500, 'random_state': 42},
+                    {'nu': 0.08, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
+                    # Configs 5-7: Moderado
                     {'nu': 0.1, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
+                    {'nu': 0.12, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
                     {'nu': 0.15, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
-                    {'nu': 0.2, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42}
+                    # Configs 8-10: Nu alto, mais iterações
+                    {'nu': 0.18, 'learning_rate': 'optimal', 'max_iter': 1500, 'random_state': 42},
+                    {'nu': 0.2, 'learning_rate': 'optimal', 'max_iter': 1500, 'random_state': 42},
+                    {'nu': 0.25, 'learning_rate': 'optimal', 'max_iter': 1500, 'random_state': 42}
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
             },
             
-            # 10. MLP Classifier (configuração original)
+            # 10. MLP Classifier - 10 configurações
             'MLPClassifier': {
                 'class': MLPClassifier,
                 'param_combinations': [
-                    {'hidden_layer_sizes': (50,), 'max_iter': 200, 'random_state': 42},
+                    # Configs 1-3: Pequenas redes, poucas iterações
+                    {'hidden_layer_sizes': (25,), 'max_iter': 100, 'random_state': 42},
+                    {'hidden_layer_sizes': (50,), 'max_iter': 100, 'random_state': 42},
+                    {'hidden_layer_sizes': (50, 25), 'max_iter': 100, 'random_state': 42},
+                    # Configs 4-6: Redes médias
                     {'hidden_layer_sizes': (100,), 'max_iter': 200, 'random_state': 42},
-                    {'hidden_layer_sizes': (50, 25), 'max_iter': 200, 'random_state': 42},
-                    {'hidden_layer_sizes': (100, 50), 'max_iter': 200, 'random_state': 42}
+                    {'hidden_layer_sizes': (100, 50), 'max_iter': 200, 'random_state': 42},
+                    {'hidden_layer_sizes': (100, 50, 25), 'max_iter': 200, 'random_state': 42},
+                    # Configs 7-10: Redes grandes
+                    {'hidden_layer_sizes': (150, 75), 'max_iter': 200, 'random_state': 42},
+                    {'hidden_layer_sizes': (200, 100), 'max_iter': 200, 'random_state': 42},
+                    {'hidden_layer_sizes': (200, 100, 50), 'max_iter': 300, 'random_state': 42},
+                    {'hidden_layer_sizes': (300, 150, 75), 'max_iter': 300, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             }
