@@ -14,6 +14,61 @@ from sklearn.metrics import confusion_matrix
 import warnings
 warnings.filterwarnings('ignore')
 
+def aggregate_by_params(df):
+    """
+    Agrega resultados por conjunto de parâmetros, calculando média e desvio padrão.
+    
+    Args:
+        df: DataFrame com resultados individuais
+        
+    Returns:
+        DataFrame agregado com médias e desvios padrão por param_id
+    """
+    if df.empty or 'param_id' not in df.columns:
+        return df
+    
+    # Métricas numéricas para agregar
+    numeric_metrics = ['accuracy', 'precision', 'recall', 'f1_score', 
+                      'training_time', 'prediction_time', 'memory_usage_mb']
+    
+    if 'balanced_accuracy' in df.columns:
+        numeric_metrics.insert(1, 'balanced_accuracy')
+    
+    if 'roc_auc' in df.columns:
+        numeric_metrics.append('roc_auc')
+    
+    # Filtrar métricas que existem no DataFrame
+    available_metrics = [m for m in numeric_metrics if m in df.columns]
+    
+    # Agrupar por param_id e calcular estatísticas
+    grouped = df.groupby('param_id')
+    
+    # Calcular médias
+    agg_dict = {metric: 'mean' for metric in available_metrics}
+    df_mean = grouped[available_metrics].mean().reset_index()
+    
+    # Calcular desvios padrão (com sufixo _std)
+    df_std = grouped[available_metrics].std().reset_index()
+    df_std.columns = ['param_id'] + [f'{col}_std' for col in available_metrics]
+    
+    # Merge média + desvio padrão
+    df_agg = df_mean.merge(df_std, on='param_id')
+    
+    # Adicionar informações de parâmetros (pegar do primeiro registro de cada grupo)
+    if 'params' in df.columns:
+        params_df = df.groupby('param_id')['params'].first().reset_index()
+        df_agg = df_agg.merge(params_df, on='param_id')
+    
+    # Adicionar contagem de execuções
+    count_df = grouped.size().reset_index(name='n_runs')
+    df_agg = df_agg.merge(count_df, on='param_id')
+    
+    # Adicionar algoritmo
+    if 'algorithm' in df.columns:
+        df_agg['algorithm'] = df['algorithm'].iloc[0]
+    
+    return df_agg
+
 def analyze_single_algorithm(results_dir):
     """
     Analisa os resultados de um único algoritmo e gera relatórios detalhados
@@ -77,75 +132,93 @@ def analyze_single_algorithm(results_dir):
     return True
 
 def generate_performance_evolution(df, plots_dir, algorithm_name):
-    """Gera gráfico de evolução da performance ao longo das execuções"""
+    """Gera gráfico de evolução da performance por configuração de parâmetros (médias)"""
     if len(df) < 2:
         return
     
+    # Agregar por parâmetros
+    df_agg = aggregate_by_params(df)
+    
+    if df_agg.empty or len(df_agg) < 2:
+        return
+    
     # Verificar se balanced_accuracy existe
-    has_balanced_acc = 'balanced_accuracy' in df.columns
+    has_balanced_acc = 'balanced_accuracy' in df_agg.columns
     n_rows, n_cols = (2, 3) if has_balanced_acc else (2, 2)
     
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(18, 12) if has_balanced_acc else (15, 10))
-    fig.suptitle(f'{algorithm_name} - Evolução da Performance', fontsize=16, fontweight='bold')
+    fig.suptitle(f'{algorithm_name} - Performance por Configuração de Parâmetros (Médias)', fontsize=16, fontweight='bold')
     
     if has_balanced_acc:
         axes = axes.flatten()
     
-    # Accuracy por execução
+    # X-axis: índice do conjunto de parâmetros
+    x_values = df_agg['param_id']
+    
+    # Accuracy com barras de erro
     ax = axes[0] if has_balanced_acc else axes[0,0]
-    ax.plot(df.index + 1, df['accuracy'], 'o-', color='blue', linewidth=2, markersize=6)
-    ax.set_title('Accuracy por Execução', fontweight='bold')
-    ax.set_xlabel('Execução')
+    ax.errorbar(x_values, df_agg['accuracy'], yerr=df_agg['accuracy_std'], 
+                fmt='o-', color='blue', linewidth=2, markersize=8, capsize=5, capthick=2)
+    ax.set_title('Accuracy por Configuração', fontweight='bold')
+    ax.set_xlabel('Configuração de Parâmetros (param_id)')
     ax.set_ylabel('Accuracy')
     ax.grid(True, alpha=0.3)
-    ax.axhline(y=df['accuracy'].mean(), color='red', linestyle='--', alpha=0.7, label=f'Média: {df["accuracy"].mean():.4f}')
+    ax.axhline(y=df_agg['accuracy'].mean(), color='red', linestyle='--', alpha=0.7, 
+               label=f'Média Geral: {df_agg["accuracy"].mean():.4f}')
     ax.legend()
     
-    # Balanced Accuracy por execução (se existe)
+    # Balanced Accuracy (se existe)
     if has_balanced_acc:
-        axes[1].plot(df.index + 1, df['balanced_accuracy'], 'o-', color='cyan', linewidth=2, markersize=6)
-        axes[1].set_title('Balanced Accuracy por Execução', fontweight='bold')
-        axes[1].set_xlabel('Execução')
+        axes[1].errorbar(x_values, df_agg['balanced_accuracy'], yerr=df_agg['balanced_accuracy_std'],
+                        fmt='o-', color='cyan', linewidth=2, markersize=8, capsize=5, capthick=2)
+        axes[1].set_title('Balanced Accuracy por Configuração', fontweight='bold')
+        axes[1].set_xlabel('Configuração de Parâmetros (param_id)')
         axes[1].set_ylabel('Balanced Accuracy')
         axes[1].grid(True, alpha=0.3)
-        axes[1].axhline(y=df['balanced_accuracy'].mean(), color='red', linestyle='--', alpha=0.7, 
-                        label=f'Média: {df["balanced_accuracy"].mean():.4f}')
+        axes[1].axhline(y=df_agg['balanced_accuracy'].mean(), color='red', linestyle='--', alpha=0.7,
+                       label=f'Média Geral: {df_agg["balanced_accuracy"].mean():.4f}')
         axes[1].legend()
         idx_f1, idx_prec, idx_recall = 2, 3, 4
     else:
         idx_f1, idx_prec, idx_recall = (0,1), (1,0), (1,1)
     
-    # F1-Score por execução
+    # F1-Score com barras de erro
     ax = axes[idx_f1] if has_balanced_acc else axes[idx_f1]
-    ax.plot(df.index + 1, df['f1_score'], 'o-', color='green', linewidth=2, markersize=6)
-    ax.set_title('F1-Score por Execução', fontweight='bold')
-    ax.set_xlabel('Execução')
+    ax.errorbar(x_values, df_agg['f1_score'], yerr=df_agg['f1_score_std'],
+               fmt='o-', color='green', linewidth=2, markersize=8, capsize=5, capthick=2)
+    ax.set_title('F1-Score por Configuração', fontweight='bold')
+    ax.set_xlabel('Configuração de Parâmetros (param_id)')
     ax.set_ylabel('F1-Score')
     ax.grid(True, alpha=0.3)
-    ax.axhline(y=df['f1_score'].mean(), color='red', linestyle='--', alpha=0.7, label=f'Média: {df["f1_score"].mean():.4f}')
+    ax.axhline(y=df_agg['f1_score'].mean(), color='red', linestyle='--', alpha=0.7,
+              label=f'Média Geral: {df_agg["f1_score"].mean():.4f}')
     ax.legend()
     
-    # Precision por execução
+    # Precision com barras de erro
     ax = axes[idx_prec] if has_balanced_acc else axes[idx_prec]
-    ax.plot(df.index + 1, df['precision'], 'o-', color='orange', linewidth=2, markersize=6)
-    ax.set_title('Precision por Execução', fontweight='bold')
-    ax.set_xlabel('Execução')
+    ax.errorbar(x_values, df_agg['precision'], yerr=df_agg['precision_std'],
+               fmt='o-', color='orange', linewidth=2, markersize=8, capsize=5, capthick=2)
+    ax.set_title('Precision por Configuração', fontweight='bold')
+    ax.set_xlabel('Configuração de Parâmetros (param_id)')
     ax.set_ylabel('Precision')
     ax.grid(True, alpha=0.3)
-    ax.axhline(y=df['precision'].mean(), color='red', linestyle='--', alpha=0.7, label=f'Média: {df["precision"].mean():.4f}')
+    ax.axhline(y=df_agg['precision'].mean(), color='red', linestyle='--', alpha=0.7,
+              label=f'Média Geral: {df_agg["precision"].mean():.4f}')
     ax.legend()
     
-    # Recall por execução
+    # Recall com barras de erro
     ax = axes[idx_recall] if has_balanced_acc else axes[idx_recall]
-    ax.plot(df.index + 1, df['recall'], 'o-', color='purple', linewidth=2, markersize=6)
-    ax.set_title('Recall por Execução', fontweight='bold')
-    ax.set_xlabel('Execução')
+    ax.errorbar(x_values, df_agg['recall'], yerr=df_agg['recall_std'],
+               fmt='o-', color='purple', linewidth=2, markersize=8, capsize=5, capthick=2)
+    ax.set_title('Recall por Configuração', fontweight='bold')
+    ax.set_xlabel('Configuração de Parâmetros (param_id)')
     ax.set_ylabel('Recall')
     ax.grid(True, alpha=0.3)
-    ax.axhline(y=df['recall'].mean(), color='red', linestyle='--', alpha=0.7, label=f'Média: {df["recall"].mean():.4f}')
+    ax.axhline(y=df_agg['recall'].mean(), color='red', linestyle='--', alpha=0.7,
+              label=f'Média Geral: {df_agg["recall"].mean():.4f}')
     ax.legend()
     
-    # Remover subplot extra se tiver balanced_accuracy (2x3 = 6 plots, mas usamos apenas 5)
+    # Remover subplot extra se tiver balanced_accuracy
     if has_balanced_acc:
         fig.delaxes(axes[5])
     
@@ -376,32 +449,38 @@ def generate_execution_time_analysis(df, plots_dir, algorithm_name):
     plt.close()
 
 def generate_detailed_tables(df, summary, tables_dir, algorithm_name):
-    """Gera tabelas detalhadas dos resultados"""
+    """Gera tabelas detalhadas dos resultados (agregadas por configuração)"""
     
-    # Tabela de estatísticas descritivas
+    # Agregar por parâmetros
+    df_agg = aggregate_by_params(df)
+    
+    if df_agg.empty:
+        return
+    
+    # Tabela de estatísticas descritivas (por configuração)
     metrics = ['accuracy', 'precision', 'recall', 'f1_score', 'training_time']
-    if 'balanced_accuracy' in df.columns:
+    if 'balanced_accuracy' in df_agg.columns:
         metrics.insert(1, 'balanced_accuracy')
     stats_data = []
     
     for metric in metrics:
-        if metric in df.columns:
+        if metric in df_agg.columns:
             metric_title = 'Balanced Accuracy' if metric == 'balanced_accuracy' else metric.replace('_', ' ').title()
             stats_data.append({
                 'Métrica': metric_title,
-                'Média': df[metric].mean(),
-                'Desvio Padrão': df[metric].std(),
-                'Mínimo': df[metric].min(),
-                'Máximo': df[metric].max(),
-                'Mediana': df[metric].median(),
-                'CV (%)': (df[metric].std() / max(df[metric].mean(), 0.0001)) * 100
+                'Média': df_agg[metric].mean(),
+                'Desvio Padrão': df_agg[metric].std(),
+                'Mínimo': df_agg[metric].min(),
+                'Máximo': df_agg[metric].max(),
+                'Mediana': df_agg[metric].median(),
+                'CV (%)': (df_agg[metric].std() / max(df_agg[metric].mean(), 0.0001)) * 100
             })
     
     stats_df = pd.DataFrame(stats_data)
     stats_df.to_csv(tables_dir / 'descriptive_statistics.csv', index=False)
     
-    # Tabela detalhada de todos os experimentos
-    detailed_df = df.copy()
+    # Tabela detalhada de configurações agregadas
+    detailed_df = df_agg.copy()
     if 'params' in detailed_df.columns:
         # Expandir parâmetros em colunas separadas
         params_df = pd.json_normalize(detailed_df['params'])
@@ -409,12 +488,11 @@ def generate_detailed_tables(df, summary, tables_dir, algorithm_name):
     
     detailed_df.to_csv(tables_dir / 'detailed_results.csv', index=False)
     
-    # Tabela de ranking por execução
+    # Tabela de ranking por configuração
     ranking_cols = ['accuracy', 'precision', 'recall', 'f1_score']
-    if 'balanced_accuracy' in df.columns:
+    if 'balanced_accuracy' in df_agg.columns:
         ranking_cols.insert(1, 'balanced_accuracy')
-    ranking_df = df[ranking_cols].copy()
-    ranking_df['execution'] = range(1, len(df) + 1)
+    ranking_df = df_agg[['param_id', 'n_runs'] + ranking_cols].copy()
     ranking_df['rank_accuracy'] = ranking_df['accuracy'].rank(ascending=False)
     ranking_df['rank_f1'] = ranking_df['f1_score'].rank(ascending=False)
     ranking_df.to_csv(tables_dir / 'execution_ranking.csv', index=False)
@@ -422,85 +500,95 @@ def generate_detailed_tables(df, summary, tables_dir, algorithm_name):
     # Salvar markdown das estatísticas
     with open(tables_dir / 'statistics_summary.md', 'w') as f:
         f.write(f"# 📊 Estatísticas Detalhadas - {algorithm_name}\n\n")
-        f.write("## Estatísticas Descritivas\n\n")
+        f.write("## Estatísticas Descritivas (Médias por Configuração)\n\n")
         f.write(stats_df.to_markdown(index=False, floatfmt='.4f'))
         f.write(f"\n\n## Resumo Executivo\n\n")
-        f.write(f"- **Total de Execuções**: {len(df)}\n")
-        f.write(f"- **Melhor F1-Score**: {df['f1_score'].max():.4f}\n")
-        f.write(f"- **F1-Score Médio**: {df['f1_score'].mean():.4f} ± {df['f1_score'].std():.4f}\n")
-        f.write(f"- **Tempo Médio**: {df['training_time'].mean():.2f}s\n")
-        f.write(f"- **Eficiência Média**: {(df['f1_score'] / df['training_time'].replace(0, 0.001)).mean():.4f} F1/s\n")
+        f.write(f"- **Total de Configurações**: {len(df_agg)}\n")
+        f.write(f"- **Total de Execuções**: {df_agg['n_runs'].sum()}\n")
+        f.write(f"- **Melhor F1-Score (média)**: {df_agg['f1_score'].max():.4f}\n")
+        f.write(f"- **F1-Score Médio Geral**: {df_agg['f1_score'].mean():.4f} ± {df_agg['f1_score'].std():.4f}\n")
+        f.write(f"- **Tempo Médio**: {df_agg['training_time'].mean():.2f}s\n")
+        f.write(f"- **Eficiência Média**: {(df_agg['f1_score'] / df_agg['training_time'].replace(0, 0.001)).mean():.4f} F1/s\n")
 
 def generate_individual_report(df, summary, report_dir, algorithm_name, test_mode):
-    """Gera relatório individual completo"""
+    """Gera relatório individual completo (baseado em médias por configuração)"""
     
     mode_str = "TESTE" if test_mode else "COMPLETO"
     
-    # Calcular estatísticas principais
-    best_f1_idx = df['f1_score'].idxmax()
-    best_result = df.loc[best_f1_idx]
+    # Agregar por parâmetros
+    df_agg = aggregate_by_params(df)
     
-    stability = df['f1_score'].std()
-    efficiency = (df['f1_score'] / df['training_time'].replace(0, 0.001)).mean()
+    if df_agg.empty:
+        return
+    
+    # Calcular estatísticas principais (da melhor configuração)
+    best_f1_idx = df_agg['f1_score'].idxmax()
+    best_result = df_agg.loc[best_f1_idx]
+    
+    stability = df_agg['f1_score'].std()
+    efficiency = (df_agg['f1_score'] / df_agg['training_time'].replace(0, 0.001)).mean()
+    total_runs = df_agg['n_runs'].sum()
     
     report_content = f"""# 📊 Relatório Individual - {algorithm_name}
 
 **Modo de Execução**: {mode_str}  
 **Data de Geração**: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}  
-**Total de Execuções**: {len(df)}
+**Total de Configurações**: {len(df_agg)}  
+**Total de Execuções**: {total_runs}
 
 ## 🎯 Resumo Executivo
 
-### Melhor Performance
-- **F1-Score**: {best_result['f1_score']:.4f}
-- **Accuracy**: {best_result['accuracy']:.4f}
-- **Precision**: {best_result['precision']:.4f}
-- **Recall**: {best_result['recall']:.4f}
-- **Tempo de Treinamento**: {best_result['training_time']:.2f}s
+### Melhor Configuração (param_id: {best_result['param_id']})
+- **F1-Score Médio**: {best_result['f1_score']:.4f} ± {best_result['f1_score_std']:.4f}
+- **Accuracy Média**: {best_result['accuracy']:.4f} ± {best_result['accuracy_std']:.4f}
+- **Precision Média**: {best_result['precision']:.4f} ± {best_result['precision_std']:.4f}
+- **Recall Médio**: {best_result['recall']:.4f} ± {best_result['recall_std']:.4f}
+- **Tempo de Treinamento Médio**: {best_result['training_time']:.2f}s ± {best_result['training_time_std']:.2f}s
+- **Execuções**: {best_result['n_runs']}
 
-### Performance Média
-- **F1-Score Médio**: {df['f1_score'].mean():.4f} ± {df['f1_score'].std():.4f}
-- **Accuracy Média**: {df['accuracy'].mean():.4f} ± {df['accuracy'].std():.4f}
-- **Precision Média**: {df['precision'].mean():.4f} ± {df['precision'].std():.4f}
-- **Recall Médio**: {df['recall'].mean():.4f} ± {df['recall'].std():.4f}
+### Performance Geral (todas as configurações)
+- **F1-Score Médio**: {df_agg['f1_score'].mean():.4f} ± {df_agg['f1_score'].std():.4f}
+- **Accuracy Média**: {df_agg['accuracy'].mean():.4f} ± {df_agg['accuracy'].std():.4f}
+- **Precision Média**: {df_agg['precision'].mean():.4f} ± {df_agg['precision'].std():.4f}
+- **Recall Médio**: {df_agg['recall'].mean():.4f} ± {df_agg['recall'].std():.4f}
 
 ### Métricas de Qualidade
-- **Estabilidade (Desvio F1)**: {stability:.4f} {'🟢 Excelente' if stability < 0.01 else '🟡 Boa' if stability < 0.05 else '🔴 Instável'}
+- **Estabilidade entre Configurações (Desvio F1)**: {stability:.4f} {'🟢 Excelente' if stability < 0.01 else '🟡 Boa' if stability < 0.05 else '🔴 Instável'}
 - **Eficiência Média**: {efficiency:.4f} F1/segundo
-- **Tempo Médio**: {df['training_time'].mean():.2f}s ± {df['training_time'].std():.2f}s
+- **Tempo Médio**: {df_agg['training_time'].mean():.2f}s ± {df_agg['training_time'].std():.2f}s
 
 ## 📈 Análise Detalhada
 
-### Distribuição das Métricas
+### Distribuição das Métricas (por configuração)
 """
 
     # Adicionar estatísticas detalhadas
     report_metrics = ['accuracy', 'precision', 'recall', 'f1_score']
-    if 'balanced_accuracy' in df.columns:
+    if 'balanced_accuracy' in df_agg.columns:
         report_metrics.insert(1, 'balanced_accuracy')
     
     for metric in report_metrics:
-        if metric in df.columns:
-            q25 = df[metric].quantile(0.25)
-            q75 = df[metric].quantile(0.75)
+        if metric in df_agg.columns:
+            q25 = df_agg[metric].quantile(0.25)
+            q75 = df_agg[metric].quantile(0.75)
             metric_title = 'Balanced Accuracy' if metric == 'balanced_accuracy' else metric.replace('_', ' ').title()
             report_content += f"""
 #### {metric_title}
-- **Mínimo**: {df[metric].min():.4f}
+- **Mínimo**: {df_agg[metric].min():.4f}
 - **Q1**: {q25:.4f}
-- **Mediana**: {df[metric].median():.4f}
+- **Mediana**: {df_agg[metric].median():.4f}
 - **Q3**: {q75:.4f}
-- **Máximo**: {df[metric].max():.4f}
+- **Máximo**: {df_agg[metric].max():.4f}
 - **IQR**: {q75 - q25:.4f}
 """
 
     # Análise de parâmetros se disponível
-    if 'params' in df.columns and len(df) > 1:
+    if 'params' in df_agg.columns and len(df_agg) > 1:
         report_content += "\n### Análise de Parâmetros\n\n"
         
         # Extrair parâmetros únicos
         param_keys = set()
-        for params in df['params']:
+        for params in df_agg['params']:
             if isinstance(params, dict):
                 param_keys.update(params.keys())
         
@@ -508,7 +596,7 @@ def generate_individual_report(df, summary, report_dir, algorithm_name, test_mod
             param_values = []
             f1_scores = []
             
-            for idx, row in df.iterrows():
+            for idx, row in df_agg.iterrows():
                 if isinstance(row['params'], dict) and param_key in row['params']:
                     param_values.append(row['params'][param_key])
                     f1_scores.append(row['f1_score'])
