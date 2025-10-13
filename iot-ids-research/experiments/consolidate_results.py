@@ -212,17 +212,25 @@ def generate_boxplots(detailed_df, plots_dir):
     print("   📦 Gerando boxplots de distribuições...")
     
     metrics = ['accuracy', 'precision', 'recall', 'f1_score']
+    if 'balanced_accuracy' in detailed_df.columns:
+        metrics.insert(1, 'balanced_accuracy')
     
-    fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+    n_rows, n_cols = (2, 3) if len(metrics) == 5 else (2, 2)
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(18, 12) if len(metrics) == 5 else (15, 12))
     axes = axes.flatten()
     
     for i, metric in enumerate(metrics):
         sns.boxplot(data=detailed_df, x='algorithm', y=metric, ax=axes[i])
-        axes[i].set_title(f'Distribuição de {metric.title()}', fontsize=12, fontweight='bold')
+        metric_title = 'Balanced Accuracy' if metric == 'balanced_accuracy' else metric.title()
+        axes[i].set_title(f'Distribuição de {metric_title}', fontsize=12, fontweight='bold')
         axes[i].set_xlabel('Algoritmo', fontsize=10)
-        axes[i].set_ylabel(metric.title(), fontsize=10)
+        axes[i].set_ylabel(metric_title, fontsize=10)
         axes[i].tick_params(axis='x', rotation=45)
         axes[i].grid(axis='y', alpha=0.3)
+    
+    # Remover subplot extra se tiver 5 métricas em grid 2x3
+    if len(metrics) == 5:
+        fig.delaxes(axes[5])
     
     plt.tight_layout()
     plt.savefig(plots_dir / 'metrics_boxplots.png', dpi=300, bbox_inches='tight')
@@ -233,7 +241,7 @@ def generate_correlation_heatmap(detailed_df, plots_dir):
     print("   🔥 Gerando heatmap de correlação...")
     
     # Selecionar métricas numéricas
-    correlation_cols = ['accuracy', 'precision', 'recall', 'f1_score', 
+    correlation_cols = ['accuracy', 'balanced_accuracy', 'precision', 'recall', 'f1_score', 
                        'training_time', 'prediction_time', 'memory_usage_mb']
     
     # Filtrar colunas que existem
@@ -451,7 +459,20 @@ def generate_comparison_plots(df, plots_dir):
     plt.savefig(plots_dir / 'accuracy_comparison.png', dpi=300, bbox_inches='tight')
     plt.close()
     
-    # 2. F1-Score Comparison
+    # 2. Balanced Accuracy Comparison (se disponível)
+    if 'best_balanced_accuracy' in df.columns:
+        plt.figure(figsize=(12, 6))
+        sns.barplot(data=df, x='algorithm', y='best_balanced_accuracy')
+        plt.title('Comparação de Balanced Accuracy entre Algoritmos', fontsize=14, fontweight='bold')
+        plt.xlabel('Algoritmo', fontsize=12)
+        plt.ylabel('Best Balanced Accuracy', fontsize=12)
+        plt.xticks(rotation=45, ha='right')
+        plt.grid(axis='y', alpha=0.3)
+        plt.tight_layout()
+        plt.savefig(plots_dir / 'balanced_accuracy_comparison.png', dpi=300, bbox_inches='tight')
+        plt.close()
+    
+    # 3. F1-Score Comparison
     plt.figure(figsize=(12, 6))
     sns.barplot(data=df, x='algorithm', y='best_f1')
     plt.title('Comparação de F1-Score entre Algoritmos', fontsize=14, fontweight='bold')
@@ -463,7 +484,7 @@ def generate_comparison_plots(df, plots_dir):
     plt.savefig(plots_dir / 'f1_comparison.png', dpi=300, bbox_inches='tight')
     plt.close()
     
-    # 3. Accuracy vs F1 Scatter
+    # 4. Accuracy vs F1 Scatter
     plt.figure(figsize=(10, 8))
     scatter = plt.scatter(df['best_accuracy'], df['best_f1'], 
                          s=100, alpha=0.7, c=range(len(df)), cmap='viridis')
@@ -483,7 +504,35 @@ def generate_comparison_plots(df, plots_dir):
     plt.savefig(plots_dir / 'accuracy_vs_f1.png', dpi=300, bbox_inches='tight')
     plt.close()
     
-    # 4. Execution Time Comparison
+    # 5. Accuracy vs Balanced Accuracy Scatter (se disponível)
+    if 'best_balanced_accuracy' in df.columns:
+        plt.figure(figsize=(10, 8))
+        scatter = plt.scatter(df['best_accuracy'], df['best_balanced_accuracy'], 
+                             s=200, alpha=0.7, c=range(len(df)), cmap='viridis',
+                             edgecolors='black', linewidth=1.5)
+        
+        # Adicionar linha diagonal y=x (perfeito balanceamento)
+        min_val = min(df['best_accuracy'].min(), df['best_balanced_accuracy'].min())
+        max_val = max(df['best_accuracy'].max(), df['best_balanced_accuracy'].max())
+        plt.plot([min_val, max_val], [min_val, max_val], 'r--', alpha=0.5, linewidth=2, label='y=x (perfeito)')
+        
+        # Adicionar labels para cada ponto
+        for i, row in df.iterrows():
+            plt.annotate(row['algorithm'], 
+                        (row['best_accuracy'], row['best_balanced_accuracy']),
+                        xytext=(5, 5), textcoords='offset points',
+                        fontsize=9, alpha=0.8)
+        
+        plt.xlabel('Best Accuracy', fontsize=12)
+        plt.ylabel('Best Balanced Accuracy', fontsize=12)
+        plt.title('Accuracy vs Balanced Accuracy por Algoritmo', fontsize=14, fontweight='bold')
+        plt.legend(loc='lower right')
+        plt.grid(alpha=0.3)
+        plt.tight_layout()
+        plt.savefig(plots_dir / 'accuracy_vs_balanced_accuracy.png', dpi=300, bbox_inches='tight')
+        plt.close()
+    
+    # 6. Execution Time Comparison
     plt.figure(figsize=(12, 6))
     sns.barplot(data=df, x='algorithm', y='execution_time')
     plt.title('Tempo de Execução por Algoritmo', fontsize=14, fontweight='bold')
@@ -542,12 +591,19 @@ def generate_summary_table(df, tables_dir):
     tables_dir.mkdir(parents=True, exist_ok=True)
     
     # Tabela principal
-    summary_table = df[['algorithm', 'best_accuracy', 'mean_accuracy', 
-                       'best_f1', 'mean_f1', 'execution_time', 'total_experiments']].copy()
+    columns = ['algorithm', 'best_accuracy', 'mean_accuracy']
+    if 'best_balanced_accuracy' in df.columns:
+        columns.extend(['best_balanced_accuracy', 'mean_balanced_accuracy'])
+    columns.extend(['best_f1', 'mean_f1', 'execution_time', 'total_experiments'])
+    
+    summary_table = df[columns].copy()
     
     # Formatar números
     summary_table['best_accuracy'] = summary_table['best_accuracy'].round(4)
     summary_table['mean_accuracy'] = summary_table['mean_accuracy'].round(4)
+    if 'best_balanced_accuracy' in summary_table.columns:
+        summary_table['best_balanced_accuracy'] = summary_table['best_balanced_accuracy'].round(4)
+        summary_table['mean_balanced_accuracy'] = summary_table['mean_balanced_accuracy'].round(4)
     summary_table['best_f1'] = summary_table['best_f1'].round(4)
     summary_table['mean_f1'] = summary_table['mean_f1'].round(4)
     summary_table['execution_time'] = summary_table['execution_time'].round(2)

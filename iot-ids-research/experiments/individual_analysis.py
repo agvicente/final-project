@@ -81,44 +81,73 @@ def generate_performance_evolution(df, plots_dir, algorithm_name):
     if len(df) < 2:
         return
     
-    fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+    # Verificar se balanced_accuracy existe
+    has_balanced_acc = 'balanced_accuracy' in df.columns
+    n_rows, n_cols = (2, 3) if has_balanced_acc else (2, 2)
+    
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(18, 12) if has_balanced_acc else (15, 10))
     fig.suptitle(f'{algorithm_name} - Evolução da Performance', fontsize=16, fontweight='bold')
     
+    if has_balanced_acc:
+        axes = axes.flatten()
+    
     # Accuracy por execução
-    axes[0,0].plot(df.index + 1, df['accuracy'], 'o-', color='blue', linewidth=2, markersize=6)
-    axes[0,0].set_title('Accuracy por Execução', fontweight='bold')
-    axes[0,0].set_xlabel('Execução')
-    axes[0,0].set_ylabel('Accuracy')
-    axes[0,0].grid(True, alpha=0.3)
-    axes[0,0].axhline(y=df['accuracy'].mean(), color='red', linestyle='--', alpha=0.7, label=f'Média: {df["accuracy"].mean():.4f}')
-    axes[0,0].legend()
+    ax = axes[0] if has_balanced_acc else axes[0,0]
+    ax.plot(df.index + 1, df['accuracy'], 'o-', color='blue', linewidth=2, markersize=6)
+    ax.set_title('Accuracy por Execução', fontweight='bold')
+    ax.set_xlabel('Execução')
+    ax.set_ylabel('Accuracy')
+    ax.grid(True, alpha=0.3)
+    ax.axhline(y=df['accuracy'].mean(), color='red', linestyle='--', alpha=0.7, label=f'Média: {df["accuracy"].mean():.4f}')
+    ax.legend()
+    
+    # Balanced Accuracy por execução (se existe)
+    if has_balanced_acc:
+        axes[1].plot(df.index + 1, df['balanced_accuracy'], 'o-', color='cyan', linewidth=2, markersize=6)
+        axes[1].set_title('Balanced Accuracy por Execução', fontweight='bold')
+        axes[1].set_xlabel('Execução')
+        axes[1].set_ylabel('Balanced Accuracy')
+        axes[1].grid(True, alpha=0.3)
+        axes[1].axhline(y=df['balanced_accuracy'].mean(), color='red', linestyle='--', alpha=0.7, 
+                        label=f'Média: {df["balanced_accuracy"].mean():.4f}')
+        axes[1].legend()
+        idx_f1, idx_prec, idx_recall = 2, 3, 4
+    else:
+        idx_f1, idx_prec, idx_recall = (0,1), (1,0), (1,1)
     
     # F1-Score por execução
-    axes[0,1].plot(df.index + 1, df['f1_score'], 'o-', color='green', linewidth=2, markersize=6)
-    axes[0,1].set_title('F1-Score por Execução', fontweight='bold')
-    axes[0,1].set_xlabel('Execução')
-    axes[0,1].set_ylabel('F1-Score')
-    axes[0,1].grid(True, alpha=0.3)
-    axes[0,1].axhline(y=df['f1_score'].mean(), color='red', linestyle='--', alpha=0.7, label=f'Média: {df["f1_score"].mean():.4f}')
-    axes[0,1].legend()
+    ax = axes[idx_f1] if has_balanced_acc else axes[idx_f1]
+    ax.plot(df.index + 1, df['f1_score'], 'o-', color='green', linewidth=2, markersize=6)
+    ax.set_title('F1-Score por Execução', fontweight='bold')
+    ax.set_xlabel('Execução')
+    ax.set_ylabel('F1-Score')
+    ax.grid(True, alpha=0.3)
+    ax.axhline(y=df['f1_score'].mean(), color='red', linestyle='--', alpha=0.7, label=f'Média: {df["f1_score"].mean():.4f}')
+    ax.legend()
     
     # Precision por execução
-    axes[1,0].plot(df.index + 1, df['precision'], 'o-', color='orange', linewidth=2, markersize=6)
-    axes[1,0].set_title('Precision por Execução', fontweight='bold')
-    axes[1,0].set_xlabel('Execução')
-    axes[1,0].set_ylabel('Precision')
-    axes[1,0].grid(True, alpha=0.3)
-    axes[1,0].axhline(y=df['precision'].mean(), color='red', linestyle='--', alpha=0.7, label=f'Média: {df["precision"].mean():.4f}')
-    axes[1,0].legend()
+    ax = axes[idx_prec] if has_balanced_acc else axes[idx_prec]
+    ax.plot(df.index + 1, df['precision'], 'o-', color='orange', linewidth=2, markersize=6)
+    ax.set_title('Precision por Execução', fontweight='bold')
+    ax.set_xlabel('Execução')
+    ax.set_ylabel('Precision')
+    ax.grid(True, alpha=0.3)
+    ax.axhline(y=df['precision'].mean(), color='red', linestyle='--', alpha=0.7, label=f'Média: {df["precision"].mean():.4f}')
+    ax.legend()
     
     # Recall por execução
-    axes[1,1].plot(df.index + 1, df['recall'], 'o-', color='purple', linewidth=2, markersize=6)
-    axes[1,1].set_title('Recall por Execução', fontweight='bold')
-    axes[1,1].set_xlabel('Execução')
-    axes[1,1].set_ylabel('Recall')
-    axes[1,1].grid(True, alpha=0.3)
-    axes[1,1].axhline(y=df['recall'].mean(), color='red', linestyle='--', alpha=0.7, label=f'Média: {df["recall"].mean():.4f}')
-    axes[1,1].legend()
+    ax = axes[idx_recall] if has_balanced_acc else axes[idx_recall]
+    ax.plot(df.index + 1, df['recall'], 'o-', color='purple', linewidth=2, markersize=6)
+    ax.set_title('Recall por Execução', fontweight='bold')
+    ax.set_xlabel('Execução')
+    ax.set_ylabel('Recall')
+    ax.grid(True, alpha=0.3)
+    ax.axhline(y=df['recall'].mean(), color='red', linestyle='--', alpha=0.7, label=f'Média: {df["recall"].mean():.4f}')
+    ax.legend()
+    
+    # Remover subplot extra se tiver balanced_accuracy (2x3 = 6 plots, mas usamos apenas 5)
+    if has_balanced_acc:
+        fig.delaxes(axes[5])
     
     plt.tight_layout()
     plt.savefig(plots_dir / 'performance_evolution.png', dpi=300, bbox_inches='tight')
@@ -246,8 +275,11 @@ def generate_confusion_matrix_analysis(df, plots_dir, algorithm_name):
 def generate_metrics_distribution(df, plots_dir, algorithm_name):
     """Gera análise da distribuição das métricas"""
     metrics = ['accuracy', 'precision', 'recall', 'f1_score']
+    if 'balanced_accuracy' in df.columns:
+        metrics.insert(1, 'balanced_accuracy')
     
-    fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+    n_rows, n_cols = (2, 3) if len(metrics) == 5 else (2, 2)
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(18, 12) if len(metrics) == 5 else (15, 10))
     axes = axes.flatten()
     fig.suptitle(f'{algorithm_name} - Distribuição das Métricas', fontsize=16, fontweight='bold')
     
@@ -270,11 +302,16 @@ def generate_metrics_distribution(df, plots_dir, algorithm_name):
             axes[i].axvline(mean_val - std_val, color='orange', linestyle=':', alpha=0.7, label=f'±1σ')
             axes[i].axvline(mean_val + std_val, color='orange', linestyle=':', alpha=0.7)
             
-            axes[i].set_title(f'{metric.replace("_", " ").title()}', fontweight='bold')
+            metric_title = 'Balanced Accuracy' if metric == 'balanced_accuracy' else metric.replace("_", " ").title()
+            axes[i].set_title(metric_title, fontweight='bold')
             axes[i].set_xlabel('Valor')
             axes[i].set_ylabel('Densidade')
             axes[i].legend()
             axes[i].grid(True, alpha=0.3)
+    
+    # Remover subplot extra se tiver 5 métricas em grid 2x3
+    if len(metrics) == 5:
+        fig.delaxes(axes[5])
     
     plt.tight_layout()
     plt.savefig(plots_dir / 'metrics_distribution.png', dpi=300, bbox_inches='tight')
@@ -343,12 +380,15 @@ def generate_detailed_tables(df, summary, tables_dir, algorithm_name):
     
     # Tabela de estatísticas descritivas
     metrics = ['accuracy', 'precision', 'recall', 'f1_score', 'training_time']
+    if 'balanced_accuracy' in df.columns:
+        metrics.insert(1, 'balanced_accuracy')
     stats_data = []
     
     for metric in metrics:
         if metric in df.columns:
+            metric_title = 'Balanced Accuracy' if metric == 'balanced_accuracy' else metric.replace('_', ' ').title()
             stats_data.append({
-                'Métrica': metric.replace('_', ' ').title(),
+                'Métrica': metric_title,
                 'Média': df[metric].mean(),
                 'Desvio Padrão': df[metric].std(),
                 'Mínimo': df[metric].min(),
@@ -370,7 +410,10 @@ def generate_detailed_tables(df, summary, tables_dir, algorithm_name):
     detailed_df.to_csv(tables_dir / 'detailed_results.csv', index=False)
     
     # Tabela de ranking por execução
-    ranking_df = df[['accuracy', 'precision', 'recall', 'f1_score']].copy()
+    ranking_cols = ['accuracy', 'precision', 'recall', 'f1_score']
+    if 'balanced_accuracy' in df.columns:
+        ranking_cols.insert(1, 'balanced_accuracy')
+    ranking_df = df[ranking_cols].copy()
     ranking_df['execution'] = range(1, len(df) + 1)
     ranking_df['rank_accuracy'] = ranking_df['accuracy'].rank(ascending=False)
     ranking_df['rank_f1'] = ranking_df['f1_score'].rank(ascending=False)
@@ -432,12 +475,17 @@ def generate_individual_report(df, summary, report_dir, algorithm_name, test_mod
 """
 
     # Adicionar estatísticas detalhadas
-    for metric in ['accuracy', 'precision', 'recall', 'f1_score']:
+    report_metrics = ['accuracy', 'precision', 'recall', 'f1_score']
+    if 'balanced_accuracy' in df.columns:
+        report_metrics.insert(1, 'balanced_accuracy')
+    
+    for metric in report_metrics:
         if metric in df.columns:
             q25 = df[metric].quantile(0.25)
             q75 = df[metric].quantile(0.75)
+            metric_title = 'Balanced Accuracy' if metric == 'balanced_accuracy' else metric.replace('_', ' ').title()
             report_content += f"""
-#### {metric.replace('_', ' ').title()}
+#### {metric_title}
 - **Mínimo**: {df[metric].min():.4f}
 - **Q1**: {q25:.4f}
 - **Mediana**: {df[metric].median():.4f}
