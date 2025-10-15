@@ -12,6 +12,11 @@ import sys
 import psutil
 import traceback
 from datetime import datetime
+from enhanced_metrics_collector import (
+    get_system_info,
+    collect_enhanced_metrics,
+    monitor_resource_usage_detailed
+)
 from sklearn.ensemble import IsolationForest, RandomForestClassifier
 from sklearn.svm import OneClassSVM, SVC, LinearSVC
 from sklearn.neighbors import LocalOutlierFactor
@@ -680,6 +685,33 @@ def run_single_experiment(algorithm_name, algorithm_class, params, X_train, X_te
             'run_id': run_id,
             'param_id': param_id
         }
+        
+        # 📊 COLETAR MÉTRICAS APRIMORADAS PARA IoT
+        try:
+            logger.info(f"         📊 Coletando métricas aprimoradas IoT...")
+            
+            # Determinar dados de treino corretos (normal ou completo)
+            X_train_used = X_train_normal if is_anomaly_detection else X_train
+            y_train_used = y_train[normal_indices] if is_anomaly_detection else y_train
+            
+            enhanced_result = collect_enhanced_metrics(
+                model=model,
+                X_train=X_train_used,
+                X_test=X_test,
+                y_train=y_train_used,
+                y_test=y_test,
+                y_pred=y_pred,
+                training_time=training_time,
+                prediction_time=predict_time,
+                memory_usage_mb=training_memory,
+                basic_results=result,
+                batch_sizes=[1, 10, 100] if TEST_MODE else [1, 10, 100, 1000]
+            )
+            result = enhanced_result
+            logger.info(f"         ✅ Métricas IoT coletadas com sucesso")
+        except Exception as e:
+            logger.warning(f"         ⚠️  Erro ao coletar métricas aprimoradas: {e}")
+            # Continuar com resultado básico em caso de erro
         
         # 🧹 LIMPEZA CRÍTICA DE MEMÓRIA
         logger.info(f"         🧹 Limpando memória do modelo...")

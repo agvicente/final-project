@@ -206,6 +206,8 @@ def run_algorithm_experiments(algorithm_name, test_mode=None):
                 'execution_time': time.time() - start_time,
                 'best_accuracy': float(df_results['accuracy'].max()),
                 'mean_accuracy': float(df_results['accuracy'].mean()),
+                'best_balanced_accuracy': float(df_results['balanced_accuracy'].max()),
+                'mean_balanced_accuracy': float(df_results['balanced_accuracy'].mean()),
                 'best_f1': float(df_results['f1_score'].max()),
                 'mean_f1': float(df_results['f1_score'].mean()),
                 'test_mode': test_mode,  # Adicionar flag do modo

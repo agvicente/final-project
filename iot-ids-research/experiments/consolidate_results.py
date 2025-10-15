@@ -15,6 +15,7 @@ from datetime import datetime
 from sklearn.metrics import confusion_matrix
 import warnings
 warnings.filterwarnings('ignore')
+from iot_advanced_plots import generate_all_iot_advanced_plots
 
 def get_shared_timestamp():
     """
@@ -849,8 +850,17 @@ def consolidate_all_results(test_mode=None):
         generate_performance_analysis(df_detailed, final_plots_dir)
         generate_parameter_analysis(df_detailed, final_plots_dir)
         generate_anomaly_detection_analysis(df_detailed, final_plots_dir)
+        
+        # 📊 ANÁLISES AVANÇADAS IoT-IDS
+        print("\n📈 Gerando análises avançadas IoT-IDS...")
+        try:
+            generate_all_iot_advanced_plots(df_detailed, final_plots_dir)
+        except Exception as e:
+            print(f"⚠️  Erro nas análises IoT avançadas: {e}")
+            import traceback
+            traceback.print_exc()
     
-    print("📋 Gerando tabelas avançadas...")
+    print("\n📋 Gerando tabelas avançadas...")
     generate_summary_table(df_summary, final_tables_dir)
     if not df_detailed.empty:
         generate_detailed_statistics_table(df_detailed, final_tables_dir)
