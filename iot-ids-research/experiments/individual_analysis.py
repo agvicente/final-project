@@ -246,9 +246,8 @@ def generate_parameter_impact(df, plots_dir, algorithm_name):
     n_rows = (n_params + n_cols - 1) // n_cols
     
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(5*n_cols, 4*n_rows))
+    # Garantir que axes seja sempre um array 1D iterável
     if n_params == 1:
-        axes = [axes]
-    elif n_rows == 1:
         axes = [axes]
     else:
         axes = axes.flatten()

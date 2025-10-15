@@ -155,12 +155,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: 88cb09d779ca615e18e7988d60bf8e62
-      size: 53094
+      md5: 2a2555fbb2772dec5bf71d165ccee3e7
+      size: 56079
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: cb12ae6edec1d9b7262247050b4f6d3c
-      size: 12299
+      md5: 2fe5ff54a98b5b2275e8c6da5ef052bd
+      size: 12476
       isexec: true
   exp_one_class_svm:
     cmd: python3 experiments/run_single_algorithm.py one_class_svm
@@ -219,12 +219,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: 88cb09d779ca615e18e7988d60bf8e62
-      size: 53094
+      md5: 61095634d7d4476dc4b2ec29c996c6e9
+      size: 56080
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: cb12ae6edec1d9b7262247050b4f6d3c
-      size: 12299
+      md5: 2fe5ff54a98b5b2275e8c6da5ef052bd
+      size: 12476
       isexec: true
   exp_logistic_regression:
     cmd: python3 experiments/run_single_algorithm.py logistic_regression
@@ -251,12 +251,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: 88cb09d779ca615e18e7988d60bf8e62
-      size: 53094
+      md5: 61095634d7d4476dc4b2ec29c996c6e9
+      size: 56080
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: cb12ae6edec1d9b7262247050b4f6d3c
-      size: 12299
+      md5: 2fe5ff54a98b5b2275e8c6da5ef052bd
+      size: 12476
       isexec: true
   exp_svc:
     cmd: python3 experiments/run_single_algorithm.py svc
@@ -295,8 +295,8 @@ stages:
     deps:
     - path: experiments/consolidate_results.py
       hash: md5
-      md5: dbd606ffe92798fd4159c39a4414658d
-      size: 37564
+      md5: c1bfb1c95cc61b57b81921d03e560b76
+      size: 40972
   exp_gradient_boosting:
     cmd: python3 experiments/run_single_algorithm.py gradient_boosting
     deps:
@@ -322,12 +322,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: 88cb09d779ca615e18e7988d60bf8e62
-      size: 53094
+      md5: 2a2555fbb2772dec5bf71d165ccee3e7
+      size: 56079
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: cb12ae6edec1d9b7262247050b4f6d3c
-      size: 12299
+      md5: 2fe5ff54a98b5b2275e8c6da5ef052bd
+      size: 12476
       isexec: true
   exp_elliptic_envelope:
     cmd: python3 experiments/run_single_algorithm.py elliptic_envelope
@@ -354,12 +354,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: 88cb09d779ca615e18e7988d60bf8e62
-      size: 53094
+      md5: 2a2555fbb2772dec5bf71d165ccee3e7
+      size: 56079
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: cb12ae6edec1d9b7262247050b4f6d3c
-      size: 12299
+      md5: 2fe5ff54a98b5b2275e8c6da5ef052bd
+      size: 12476
       isexec: true
   exp_local_outlier_factor:
     cmd: python3 experiments/run_single_algorithm.py local_outlier_factor
@@ -386,12 +386,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: 88cb09d779ca615e18e7988d60bf8e62
-      size: 53094
+      md5: 2a2555fbb2772dec5bf71d165ccee3e7
+      size: 56079
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: cb12ae6edec1d9b7262247050b4f6d3c
-      size: 12299
+      md5: 2fe5ff54a98b5b2275e8c6da5ef052bd
+      size: 12476
       isexec: true
   exp_mlp:
     cmd: python3 experiments/run_single_algorithm.py mlp
@@ -418,12 +418,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: 484d41c436b18297e5be70f54659ef54
-      size: 45173
+      md5: 2a2555fbb2772dec5bf71d165ccee3e7
+      size: 56079
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: cb12ae6edec1d9b7262247050b4f6d3c
-      size: 12299
+      md5: 2fe5ff54a98b5b2275e8c6da5ef052bd
+      size: 12476
       isexec: true
   exp_linear_svc:
     cmd: python3 experiments/run_single_algorithm.py linear_svc
@@ -450,12 +450,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: 88cb09d779ca615e18e7988d60bf8e62
-      size: 53094
+      md5: 2a2555fbb2772dec5bf71d165ccee3e7
+      size: 56079
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: cb12ae6edec1d9b7262247050b4f6d3c
-      size: 12299
+      md5: 2fe5ff54a98b5b2275e8c6da5ef052bd
+      size: 12476
       isexec: true
   exp_sgd_classifier:
     cmd: python3 experiments/run_single_algorithm.py sgd_classifier
@@ -482,12 +482,12 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: 88cb09d779ca615e18e7988d60bf8e62
-      size: 53094
+      md5: 2a2555fbb2772dec5bf71d165ccee3e7
+      size: 56079
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: cb12ae6edec1d9b7262247050b4f6d3c
-      size: 12299
+      md5: 2fe5ff54a98b5b2275e8c6da5ef052bd
+      size: 12476
       isexec: true
   exp_sgd_one_class_svm:
     cmd: python3 experiments/run_single_algorithm.py sgd_one_class_svm
@@ -514,10 +514,10 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: 88cb09d779ca615e18e7988d60bf8e62
-      size: 53094
+      md5: 2a2555fbb2772dec5bf71d165ccee3e7
+      size: 56079
     - path: experiments/run_single_algorithm.py
       hash: md5
-      md5: cb12ae6edec1d9b7262247050b4f6d3c
-      size: 12299
+      md5: 2fe5ff54a98b5b2275e8c6da5ef052bd
+      size: 12476
       isexec: true

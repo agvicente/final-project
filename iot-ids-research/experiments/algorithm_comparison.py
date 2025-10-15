@@ -319,11 +319,12 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 10. MLP Classifier
+            # 10. MLP Classifier - Otimizado para teste rápido
             'MLPClassifier': {
                 'class': MLPClassifier,
                 'param_combinations': [
-                    {'hidden_layer_sizes': (50,), 'max_iter': 100, 'random_state': 42}
+                    {'hidden_layer_sizes': (20,), 'max_iter': 50, 'early_stopping': True, 
+                     'validation_fraction': 0.1, 'n_iter_no_change': 5, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             }
@@ -523,23 +524,47 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 10. MLP Classifier - 10 configurações
+            # 10. MLP Classifier - 10 configurações OTIMIZADAS para IoT
             'MLPClassifier': {
                 'class': MLPClassifier,
                 'param_combinations': [
-                    # Configs 1-3: Pequenas redes, poucas iterações
-                    {'hidden_layer_sizes': (25,), 'max_iter': 100, 'random_state': 42},
-                    {'hidden_layer_sizes': (50,), 'max_iter': 100, 'random_state': 42},
-                    {'hidden_layer_sizes': (50, 25), 'max_iter': 100, 'random_state': 42},
-                    # Configs 4-6: Redes médias
-                    {'hidden_layer_sizes': (100,), 'max_iter': 200, 'random_state': 42},
-                    {'hidden_layer_sizes': (100, 50), 'max_iter': 200, 'random_state': 42},
-                    {'hidden_layer_sizes': (100, 50, 25), 'max_iter': 200, 'random_state': 42},
-                    # Configs 7-10: Redes grandes
-                    {'hidden_layer_sizes': (150, 75), 'max_iter': 200, 'random_state': 42},
-                    {'hidden_layer_sizes': (200, 100), 'max_iter': 200, 'random_state': 42},
-                    {'hidden_layer_sizes': (200, 100, 50), 'max_iter': 300, 'random_state': 42},
-                    {'hidden_layer_sizes': (300, 150, 75), 'max_iter': 300, 'random_state': 42}
+                    # Configs 1-3: Redes muito pequenas (RÁPIDAS)
+                    {'hidden_layer_sizes': (10,), 'max_iter': 50, 'early_stopping': True, 
+                     'validation_fraction': 0.1, 'n_iter_no_change': 5, 'random_state': 42},
+                    
+                    {'hidden_layer_sizes': (20,), 'max_iter': 50, 'early_stopping': True, 
+                     'validation_fraction': 0.1, 'n_iter_no_change': 5, 'random_state': 42},
+                    
+                    {'hidden_layer_sizes': (30,), 'max_iter': 50, 'early_stopping': True, 
+                     'validation_fraction': 0.1, 'n_iter_no_change': 5, 'random_state': 42},
+                    
+                    # Configs 4-6: Redes pequenas com 2 camadas
+                    {'hidden_layer_sizes': (20, 10), 'max_iter': 75, 'early_stopping': True, 
+                     'validation_fraction': 0.1, 'n_iter_no_change': 8, 'random_state': 42},
+                    
+                    {'hidden_layer_sizes': (30, 15), 'max_iter': 75, 'early_stopping': True, 
+                     'validation_fraction': 0.1, 'n_iter_no_change': 8, 'random_state': 42},
+                    
+                    {'hidden_layer_sizes': (40, 20), 'max_iter': 75, 'early_stopping': True, 
+                     'validation_fraction': 0.1, 'n_iter_no_change': 8, 'random_state': 42},
+                    
+                    # Configs 7-9: Redes médias (máximo para IoT)
+                    {'hidden_layer_sizes': (50, 25), 'max_iter': 100, 'early_stopping': True, 
+                     'validation_fraction': 0.1, 'n_iter_no_change': 10, 'learning_rate': 'adaptive',
+                     'random_state': 42},
+                    
+                    {'hidden_layer_sizes': (60, 30), 'max_iter': 100, 'early_stopping': True, 
+                     'validation_fraction': 0.1, 'n_iter_no_change': 10, 'learning_rate': 'adaptive',
+                     'random_state': 42},
+                    
+                    {'hidden_layer_sizes': (50, 25, 10), 'max_iter': 100, 'early_stopping': True, 
+                     'validation_fraction': 0.1, 'n_iter_no_change': 10, 'learning_rate': 'adaptive',
+                     'random_state': 42},
+                    
+                    # Config 10: Rede máxima otimizada (ainda leve para IoT)
+                    {'hidden_layer_sizes': (60, 30, 15), 'max_iter': 100, 'early_stopping': True, 
+                     'validation_fraction': 0.1, 'n_iter_no_change': 10, 'learning_rate': 'adaptive',
+                     'alpha': 0.01, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             }
