@@ -38,7 +38,7 @@ warnings.filterwarnings('ignore')
 # Configurações globais
 TEST_MODE = False # Mudar para False para execução completa
 SAMPLE_SIZE = 1000 if TEST_MODE else None  # Tamanho da amostra para teste
-N_RUNS = 1 if TEST_MODE else 3  # Número de execuções para rigor estatístico (reduzido de 5 para 3)
+N_RUNS = 1 if TEST_MODE else 5  # Número de execuções para rigor estatístico (estratégia adaptativa por algoritmo)
 
 # ID único da execução baseado em timestamp
 EXECUTION_ID = int(time.time())
@@ -330,240 +330,298 @@ def get_algorithm_configs(test_mode=None):
             }
         }
     else:
-        # Configurações completas para experimento final - 10 CONFIGURAÇÕES POR ALGORITMO
-        # Organizadas por complexidade crescente (simples → complexo)
+        # Configurações completas - ESTRATÉGIA ADAPTATIVA (Opção C)
+        # Algoritmos rápidos: 20 configs | Médios: 15 configs | Pesados: 10-12 configs
+        # Organizadas por complexidade crescente (simples → sweet spot IoT → limite)
         return {
-            # 1. Logistic Regression - 10 configurações (C crescente = menos regularização)
+            # 1. Logistic Regression - 20 configurações (ALGORITMO RÁPIDO)
+            # Escala logarítmica em C, concentrada no sweet spot IoT (0.01-100)
             'LogisticRegression': {
                 'class': LogisticRegression,
                 'param_combinations': [
-                    # Configs 1-3: Regularização forte (mais simples, mais rápido)
-                    {'C': 0.001, 'max_iter': 500, 'random_state': 42},   # Muito regularizado
+                    # LEVES (1-4): Muito regularizado, convergência rápida - 20%
+                    {'C': 0.0001, 'max_iter': 200, 'random_state': 42},
+                    {'C': 0.0005, 'max_iter': 200, 'random_state': 42},
+                    {'C': 0.001, 'max_iter': 300, 'random_state': 42},
+                    {'C': 0.005, 'max_iter': 300, 'random_state': 42},
+                    # SWEET SPOT IoT (5-12): Range mais deployable - 40%
                     {'C': 0.01, 'max_iter': 500, 'random_state': 42},
+                    {'C': 0.05, 'max_iter': 500, 'random_state': 42},
                     {'C': 0.1, 'max_iter': 500, 'random_state': 42},
-                    # Configs 4-6: Regularização moderada
-                    {'C': 0.5, 'max_iter': 1000, 'random_state': 42},
+                    {'C': 0.5, 'max_iter': 700, 'random_state': 42},
                     {'C': 1.0, 'max_iter': 1000, 'random_state': 42},    # Baseline
                     {'C': 2.0, 'max_iter': 1000, 'random_state': 42},
-                    # Configs 7-10: Menos regularização (modelo mais complexo)
                     {'C': 5.0, 'max_iter': 1000, 'random_state': 42},
                     {'C': 10.0, 'max_iter': 1000, 'random_state': 42},
+                    # MÉDIAS (13-16): Menos regularização - 20%
+                    {'C': 20.0, 'max_iter': 1200, 'random_state': 42},
                     {'C': 50.0, 'max_iter': 1500, 'random_state': 42},
-                    {'C': 100.0, 'max_iter': 1500, 'random_state': 42}   # Modelo mais livre
+                    {'C': 100.0, 'max_iter': 1500, 'random_state': 42},
+                    {'C': 200.0, 'max_iter': 1500, 'random_state': 42},
+                    # PESADAS (17-20): Pouca regularização, limite IoT - 20%
+                    {'C': 500.0, 'max_iter': 2000, 'random_state': 42},
+                    {'C': 1000.0, 'max_iter': 2000, 'random_state': 42},
+                    {'C': 5000.0, 'max_iter': 2000, 'random_state': 42},
+                    {'C': 10000.0, 'max_iter': 2000, 'random_state': 42}  # Quase sem regularização
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 2. Random Forest - 10 configurações (trees e depth crescentes)
+            # 2. Random Forest - 12 configurações (ALGORITMO MÉDIO)
+            # Crescimento gradual de trees e depth, focado no sweet spot IoT
             'RandomForest': {
                 'class': RandomForestClassifier,
                 'param_combinations': [
-                    # Configs 1-3: Poucos trees, depth baixo (rápido)
+                    # LEVES (1-2): Poucos trees, depth baixo - ~17%
                     {'n_estimators': 20, 'max_depth': 5, 'random_state': 42},
                     {'n_estimators': 30, 'max_depth': 7, 'random_state': 42},
+                    # SWEET SPOT (3-7): Range IoT-viável - ~42%
                     {'n_estimators': 50, 'max_depth': 10, 'random_state': 42},
-                    # Configs 4-6: Moderado
                     {'n_estimators': 70, 'max_depth': 12, 'random_state': 42},
                     {'n_estimators': 100, 'max_depth': 15, 'random_state': 42},  # Baseline
-                    {'n_estimators': 100, 'max_depth': 20, 'random_state': 42},
-                    # Configs 7-10: Muitos trees, depth alto (mais complexo)
+                    {'n_estimators': 100, 'max_depth': 18, 'random_state': 42},
                     {'n_estimators': 150, 'max_depth': 20, 'random_state': 42},
+                    # MÉDIAS (8-10): Moderadas - 25%
+                    {'n_estimators': 200, 'max_depth': 20, 'random_state': 42},
                     {'n_estimators': 200, 'max_depth': 25, 'random_state': 42},
-                    {'n_estimators': 200, 'max_depth': 30, 'random_state': 42},
-                    {'n_estimators': 300, 'max_depth': None, 'random_state': 42}  # Sem limite
+                    {'n_estimators': 250, 'max_depth': 25, 'random_state': 42},
+                    # PESADAS (11-12): Limite IoT - ~17%
+                    {'n_estimators': 300, 'max_depth': 25, 'random_state': 42},
+                    {'n_estimators': 350, 'max_depth': 25, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 3. Gradient Boosting - 10 configurações
+            # 3. Gradient Boosting - 10 configurações (ALGORITMO PESADO)
+            # LR × n_estimators trade-off, subsample agressivo para velocidade
             'GradientBoostingClassifier': {
                 'class': GradientBoostingClassifier,
                 'param_combinations': [
-                    # Configs 1-3: Poucos estimators, learning rate alto (convergência rápida)
-                    {'n_estimators': 20, 'learning_rate': 0.2, 'max_depth': 3, 'random_state': 42},
-                    {'n_estimators': 30, 'learning_rate': 0.15, 'max_depth': 3, 'random_state': 42},
-                    {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 3, 'random_state': 42},
-                    # Configs 4-6: Moderado
-                    {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
-                    {'n_estimators': 100, 'learning_rate': 0.05, 'max_depth': 5, 'random_state': 42},
-                    {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 5, 'random_state': 42},
-                    # Configs 7-10: Muitos estimators, mais profundo
-                    {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 7, 'random_state': 42},
-                    {'n_estimators': 150, 'learning_rate': 0.05, 'max_depth': 7, 'random_state': 42},
-                    {'n_estimators': 200, 'learning_rate': 0.05, 'max_depth': 7, 'random_state': 42},
-                    {'n_estimators': 200, 'learning_rate': 0.1, 'max_depth': 10, 'random_state': 42}
+                    # LEVES (1-2): Convergência rápida - 20%
+                    {'n_estimators': 30, 'learning_rate': 0.2, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 50, 'learning_rate': 0.15, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
+                    # SWEET SPOT (3-6): IoT-viável - 40%
+                    {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 4, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 5, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 100, 'learning_rate': 0.05, 'max_depth': 5, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 150, 'learning_rate': 0.05, 'max_depth': 5, 'subsample': 0.7, 'random_state': 42},
+                    # MÉDIAS (7-8) - 20%
+                    {'n_estimators': 150, 'learning_rate': 0.1, 'max_depth': 6, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 200, 'learning_rate': 0.05, 'max_depth': 6, 'subsample': 0.7, 'random_state': 42},
+                    # PESADAS (9-10): Limite IoT - 20%
+                    {'n_estimators': 200, 'learning_rate': 0.1, 'max_depth': 7, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 250, 'learning_rate': 0.05, 'max_depth': 7, 'subsample': 0.7, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 4. Isolation Forest - 10 configurações
+            # 4. Isolation Forest - 15 configurações (ALGORITMO MÉDIO)
+            # Contamination crescente + n_estimators
             'IsolationForest': {
                 'class': IsolationForest,
                 'param_combinations': [
-                    # Configs 1-4: Contamination baixo, poucos trees
+                    # LEVES (1-3): Poucos trees, contam baixo
                     {'contamination': 0.05, 'n_estimators': 50, 'random_state': 42},
-                    {'contamination': 0.08, 'n_estimators': 50, 'random_state': 42},
+                    {'contamination': 0.07, 'n_estimators': 50, 'random_state': 42},
                     {'contamination': 0.1, 'n_estimators': 50, 'random_state': 42},
+                    # SWEET SPOT (4-9): Range IoT
                     {'contamination': 0.1, 'n_estimators': 100, 'random_state': 42},
-                    # Configs 5-7: Moderado
                     {'contamination': 0.12, 'n_estimators': 100, 'random_state': 42},
                     {'contamination': 0.15, 'n_estimators': 100, 'random_state': 42},
                     {'contamination': 0.15, 'n_estimators': 150, 'random_state': 42},
-                    # Configs 8-10: Contamination alto, muitos trees
+                    {'contamination': 0.18, 'n_estimators': 150, 'random_state': 42},
                     {'contamination': 0.2, 'n_estimators': 150, 'random_state': 42},
+                    # MÉDIAS (10-12)
                     {'contamination': 0.2, 'n_estimators': 200, 'random_state': 42},
-                    {'contamination': 0.25, 'n_estimators': 200, 'random_state': 42}
+                    {'contamination': 0.22, 'n_estimators': 200, 'random_state': 42},
+                    {'contamination': 0.25, 'n_estimators': 200, 'random_state': 42},
+                    # PESADAS (13-15)
+                    {'contamination': 0.25, 'n_estimators': 250, 'random_state': 42},
+                    {'contamination': 0.3, 'n_estimators': 250, 'random_state': 42},
+                    {'contamination': 0.3, 'n_estimators': 300, 'random_state': 42}
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
             },
             
-            # 5. Elliptic Envelope - 10 configurações
+            # 5. Elliptic Envelope - 15 configurações (ALGORITMO MÉDIO)
+            # Apenas contamination varia (algoritmo simples, mas O(n³) em covariance)
             'EllipticEnvelope': {
                 'class': EllipticEnvelope,
                 'param_combinations': [
-                    # Configs 1-10: Apenas contamination varia (algoritmo simples)
+                    # LEVES (1-3): Contamination muito baixo
                     {'contamination': 0.01, 'random_state': 42},
                     {'contamination': 0.03, 'random_state': 42},
                     {'contamination': 0.05, 'random_state': 42},
-                    {'contamination': 0.08, 'random_state': 42},
+                    # SWEET SPOT (4-9): Range IoT
+                    {'contamination': 0.07, 'random_state': 42},
                     {'contamination': 0.1, 'random_state': 42},
                     {'contamination': 0.12, 'random_state': 42},
                     {'contamination': 0.15, 'random_state': 42},
                     {'contamination': 0.18, 'random_state': 42},
                     {'contamination': 0.2, 'random_state': 42},
-                    {'contamination': 0.25, 'random_state': 42}
+                    # MÉDIAS (10-12)
+                    {'contamination': 0.22, 'random_state': 42},
+                    {'contamination': 0.25, 'random_state': 42},
+                    {'contamination': 0.27, 'random_state': 42},
+                    # PESADAS (13-15)
+                    {'contamination': 0.3, 'random_state': 42},
+                    {'contamination': 0.35, 'random_state': 42},
+                    {'contamination': 0.4, 'random_state': 42}
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
             },
             
-            # 6. Local Outlier Factor - 10 configurações
+            # 6. Local Outlier Factor - 8 configurações (ALGORITMO MUITO PESADO)
+            # n_neighbors crescente (complexidade O(n²)), reduzido para tempo < 24h
             'LocalOutlierFactor': {
                 'class': LocalOutlierFactor,
                 'param_combinations': [
-                    # Configs 1-3: Poucos neighbors, contamination baixo
-                    {'n_neighbors': 5, 'contamination': 0.05, 'novelty': True},
+                    # LEVES (1-2): Poucos vizinhos - 25%
                     {'n_neighbors': 5, 'contamination': 0.1, 'novelty': True},
                     {'n_neighbors': 10, 'contamination': 0.1, 'novelty': True},
-                    # Configs 4-7: Moderado
+                    # SWEET SPOT (3-5): Range IoT - 37.5%
                     {'n_neighbors': 15, 'contamination': 0.1, 'novelty': True},
                     {'n_neighbors': 20, 'contamination': 0.1, 'novelty': True},
                     {'n_neighbors': 20, 'contamination': 0.15, 'novelty': True},
+                    # MÉDIAS (6-7) - 25%
                     {'n_neighbors': 30, 'contamination': 0.15, 'novelty': True},
-                    # Configs 8-10: Muitos neighbors, contamination alto
-                    {'n_neighbors': 50, 'contamination': 0.15, 'novelty': True},
-                    {'n_neighbors': 50, 'contamination': 0.2, 'novelty': True},
-                    {'n_neighbors': 100, 'contamination': 0.2, 'novelty': True}
+                    {'n_neighbors': 40, 'contamination': 0.15, 'novelty': True},
+                    # PESADAS (8) - 12.5%
+                    {'n_neighbors': 50, 'contamination': 0.2, 'novelty': True}
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
             },
             
-            # 7. LinearSVC - 10 configurações (C crescente = menos regularização)
+            # 7. LinearSVC - 18 configurações (ALGORITMO RÁPIDO/MÉDIO)
+            # Escala logarítmica, dual=False para n_samples > n_features
             'LinearSVC': {
                 'class': LinearSVC,
                 'param_combinations': [
-                    # Configs 1-3: C baixo (mais regularização), max_iter baixo
-                    {'C': 0.001, 'max_iter': 500, 'dual': False, 'random_state': 42},
+                    # LEVES (1-3): Muito regularizado
+                    {'C': 0.0001, 'max_iter': 300, 'dual': False, 'random_state': 42},
+                    {'C': 0.0005, 'max_iter': 300, 'dual': False, 'random_state': 42},
+                    {'C': 0.001, 'max_iter': 400, 'dual': False, 'random_state': 42},
+                    # SWEET SPOT (4-11): Range IoT - 44%
+                    {'C': 0.005, 'max_iter': 500, 'dual': False, 'random_state': 42},
                     {'C': 0.01, 'max_iter': 500, 'dual': False, 'random_state': 42},
-                    {'C': 0.1, 'max_iter': 500, 'dual': False, 'random_state': 42},
-                    # Configs 4-6: Moderado
+                    {'C': 0.05, 'max_iter': 700, 'dual': False, 'random_state': 42},
+                    {'C': 0.1, 'max_iter': 700, 'dual': False, 'random_state': 42},
                     {'C': 0.5, 'max_iter': 1000, 'dual': False, 'random_state': 42},
                     {'C': 1.0, 'max_iter': 1000, 'dual': False, 'random_state': 42},
                     {'C': 2.0, 'max_iter': 1000, 'dual': False, 'random_state': 42},
-                    # Configs 7-10: C alto (menos regularização)
                     {'C': 5.0, 'max_iter': 1000, 'dual': False, 'random_state': 42},
-                    {'C': 10.0, 'max_iter': 1000, 'dual': False, 'random_state': 42},
+                    # MÉDIAS (12-15)
+                    {'C': 10.0, 'max_iter': 1200, 'dual': False, 'random_state': 42},
+                    {'C': 20.0, 'max_iter': 1200, 'dual': False, 'random_state': 42},
                     {'C': 50.0, 'max_iter': 1500, 'dual': False, 'random_state': 42},
-                    {'C': 100.0, 'max_iter': 1500, 'dual': False, 'random_state': 42}
+                    {'C': 100.0, 'max_iter': 1500, 'dual': False, 'random_state': 42},
+                    # PESADAS (16-18)
+                    {'C': 500.0, 'max_iter': 2000, 'dual': False, 'random_state': 42},
+                    {'C': 1000.0, 'max_iter': 2000, 'dual': False, 'random_state': 42},
+                    {'C': 5000.0, 'max_iter': 2000, 'dual': False, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 8. SGDClassifier - 10 configurações
+            # 8. SGDClassifier - 20 configurações (ALGORITMO MUITO RÁPIDO)
+            # Online learning, ideal para IoT streaming. Escala logarítmica em alpha
             'SGDClassifier': {
                 'class': SGDClassifier,
                 'param_combinations': [
-                    # Configs 1-3: Alpha alto (mais regularização), max_iter baixo
-                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.01, 'max_iter': 500, 'random_state': 42},
-                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.001, 'max_iter': 500, 'random_state': 42},
+                    # LEVES (1-4): Muito regularizado, convergência rápida - 20%
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.1, 'max_iter': 300, 'random_state': 42},
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.01, 'max_iter': 300, 'random_state': 42},
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.001, 'max_iter': 400, 'random_state': 42},
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.0005, 'max_iter': 400, 'random_state': 42},
+                    # SWEET SPOT (5-12): Range IoT - 40%
                     {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.0001, 'max_iter': 500, 'random_state': 42},
-                    # Configs 4-6: Moderado
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.00005, 'max_iter': 700, 'random_state': 42},
                     {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.00001, 'max_iter': 1000, 'random_state': 42},
-                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.0001, 'max_iter': 1000, 'random_state': 42},
-                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.001, 'max_iter': 1000, 'random_state': 42},
-                    # Configs 7-10: Diferentes losses e penalties
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.000005, 'max_iter': 1000, 'random_state': 42},
                     {'loss': 'log_loss', 'penalty': 'l2', 'alpha': 0.0001, 'max_iter': 1000, 'random_state': 42},
                     {'loss': 'modified_huber', 'penalty': 'l2', 'alpha': 0.0001, 'max_iter': 1000, 'random_state': 42},
                     {'loss': 'hinge', 'penalty': 'l1', 'alpha': 0.0001, 'max_iter': 1000, 'random_state': 42},
-                    {'loss': 'hinge', 'penalty': 'elasticnet', 'alpha': 0.0001, 'max_iter': 1000, 'l1_ratio': 0.15, 'random_state': 42}
+                    {'loss': 'hinge', 'penalty': 'elasticnet', 'alpha': 0.0001, 'max_iter': 1000, 'l1_ratio': 0.15, 'random_state': 42},
+                    # MÉDIAS (13-16): Menos regularização - 20%
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.000001, 'max_iter': 1500, 'random_state': 42},
+                    {'loss': 'log_loss', 'penalty': 'l2', 'alpha': 0.00001, 'max_iter': 1500, 'random_state': 42},
+                    {'loss': 'modified_huber', 'penalty': 'l2', 'alpha': 0.00001, 'max_iter': 1500, 'random_state': 42},
+                    {'loss': 'hinge', 'penalty': 'elasticnet', 'alpha': 0.00001, 'max_iter': 1500, 'l1_ratio': 0.3, 'random_state': 42},
+                    # PESADAS (17-20): Pouca regularização - 20%
+                    {'loss': 'hinge', 'penalty': 'l2', 'alpha': 0.0000001, 'max_iter': 2000, 'random_state': 42},
+                    {'loss': 'log_loss', 'penalty': 'l2', 'alpha': 0.000001, 'max_iter': 2000, 'random_state': 42},
+                    {'loss': 'modified_huber', 'penalty': 'l2', 'alpha': 0.000001, 'max_iter': 2000, 'random_state': 42},
+                    {'loss': 'hinge', 'penalty': 'elasticnet', 'alpha': 0.000001, 'max_iter': 2000, 'l1_ratio': 0.5, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
             
-            # 9. SGDOneClassSVM - 10 configurações
+            # 9. SGDOneClassSVM - 15 configurações (ALGORITMO MÉDIO)
+            # Nu crescente (sensibilidade a outliers), online learning para anomalias
             'SGDOneClassSVM': {
                 'class': SGDOneClassSVM,
                 'param_combinations': [
-                    # Configs 1-4: Nu crescente (sensibilidade a outliers)
-                    {'nu': 0.01, 'learning_rate': 'optimal', 'max_iter': 500, 'random_state': 42},
-                    {'nu': 0.03, 'learning_rate': 'optimal', 'max_iter': 500, 'random_state': 42},
+                    # LEVES (1-3): Nu baixo (menos sensível)
+                    {'nu': 0.01, 'learning_rate': 'optimal', 'max_iter': 300, 'random_state': 42},
+                    {'nu': 0.03, 'learning_rate': 'optimal', 'max_iter': 400, 'random_state': 42},
                     {'nu': 0.05, 'learning_rate': 'optimal', 'max_iter': 500, 'random_state': 42},
-                    {'nu': 0.08, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
-                    # Configs 5-7: Moderado
+                    # SWEET SPOT (4-9): Range IoT
+                    {'nu': 0.07, 'learning_rate': 'optimal', 'max_iter': 700, 'random_state': 42},
                     {'nu': 0.1, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
                     {'nu': 0.12, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
                     {'nu': 0.15, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
-                    # Configs 8-10: Nu alto, mais iterações
-                    {'nu': 0.18, 'learning_rate': 'optimal', 'max_iter': 1500, 'random_state': 42},
-                    {'nu': 0.2, 'learning_rate': 'optimal', 'max_iter': 1500, 'random_state': 42},
-                    {'nu': 0.25, 'learning_rate': 'optimal', 'max_iter': 1500, 'random_state': 42}
+                    {'nu': 0.18, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
+                    {'nu': 0.2, 'learning_rate': 'optimal', 'max_iter': 1000, 'random_state': 42},
+                    # MÉDIAS (10-12)
+                    {'nu': 0.25, 'learning_rate': 'optimal', 'max_iter': 1200, 'random_state': 42},
+                    {'nu': 0.3, 'learning_rate': 'optimal', 'max_iter': 1500, 'random_state': 42},
+                    {'nu': 0.35, 'learning_rate': 'optimal', 'max_iter': 1500, 'random_state': 42},
+                    # PESADAS (13-15): Nu alto (muito sensível)
+                    {'nu': 0.4, 'learning_rate': 'optimal', 'max_iter': 1500, 'random_state': 42},
+                    {'nu': 0.45, 'learning_rate': 'optimal', 'max_iter': 2000, 'random_state': 42},
+                    {'nu': 0.5, 'learning_rate': 'optimal', 'max_iter': 2000, 'random_state': 42}
                 ],
                 'anomaly_detection': True,
                 'n_runs': N_RUNS
             },
             
-            # 10. MLP Classifier - 10 configurações OTIMIZADAS para IoT
+            # 10. MLP Classifier - 8 configurações (ALGORITMO MUITO PESADO)
+            # Early stopping agressivo para manter tempo < 24h
             'MLPClassifier': {
                 'class': MLPClassifier,
                 'param_combinations': [
-                    # Configs 1-3: Redes muito pequenas (RÁPIDAS)
+                    # LEVES (1-2): Redes muito pequenas - 25%
                     {'hidden_layer_sizes': (10,), 'max_iter': 50, 'early_stopping': True, 
-                     'validation_fraction': 0.1, 'n_iter_no_change': 5, 'random_state': 42},
+                     'validation_fraction': 0.15, 'n_iter_no_change': 5, 'random_state': 42},
                     
                     {'hidden_layer_sizes': (20,), 'max_iter': 50, 'early_stopping': True, 
-                     'validation_fraction': 0.1, 'n_iter_no_change': 5, 'random_state': 42},
+                     'validation_fraction': 0.15, 'n_iter_no_change': 5, 'random_state': 42},
                     
+                    # SWEET SPOT (3-5): Redes pequenas - 37.5%
                     {'hidden_layer_sizes': (30,), 'max_iter': 50, 'early_stopping': True, 
-                     'validation_fraction': 0.1, 'n_iter_no_change': 5, 'random_state': 42},
+                     'validation_fraction': 0.15, 'n_iter_no_change': 5, 'random_state': 42},
                     
-                    # Configs 4-6: Redes pequenas com 2 camadas
-                    {'hidden_layer_sizes': (20, 10), 'max_iter': 75, 'early_stopping': True, 
-                     'validation_fraction': 0.1, 'n_iter_no_change': 8, 'random_state': 42},
+                    {'hidden_layer_sizes': (20, 10), 'max_iter': 60, 'early_stopping': True, 
+                     'validation_fraction': 0.15, 'n_iter_no_change': 6, 'random_state': 42},
                     
-                    {'hidden_layer_sizes': (30, 15), 'max_iter': 75, 'early_stopping': True, 
-                     'validation_fraction': 0.1, 'n_iter_no_change': 8, 'random_state': 42},
+                    {'hidden_layer_sizes': (30, 15), 'max_iter': 60, 'early_stopping': True, 
+                     'validation_fraction': 0.15, 'n_iter_no_change': 6, 'random_state': 42},
                     
-                    {'hidden_layer_sizes': (40, 20), 'max_iter': 75, 'early_stopping': True, 
-                     'validation_fraction': 0.1, 'n_iter_no_change': 8, 'random_state': 42},
-                    
-                    # Configs 7-9: Redes médias (máximo para IoT)
-                    {'hidden_layer_sizes': (50, 25), 'max_iter': 100, 'early_stopping': True, 
-                     'validation_fraction': 0.1, 'n_iter_no_change': 10, 'learning_rate': 'adaptive',
+                    # MÉDIAS (6-7): Redes médias - 25%
+                    {'hidden_layer_sizes': (40, 20), 'max_iter': 70, 'early_stopping': True, 
+                     'validation_fraction': 0.15, 'n_iter_no_change': 7, 'learning_rate': 'adaptive',
                      'random_state': 42},
                     
-                    {'hidden_layer_sizes': (60, 30), 'max_iter': 100, 'early_stopping': True, 
-                     'validation_fraction': 0.1, 'n_iter_no_change': 10, 'learning_rate': 'adaptive',
+                    {'hidden_layer_sizes': (50, 25), 'max_iter': 80, 'early_stopping': True, 
+                     'validation_fraction': 0.15, 'n_iter_no_change': 8, 'learning_rate': 'adaptive',
                      'random_state': 42},
                     
-                    {'hidden_layer_sizes': (50, 25, 10), 'max_iter': 100, 'early_stopping': True, 
-                     'validation_fraction': 0.1, 'n_iter_no_change': 10, 'learning_rate': 'adaptive',
-                     'random_state': 42},
-                    
-                    # Config 10: Rede máxima otimizada (ainda leve para IoT)
-                    {'hidden_layer_sizes': (60, 30, 15), 'max_iter': 100, 'early_stopping': True, 
-                     'validation_fraction': 0.1, 'n_iter_no_change': 10, 'learning_rate': 'adaptive',
+                    # PESADAS (8): Rede máxima - 12.5%
+                    {'hidden_layer_sizes': (50, 25, 10), 'max_iter': 80, 'early_stopping': True, 
+                     'validation_fraction': 0.15, 'n_iter_no_change': 8, 'learning_rate': 'adaptive',
                      'alpha': 0.01, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS

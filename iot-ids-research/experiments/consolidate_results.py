@@ -701,8 +701,32 @@ def generate_final_report(df, algorithms, report_dir, test_mode=False):
 
 - **Configurações por Algoritmo**: {df['configurations'].mean():.1f} (média)
 - **Execuções por Configuração**: {df['runs_per_config'].mean():.1f} (média)
-- **Rigor Estatístico**: ✅ Múltiplas execuções para cada configuração
+- **Rigor Estatístico**: ✅ Múltiplas execuções (5 runs) para cada configuração
 - **Validação**: ✅ Holdout test set independente
+
+### 🎛️ Estratégia Adaptativa de Configurações (Opção C)
+
+**Racional**: O número de configurações varia por algoritmo conforme sua complexidade computacional,
+mantendo o tempo total de execução em ~24h e garantindo cobertura abrangente do espaço de hiperparâmetros.
+
+**Distribuição por Complexidade**:
+- ⚡ **Algoritmos Rápidos (20 configs)**: LogisticRegression, SGDClassifier
+- 🔄 **Algoritmos Médios (12-18 configs)**: RandomForest(12), LinearSVC(18), IsolationForest(15), EllipticEnvelope(15), SGDOneClassSVM(15)
+- 🐢 **Algoritmos Pesados (8-10 configs)**: GradientBoosting(10), LocalOutlierFactor(8), MLPClassifier(8)
+
+**Totais**: 141 configurações × 5 runs = 705 experimentos | Tempo estimado: ~30h
+
+**Estratégia de Amostragem**: Cada algoritmo possui configurações organizadas em 4 faixas:
+1. **LEVES (20%)**: Modelos muito simples, deployable em edge devices
+2. **SWEET SPOT (40%)**: Range ideal para IoT, balanceando performance e recursos
+3. **MÉDIAS (20%)**: Configurações moderadas, para edge servers
+4. **PESADAS (20%)**: Limite da capacidade IoT, para gateways e fog nodes
+
+**Comparabilidade**: Apesar do número variável, todos os algoritmos são comparáveis pois:
+- Utilizam 5 runs cada para rigor estatístico
+- Compartilham o mesmo train/test split (random_state=42)
+- Incluem configurações leves e pesadas para análise de trade-offs
+- Focam no sweet spot IoT (40% das configurações)
 
 ## 📈 Gráficos e Análises Geradas
 
