@@ -251,8 +251,8 @@ stages:
       size: 28812320
     - path: experiments/algorithm_comparison.py
       hash: md5
-      md5: 46fd385a4115a80ccbef60f3eaad217c
-      size: 60901
+      md5: ea6466f966271a63cc0ea308948f3a33
+      size: 62694
     - path: experiments/run_single_algorithm.py
       hash: md5
       md5: 2fe5ff54a98b5b2275e8c6da5ef052bd

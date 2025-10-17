@@ -38,7 +38,7 @@ warnings.filterwarnings('ignore')
 # Configurações globais
 TEST_MODE = False # Mudar para False para execução completa
 SAMPLE_SIZE = 1000 if TEST_MODE else None  # Tamanho da amostra para teste
-N_RUNS = 1 if TEST_MODE else 5  # Número de execuções para rigor estatístico (estratégia adaptativa por algoritmo)
+N_RUNS = 1 if TEST_MODE else 1  # Número de execuções para rigor estatístico (estratégia adaptativa por algoritmo)
 
 # ID único da execução baseado em timestamp
 EXECUTION_ID = int(time.time())
@@ -373,21 +373,33 @@ def get_algorithm_configs(test_mode=None):
                 'class': RandomForestClassifier,
                 'param_combinations': [
                     # LEVES (1-2): Poucos trees, depth baixo - ~17%
-                    {'n_estimators': 20, 'max_depth': 5, 'random_state': 42},
-                    {'n_estimators': 30, 'max_depth': 7, 'random_state': 42},
+                    {'n_estimators': 3, 'max_depth': 10, 'random_state': 42},
+                    {'n_estimators': 3, 'max_depth': 20, 'random_state': 42},
+                    {'n_estimators': 3, 'max_depth': 25, 'random_state': 42},
+                    {'n_estimators': 5, 'max_depth': 10, 'random_state': 42},
+                    {'n_estimators': 5, 'max_depth': 20, 'random_state': 42},
+                    {'n_estimators': 5, 'max_depth': 25, 'random_state': 42},
+                    {'n_estimators': 15, 'max_depth': 10, 'random_state': 42},
+                    {'n_estimators': 15, 'max_depth': 20, 'random_state': 42},
+                    {'n_estimators': 15, 'max_depth': 25, 'random_state': 42},
+                    {'n_estimators': 20, 'max_depth': 10, 'random_state': 42},
+                    {'n_estimators': 20, 'max_depth': 20, 'random_state': 42},
+                    {'n_estimators': 20, 'max_depth': 25, 'random_state': 42},
+                    {'n_estimators': 30, 'max_depth': 10, 'random_state': 42},
+                    {'n_estimators': 30, 'max_depth': 20, 'random_state': 42},
+                    {'n_estimators': 30, 'max_depth': 25, 'random_state': 42},
                     # SWEET SPOT (3-7): Range IoT-viável - ~42%
-                    {'n_estimators': 50, 'max_depth': 10, 'random_state': 42},
-                    {'n_estimators': 70, 'max_depth': 12, 'random_state': 42},
-                    {'n_estimators': 100, 'max_depth': 15, 'random_state': 42},  # Baseline
-                    {'n_estimators': 100, 'max_depth': 18, 'random_state': 42},
-                    {'n_estimators': 150, 'max_depth': 20, 'random_state': 42},
+                    {'n_estimators': 50, 'max_depth': 25, 'random_state': 42},
+                    {'n_estimators': 70, 'max_depth': 25, 'random_state': 42},
+                    {'n_estimators': 100, 'max_depth': 25, 'random_state': 42},  # Baseline
+                    {'n_estimators': 120, 'max_depth': 25, 'random_state': 42},  # Baseline
+                    {'n_estimators': 130, 'max_depth': 25, 'random_state': 42},
+                    {'n_estimators': 150, 'max_depth': 25, 'random_state': 42},
                     # MÉDIAS (8-10): Moderadas - 25%
-                    {'n_estimators': 200, 'max_depth': 20, 'random_state': 42},
                     {'n_estimators': 200, 'max_depth': 25, 'random_state': 42},
-                    {'n_estimators': 250, 'max_depth': 25, 'random_state': 42},
-                    # PESADAS (11-12): Limite IoT - ~17%
-                    {'n_estimators': 300, 'max_depth': 25, 'random_state': 42},
-                    {'n_estimators': 350, 'max_depth': 25, 'random_state': 42}
+                    # # PESADAS (11-12): Limite IoT - ~17%
+                    # {'n_estimators': 300, 'max_depth': 25, 'random_state': 42},
+                    # {'n_estimators': 350, 'max_depth': 25, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
@@ -398,6 +410,13 @@ def get_algorithm_configs(test_mode=None):
                 'class': GradientBoostingClassifier,
                 'param_combinations': [
                     # LEVES (1-2): Convergência rápida - 20%
+                    {'n_estimators': 5, 'learning_rate': 0.01, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 5, 'learning_rate': 0.05, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 15, 'learning_rate': 0.2, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 15, 'learning_rate': 0.2, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 15, 'learning_rate': 0.2, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 30, 'learning_rate': 0.2, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
                     {'n_estimators': 30, 'learning_rate': 0.2, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
                     {'n_estimators': 50, 'learning_rate': 0.15, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
                     # SWEET SPOT (3-6): IoT-viável - 40%
@@ -408,9 +427,9 @@ def get_algorithm_configs(test_mode=None):
                     # MÉDIAS (7-8) - 20%
                     {'n_estimators': 150, 'learning_rate': 0.1, 'max_depth': 6, 'subsample': 0.7, 'random_state': 42},
                     {'n_estimators': 200, 'learning_rate': 0.05, 'max_depth': 6, 'subsample': 0.7, 'random_state': 42},
-                    # PESADAS (9-10): Limite IoT - 20%
-                    {'n_estimators': 200, 'learning_rate': 0.1, 'max_depth': 7, 'subsample': 0.7, 'random_state': 42},
-                    {'n_estimators': 250, 'learning_rate': 0.05, 'max_depth': 7, 'subsample': 0.7, 'random_state': 42}
+                    # # PESADAS (9-10): Limite IoT - 20%
+                    # {'n_estimators': 200, 'learning_rate': 0.1, 'max_depth': 7, 'subsample': 0.7, 'random_state': 42},
+                    # {'n_estimators': 250, 'learning_rate': 0.05, 'max_depth': 7, 'subsample': 0.7, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             },
