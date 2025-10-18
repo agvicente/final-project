@@ -17,6 +17,7 @@ warnings.filterwarnings('ignore')
 def aggregate_by_params(df):
     """
     Agrega resultados por conjunto de parâmetros, calculando média e desvio padrão.
+    Extrai dados de CPU do resource_snapshot quando disponível.
     
     Args:
         df: DataFrame com resultados individuais
@@ -27,9 +28,27 @@ def aggregate_by_params(df):
     if df.empty or 'param_id' not in df.columns:
         return df
     
+    # Extrair métricas de CPU do resource_snapshot (se existir)
+    if 'resource_snapshot' in df.columns:
+        for idx, row in df.iterrows():
+            if isinstance(row['resource_snapshot'], dict):
+                # Extrair dados de CPU para o nível superior
+                df.at[idx, 'process_cpu_percent'] = row['resource_snapshot'].get('process_cpu_percent', 0.0)
+                df.at[idx, 'process_cpu_user_time'] = row['resource_snapshot'].get('process_cpu_user_time', 0.0)
+                df.at[idx, 'process_cpu_system_time'] = row['resource_snapshot'].get('process_cpu_system_time', 0.0)
+                df.at[idx, 'process_cpu_total_time'] = row['resource_snapshot'].get('process_cpu_total_time', 0.0)
+                df.at[idx, 'system_cpu_percent'] = row['resource_snapshot'].get('system_cpu_percent', 0.0)
+    
     # Métricas numéricas para agregar
     numeric_metrics = ['accuracy', 'precision', 'recall', 'f1_score', 
                       'training_time', 'prediction_time', 'memory_usage_mb']
+    
+    # Adicionar métricas de CPU extraídas
+    cpu_metrics = ['process_cpu_percent', 'process_cpu_user_time', 
+                   'process_cpu_system_time', 'process_cpu_total_time', 'system_cpu_percent']
+    for cpu_metric in cpu_metrics:
+        if cpu_metric in df.columns:
+            numeric_metrics.append(cpu_metric)
     
     if 'balanced_accuracy' in df.columns:
         numeric_metrics.insert(1, 'balanced_accuracy')
@@ -121,6 +140,7 @@ def analyze_single_algorithm(results_dir):
     generate_confusion_matrix_analysis(df, plots_dir, algorithm_name)
     generate_metrics_distribution(df, plots_dir, algorithm_name)
     generate_execution_time_analysis(df, plots_dir, algorithm_name)
+    generate_resource_usage_analysis(df, plots_dir, algorithm_name)
     
     # Gerar tabelas detalhadas
     generate_detailed_tables(df, summary, tables_dir, algorithm_name)
@@ -446,6 +466,246 @@ def generate_execution_time_analysis(df, plots_dir, algorithm_name):
     plt.tight_layout()
     plt.savefig(plots_dir / 'execution_time_analysis.png', dpi=300, bbox_inches='tight')
     plt.close()
+
+def generate_resource_usage_analysis(df, plots_dir, algorithm_name):
+    """Analisa uso de recursos computacionais (CPU, Memória) - AGREGADO POR CONFIGURAÇÃO"""
+    if 'memory_usage_mb' not in df.columns:
+        print(f"   ⚠️ Dados de memória não disponíveis para {algorithm_name}")
+        return
+    
+    # Agregar por param_id (média e desvio padrão das 5 runs)
+    # A função aggregate_by_params já extrai os dados de CPU do resource_snapshot
+    df_agg = aggregate_by_params(df)
+    
+    if df_agg.empty:
+        print(f"   ⚠️ Não foi possível agregar dados para {algorithm_name}")
+        return
+    
+    # Verificar disponibilidade de dados de CPU
+    has_cpu_data = 'process_cpu_total_time' in df_agg.columns and df_agg['process_cpu_total_time'].sum() > 0
+    
+    # Decidir layout baseado na disponibilidade de dados
+    if has_cpu_data:
+        fig, axes = plt.subplots(3, 3, figsize=(20, 15))
+        fig.suptitle(f'{algorithm_name} - Análise de Recursos Computacionais (Agregado por Configuração)', 
+                     fontsize=18, fontweight='bold')
+    else:
+        fig, axes = plt.subplots(2, 3, figsize=(18, 10))
+        fig.suptitle(f'{algorithm_name} - Análise de Recursos Computacionais - Memória (Agregado por Configuração)', 
+                     fontsize=16, fontweight='bold')
+    
+    x_values = df_agg['param_id']
+    
+    # 1. Memória por Configuração (COM ERROR BARS)
+    axes[0,0].errorbar(x_values, df_agg['memory_usage_mb'], 
+                       yerr=df_agg['memory_usage_mb_std'],
+                       fmt='o-', color='blue', linewidth=2, markersize=8, 
+                       capsize=5, capthick=2)
+    axes[0,0].set_title('Uso de Memória por Configuração\n(Média ± Desvio Padrão)', fontweight='bold')
+    axes[0,0].set_xlabel('Configuração de Parâmetros (param_id)')
+    axes[0,0].set_ylabel('Memória (MB)')
+    axes[0,0].grid(True, alpha=0.3)
+    axes[0,0].axhline(y=df_agg['memory_usage_mb'].mean(), color='red', 
+                     linestyle='--', alpha=0.7, 
+                     label=f'Média Global: {df_agg["memory_usage_mb"].mean():.1f} MB')
+    axes[0,0].legend()
+    
+    # 2. Distribuição de Memória (COM VIOLIN PLOT)
+    axes[0,1].violinplot([df_agg['memory_usage_mb']], positions=[0], 
+                         widths=0.7, showmeans=True, showmedians=True)
+    axes[0,1].boxplot([df_agg['memory_usage_mb']], positions=[0], widths=0.5,
+                      patch_artist=True, boxprops=dict(facecolor='skyblue', alpha=0.7))
+    axes[0,1].set_title('Distribuição de Uso de Memória\n(Entre Configurações)', fontweight='bold')
+    axes[0,1].set_ylabel('Memória (MB)')
+    axes[0,1].set_xticks([])
+    axes[0,1].grid(axis='y', alpha=0.3)
+    
+    # Adicionar estatísticas
+    mem_min = df_agg['memory_usage_mb'].min()
+    mem_max = df_agg['memory_usage_mb'].max()
+    mem_mean = df_agg['memory_usage_mb'].mean()
+    mem_std = df_agg['memory_usage_mb'].std()
+    stats_text = f'Min: {mem_min:.1f} MB\nMáx: {mem_max:.1f} MB\nMédia: {mem_mean:.1f} MB\nσ: {mem_std:.1f} MB'
+    axes[0,1].text(0.05, 0.95, stats_text, transform=axes[0,1].transAxes,
+                  verticalalignment='top',
+                  bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+    
+    # 3. Tempo vs Memória (SCATTER COM ERROR BARS)
+    axes[0,2].errorbar(df_agg['training_time'], df_agg['memory_usage_mb'],
+                       xerr=df_agg['training_time_std'], 
+                       yerr=df_agg['memory_usage_mb_std'],
+                       fmt='o', alpha=0.7, markersize=8, capsize=4, color='purple')
+    axes[0,2].set_title('Tempo vs Memória\n(Por Configuração)', fontweight='bold')
+    axes[0,2].set_xlabel('Tempo de Treinamento (s)')
+    axes[0,2].set_ylabel('Memória (MB)')
+    axes[0,2].grid(True, alpha=0.3)
+    
+    # Linha de tendência
+    if len(df_agg) > 2:
+        z = np.polyfit(df_agg['training_time'], df_agg['memory_usage_mb'], 1)
+        p = np.poly1d(z)
+        x_line = np.linspace(df_agg['training_time'].min(), df_agg['training_time'].max(), 100)
+        axes[0,2].plot(x_line, p(x_line), "r--", alpha=0.8, linewidth=2)
+        
+        corr = df_agg['training_time'].corr(df_agg['memory_usage_mb'])
+        axes[0,2].text(0.05, 0.95, f'Correlação: {corr:.3f}', 
+                      transform=axes[0,2].transAxes, 
+                      bbox=dict(boxstyle="round", facecolor='wheat', alpha=0.8))
+    
+    # 4. Eficiência de Memória por Configuração (F1/MB)
+    memory_efficiency = df_agg['f1_score'] / df_agg['memory_usage_mb'].replace(0, 0.001)
+    
+    axes[1,0].plot(x_values, memory_efficiency, 'o-', 
+                   color='green', linewidth=2, markersize=8)
+    axes[1,0].set_title('Eficiência de Memória (F1-Score/MB)\npor Configuração', fontweight='bold')
+    axes[1,0].set_xlabel('Configuração de Parâmetros (param_id)')
+    axes[1,0].set_ylabel('F1-Score por MB')
+    axes[1,0].grid(True, alpha=0.3)
+    axes[1,0].axhline(y=memory_efficiency.mean(), color='blue', 
+                     linestyle='--', alpha=0.7, 
+                     label=f'Média: {memory_efficiency.mean():.6f}')
+    axes[1,0].legend()
+    
+    # Marcar melhor configuração
+    best_idx = memory_efficiency.idxmax()
+    best_param_id = df_agg.loc[best_idx, 'param_id']
+    best_eff = memory_efficiency.iloc[best_idx]
+    axes[1,0].scatter([best_param_id], [best_eff], 
+                     s=200, c='red', marker='*', zorder=5,
+                     label=f'Melhor: Config {best_param_id}')
+    axes[1,0].legend()
+    
+    # 5. Memória vs F1-Score (SCATTER COM COLORMAP POR TEMPO)
+    scatter = axes[1,1].scatter(df_agg['memory_usage_mb'], df_agg['f1_score'], 
+                               c=df_agg['training_time'], cmap='viridis',
+                               alpha=0.7, s=100, edgecolors='black', linewidth=1)
+    axes[1,1].set_title('Memória vs F1-Score\n(Cor = Tempo de Treinamento)', fontweight='bold')
+    axes[1,1].set_xlabel('Memória (MB)')
+    axes[1,1].set_ylabel('F1-Score')
+    axes[1,1].grid(True, alpha=0.3)
+    
+    # Colorbar
+    cbar = plt.colorbar(scatter, ax=axes[1,1])
+    cbar.set_label('Tempo (s)', rotation=270, labelpad=20)
+    
+    # 6. Trade-off: Recursos vs Performance
+    # Scatter: Tempo vs Memória (tamanho = F1)
+    sizes = (df_agg['f1_score'] - df_agg['f1_score'].min()) / (df_agg['f1_score'].max() - df_agg['f1_score'].min() + 0.0001)
+    sizes = sizes * 500 + 50  # Escalar tamanho dos pontos
+    
+    axes[1,2].scatter(df_agg['training_time'], df_agg['memory_usage_mb'], 
+                     s=sizes, alpha=0.6, c=df_agg['f1_score'], 
+                     cmap='RdYlGn', edgecolors='black', linewidth=1)
+    axes[1,2].set_title('Trade-off: Tempo vs Memória\n(Tamanho ∝ F1-Score)', fontweight='bold')
+    axes[1,2].set_xlabel('Tempo de Treinamento (s)')
+    axes[1,2].set_ylabel('Memória (MB)')
+    axes[1,2].grid(True, alpha=0.3)
+    
+    # Anotar melhor trade-off (menor tempo + memória, maior F1)
+    # Normalizar métricas
+    time_norm = (df_agg['training_time'] - df_agg['training_time'].min()) / (df_agg['training_time'].max() - df_agg['training_time'].min() + 0.0001)
+    mem_norm = (df_agg['memory_usage_mb'] - df_agg['memory_usage_mb'].min()) / (df_agg['memory_usage_mb'].max() - df_agg['memory_usage_mb'].min() + 0.0001)
+    f1_norm = (df_agg['f1_score'] - df_agg['f1_score'].min()) / (df_agg['f1_score'].max() - df_agg['f1_score'].min() + 0.0001)
+    
+    # Score: minimizar recursos, maximizar F1
+    tradeoff_score = f1_norm - (time_norm + mem_norm) / 2
+    best_tradeoff_idx = tradeoff_score.idxmax()
+    best_tradeoff_param = df_agg.loc[best_tradeoff_idx, 'param_id']
+    
+    axes[1,2].scatter([df_agg.loc[best_tradeoff_idx, 'training_time']], 
+                     [df_agg.loc[best_tradeoff_idx, 'memory_usage_mb']],
+                     s=300, c='gold', marker='*', edgecolors='black', 
+                     linewidth=2, zorder=5, label=f'Melhor Trade-off: Config {best_tradeoff_param}')
+    axes[1,2].legend()
+    
+    # ============================================================================
+    # GRÁFICOS DE CPU (se dados disponíveis)
+    # ============================================================================
+    if has_cpu_data:
+        # 7. CPU Total Time por Configuração (user + system)
+        axes[2,0].errorbar(x_values, df_agg['process_cpu_total_time'], 
+                           yerr=df_agg.get('process_cpu_total_time_std', 0),
+                           fmt='o-', color='orange', linewidth=2, markersize=8, 
+                           capsize=5, capthick=2)
+        axes[2,0].set_title('Tempo Total de CPU por Configuração\n(User + System Time)', fontweight='bold')
+        axes[2,0].set_xlabel('Configuração de Parâmetros (param_id)')
+        axes[2,0].set_ylabel('Tempo de CPU (s)')
+        axes[2,0].grid(True, alpha=0.3)
+        axes[2,0].axhline(y=df_agg['process_cpu_total_time'].mean(), color='red', 
+                         linestyle='--', alpha=0.7, 
+                         label=f'Média: {df_agg["process_cpu_total_time"].mean():.1f}s')
+        axes[2,0].legend()
+        
+        # 8. Breakdown: User vs System CPU Time
+        width = 0.35
+        x_pos = np.arange(len(x_values))
+        
+        if 'process_cpu_user_time' in df_agg.columns and 'process_cpu_system_time' in df_agg.columns:
+            axes[2,1].bar(x_pos - width/2, df_agg['process_cpu_user_time'], width,
+                         label='User Time', color='steelblue', alpha=0.8)
+            axes[2,1].bar(x_pos + width/2, df_agg['process_cpu_system_time'], width,
+                         label='System Time', color='coral', alpha=0.8)
+            axes[2,1].set_title('Breakdown: User vs System CPU Time\npor Configuração', fontweight='bold')
+            axes[2,1].set_xlabel('Configuração de Parâmetros (param_id)')
+            axes[2,1].set_ylabel('Tempo de CPU (s)')
+            axes[2,1].set_xticks(x_pos)
+            axes[2,1].set_xticklabels(x_values)
+            axes[2,1].legend()
+            axes[2,1].grid(axis='y', alpha=0.3)
+            
+            # Adicionar percentual de system time
+            total_user = df_agg['process_cpu_user_time'].sum()
+            total_system = df_agg['process_cpu_system_time'].sum()
+            total = total_user + total_system
+            pct_system = (total_system / max(total, 0.0001)) * 100
+            axes[2,1].text(0.05, 0.95, f'System Time: {pct_system:.1f}% do total', 
+                          transform=axes[2,1].transAxes, verticalalignment='top',
+                          bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+        
+        # 9. Eficiência de CPU (Training Time vs CPU Total Time)
+        # Ratio < 1: CPU-bound (mais CPU que wall-clock time, multi-core?)
+        # Ratio ≈ 1: Single-threaded eficiente
+        # Ratio > 1: I/O-bound ou sleep/wait states
+        cpu_efficiency = df_agg['process_cpu_total_time'] / df_agg['training_time'].replace(0, 0.001)
+        
+        axes[2,2].plot(x_values, cpu_efficiency, 'o-', 
+                      color='darkgreen', linewidth=2, markersize=8)
+        axes[2,2].set_title('Eficiência de CPU\n(CPU Time / Wall-Clock Time)', fontweight='bold')
+        axes[2,2].set_xlabel('Configuração de Parâmetros (param_id)')
+        axes[2,2].set_ylabel('Ratio (CPU / Wall-Clock)')
+        axes[2,2].grid(True, alpha=0.3)
+        axes[2,2].axhline(y=1.0, color='red', linestyle='--', alpha=0.7, 
+                         label='Ideal (1.0 = 100% CPU)')
+        axes[2,2].axhline(y=cpu_efficiency.mean(), color='blue', linestyle='--', alpha=0.7, 
+                         label=f'Média: {cpu_efficiency.mean():.2f}')
+        axes[2,2].legend()
+        
+        # Adicionar interpretação
+        avg_ratio = cpu_efficiency.mean()
+        if avg_ratio < 0.95:
+            interpretation = f'Multi-core usage\n(avg={avg_ratio:.2f}x)'
+            color = 'lightgreen'
+        elif avg_ratio <= 1.05:
+            interpretation = f'Single-threaded\n(avg={avg_ratio:.2f}x)'
+            color = 'lightblue'
+        else:
+            interpretation = f'I/O-bound\n(avg={avg_ratio:.2f}x)'
+            color = 'lightyellow'
+        
+        axes[2,2].text(0.95, 0.05, interpretation, 
+                      transform=axes[2,2].transAxes, 
+                      horizontalalignment='right', verticalalignment='bottom',
+                      bbox=dict(boxstyle='round', facecolor=color, alpha=0.8))
+    
+    plt.tight_layout()
+    plt.savefig(plots_dir / 'resource_usage_analysis.png', dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    if has_cpu_data:
+        print(f"   ✅ Análise de recursos gerada: resource_usage_analysis.png (9 gráficos: 6 Memória + 3 CPU)")
+    else:
+        print(f"   ✅ Análise de recursos gerada: resource_usage_analysis.png (6 gráficos: Memória apenas)")
+    print(f"      📊 {len(df_agg)} configurações com {df_agg['n_runs'].iloc[0]} runs cada")
 
 def generate_detailed_tables(df, summary, tables_dir, algorithm_name):
     """Gera tabelas detalhadas dos resultados (agregadas por configuração)"""
