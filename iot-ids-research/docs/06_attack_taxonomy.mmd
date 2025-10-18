@@ -1,0 +1,98 @@
+%% ========================================
+%% Diagrama 6: Taxonomia de Ataques IoT (CICIoT2023)
+%% Formato: Mermaid (Hierarchical)
+%% Classifica os tipos de ataques no dataset
+%% ========================================
+
+graph TD
+    ROOT["🌐 IoT Network Traffic<br/>CICIoT2023 Dataset<br/>Binary Classification:<br/>Attack vs Normal"]
+    
+    ROOT --> BENIGN["✅ Benign Traffic<br/>Normal IoT operations<br/>Baseline behavior"]
+    ROOT --> ATTACKS["🚨 Attack Traffic<br/>33 attack types<br/>Various categories"]
+    
+    %% Attack Categories
+    ATTACKS --> DOS["💥 Denial of Service<br/>Resource exhaustion<br/>Service disruption"]
+    ATTACKS --> RECON["🔍 Reconnaissance<br/>Information gathering<br/>Network scanning"]
+    ATTACKS --> EXPLOIT["🎯 Exploitation<br/>Vulnerability abuse<br/>System compromise"]
+    ATTACKS --> INJECTION["💉 Injection Attacks<br/>Malicious payload<br/>Code execution"]
+    ATTACKS --> SPOOFING["🎭 Spoofing Attacks<br/>Identity manipulation<br/>Impersonation"]
+    ATTACKS --> BRUTE["🔨 Brute Force<br/>Credential attacks<br/>Dictionary attacks"]
+    ATTACKS --> WEB["🌐 Web-Based Attacks<br/>HTTP exploits<br/>XSS, SQLi, etc"]
+    
+    %% DOS Subcategories
+    DOS --> DOS_HTTP["DoS HTTP<br/>HTTP flood<br/>Application layer"]
+    DOS --> DOS_TCP["DoS TCP<br/>SYN flood<br/>Transport layer"]
+    DOS --> DOS_UDP["DoS UDP<br/>UDP flood<br/>Amplification"]
+    DOS --> DDOS["DDoS<br/>Distributed attack<br/>Multiple sources"]
+    
+    %% Reconnaissance
+    RECON --> SCAN["Port Scanning<br/>Service detection<br/>Nmap, etc"]
+    RECON --> FINGERPRINT["OS Fingerprinting<br/>Version detection<br/>Banner grabbing"]
+    RECON --> VULN_SCAN["Vulnerability Scanning<br/>Exploit identification<br/>Automated tools"]
+    
+    %% Exploitation
+    EXPLOIT --> MIRAI["Mirai Botnet<br/>IoT malware<br/>Default credentials"]
+    EXPLOIT --> BACKDOOR["Backdoor<br/>Persistent access<br/>Remote control"]
+    EXPLOIT --> UPLOAD["Uploading Attack<br/>Malicious files<br/>Web shells"]
+    
+    %% Injection
+    INJECTION --> SQL["SQL Injection<br/>Database manipulation<br/>Query exploitation"]
+    INJECTION --> XSS["XSS<br/>Cross-site scripting<br/>Client-side injection"]
+    INJECTION --> CMD["Command Injection<br/>OS command execution<br/>Shell access"]
+    
+    %% Spoofing
+    SPOOFING --> ARP["ARP Spoofing<br/>MAC address spoofing<br/>MITM attacks"]
+    SPOOFING --> DNS["DNS Spoofing<br/>Domain resolution<br/>Cache poisoning"]
+    SPOOFING --> IP["IP Spoofing<br/>Source address<br/>Network forgery"]
+    
+    %% Brute Force
+    BRUTE --> DICT["Dictionary Attack<br/>Common passwords<br/>Wordlist based"]
+    BRUTE --> PASS_SPRAY["Password Spraying<br/>Multiple accounts<br/>Low & slow"]
+    
+    %% Web Attacks
+    WEB --> CSRF["CSRF<br/>Cross-site request<br/>Session hijacking"]
+    WEB --> PATH_TRAV["Path Traversal<br/>Directory access<br/>File disclosure"]
+    WEB --> UPLOAD_WEB["File Upload<br/>Unrestricted upload<br/>RCE vector"]
+    
+    %% Binary Classification Approach
+    subgraph "Classification Strategy"
+        BINARY_TASK["🔀 Binary Classification<br/>✅ Normal (Class 1)<br/>🚨 Attack (Class 0)<br/><br/>Simplification:<br/>All 33 attack types → Attack<br/>Focus: Detect ANY malicious activity"]
+        
+        JUSTIFICATION["💡 Rationale:<br/>- Real-world IDS: detect vs allow<br/>- Reduce class imbalance<br/>- Improve detection accuracy<br/>- Multi-class as future work"]
+    end
+    
+    ROOT -.->|Transformed to| BINARY_TASK
+    BINARY_TASK --> JUSTIFICATION
+    
+    %% Detection Challenges
+    subgraph "Detection Challenges"
+        IMBALANCE["⚖️ Class Imbalance<br/>Normal >> Attacks<br/>Stratified sampling"]
+        
+        SIMILARITY["🔄 Traffic Similarity<br/>Some attacks ≈ normal<br/>Feature engineering crucial"]
+        
+        DIVERSITY["🌈 Attack Diversity<br/>33 different patterns<br/>Generic model needed"]
+        
+        EVOLUTION["📈 Evolving Threats<br/>Zero-day attacks<br/>Anomaly detection important"]
+    end
+    
+    ATTACKS -.-> IMBALANCE
+    ATTACKS -.-> SIMILARITY
+    ATTACKS -.-> DIVERSITY
+    ATTACKS -.-> EVOLUTION
+    
+    %% Styling
+    style ROOT fill:#e1f5ff,stroke:#01579b,stroke-width:3px
+    style BENIGN fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    style ATTACKS fill:#ffcdd2,stroke:#c62828,stroke-width:2px
+    
+    style DOS fill:#ffab91
+    style RECON fill:#ffcc80
+    style EXPLOIT fill:#ef9a9a
+    style INJECTION fill:#f48fb1
+    style SPOOFING fill:#ce93d8
+    style BRUTE fill:#9fa8da
+    style WEB fill:#80cbc4
+    
+    style BINARY_TASK fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style JUSTIFICATION fill:#e1bee7
+

@@ -1,0 +1,121 @@
+%% ========================================
+%% Diagrama 7A: Estrutura de Código - Visão Geral de Módulos
+%% Formato: Mermaid (C4 Component-style)
+%% Mostra módulos, responsabilidades e dependências
+%% ========================================
+
+graph TB
+    subgraph "Root Directory"
+        ROOT_CONFIG["📋 Configuration Files<br/>- dvc.yaml (pipeline)<br/>- docker-compose.yml<br/>- Dockerfile<br/>- requirements.txt"]
+    end
+    
+    subgraph "Configuration Module [configs/]"
+        CONFIG_EDA["eda.yaml<br/>EDA parameters"]
+        CONFIG_EXP["experiment_config.yaml<br/>Algorithm hyperparameters<br/>Grid search configs"]
+        CONFIG_PRE["preprocessing.yaml<br/>Split ratio, normalization"]
+        CONFIG_SAMP["sampling.yaml<br/>Stratification, size"]
+    end
+    
+    subgraph "Data Pipeline Module [DVC Scripts]"
+        DVC_QUALITY["dvc_run_quality_check.py<br/>📌 Entry: main()<br/>🔧 Imports: check_dataset_quality<br/>📤 Outputs: quality_check.json"]
+        
+        DVC_SAMPLE["dvc_sampling.py<br/>📌 Entry: main()<br/>🔧 Functions:<br/>  - load_config()<br/>  - stratified_sample()<br/>  - save_results()<br/>📤 Outputs: sampled.csv"]
+        
+        DVC_PREPROC["dvc_preprocessing.py<br/>📌 Entry: main()<br/>🔧 Functions:<br/>  - split_data()<br/>  - fit_scaler()<br/>  - transform_data()<br/>  - save_artifacts()<br/>📤 Outputs: train/test sets"]
+    end
+    
+    subgraph "Data Quality Module [check_dataset_quality.py]"
+        QUALITY_FUNC["🔍 Quality Checks<br/>Functions:<br/>- check_missing_values()<br/>- check_duplicates()<br/>- check_data_types()<br/>- check_label_distribution()<br/>- generate_quality_report()"]
+    end
+    
+    subgraph "EDA Module [src/eda/]"
+        EDA_MAIN["dvc_eda.py<br/>📌 Entry: main()<br/>🔧 Orchestrates analysis"]
+        
+        EDA_FUNCS["📊 Analysis Functions:<br/>- distribution_analysis()<br/>- correlation_analysis()<br/>- class_balance_check()<br/>- statistical_tests()<br/>- generate_visualizations()"]
+        
+        EDA_OUT["📁 results/<br/>- plots/ (PNG)<br/>- tables/ (CSV)<br/>- eda_summary.json"]
+        
+        EDA_MAIN --> EDA_FUNCS
+        EDA_FUNCS --> EDA_OUT
+    end
+    
+    subgraph "Experimentation Core [experiments/]"
+        direction TB
+        
+        RUN_SINGLE["run_single_algorithm.py<br/>📌 Entry: main(algorithm_name)<br/>🎯 Purpose: Execute one algorithm<br/>🔧 Imports algorithm_comparison"]
+        
+        ALGO_COMP["algorithm_comparison.py<br/>🧠 CORE MODULE<br/><br/>📌 Main Functions:<br/>- run_experiment(algorithm)<br/>- train_and_evaluate()<br/>- save_results()<br/><br/>📊 Algorithm Configs:<br/>- ALGORITHM_CONFIGS dict<br/>- ALGORITHMS_ORDER list<br/><br/>🤖 Model Functions:<br/>- train_model()<br/>- predict_model()<br/>- calculate_metrics()<br/><br/>⚙️ Setup:<br/>- setup_logging()<br/>- create_result_directory()<br/>- monitor_memory()"]
+        
+        METRICS_COL["enhanced_metrics_collector.py<br/>📏 Resource Monitoring<br/><br/>Functions:<br/>- get_system_info()<br/>- collect_enhanced_metrics()<br/>- monitor_resource_usage_detailed()<br/>- get_cpu_details()<br/>- get_memory_details()<br/>- calculate_throughput()"]
+        
+        INDIVIDUAL["individual_analysis.py<br/>📊 Per-Algorithm Analysis<br/><br/>📌 Main: analyze_single_algorithm()<br/><br/>Functions:<br/>- aggregate_by_params()<br/>- plot_performance()<br/>- plot_resource_usage()<br/>- generate_summary_report()<br/>- create_comparison_tables()"]
+        
+        CONSOLIDATE["consolidate_results.py<br/>🔗 Cross-Algorithm Comparison<br/><br/>📌 Main: consolidate_all()<br/><br/>Functions:<br/>- load_all_results()<br/>- compare_algorithms()<br/>- rank_by_metric()<br/>- generate_comparison_plots()<br/>- export_summary_tables()"]
+        
+        ADVANCED_PLOTS["iot_advanced_plots.py<br/>📈 Advanced Visualizations<br/><br/>Functions:<br/>- generate_all_iot_advanced_plots()<br/>- plot_pareto_frontier()<br/>- plot_scalability_analysis()<br/>- plot_resource_radar_charts()<br/>- plot_latency_throughput()"]
+        
+        RUN_SINGLE --> ALGO_COMP
+        ALGO_COMP --> METRICS_COL
+        ALGO_COMP --> INDIVIDUAL
+        INDIVIDUAL --> CONSOLIDATE
+        CONSOLIDATE --> ADVANCED_PLOTS
+    end
+    
+    subgraph "Data Layer [data/]"
+        direction LR
+        
+        RAW_DATA["📦 raw/<br/>- CSV/ (original)<br/>- README.pdf"]
+        
+        PROCESSED["💾 processed/<br/>- sampled.csv<br/>- train_normalized.csv<br/>- test_normalized.csv<br/>- X_train.npy, y_train.npy<br/>- X_test.npy, y_test.npy<br/>- scaler.pkl<br/>- preprocessing_metadata.json<br/>- binary/ (binary variant)"]
+        
+        METRICS_DATA["📊 metrics/<br/>- quality_check.json<br/>- sampling_results.json<br/>- final_results.json"]
+    end
+    
+    subgraph "Results & Artifacts [experiments/]"
+        direction LR
+        
+        RESULTS_DIR["📁 results/<br/>- test/ (TEST_MODE)<br/>- full/ (production)<br/><br/>Structure:<br/>timestamp_algorithm/<br/>  ├── results.json<br/>  ├── summary.json<br/>  ├── individual_analysis/<br/>  │   ├── plots/<br/>  │   └── tables/<br/>  └── models/"]
+        
+        MLFLOW_DIR["🗂️ MLflow Tracking<br/>- mlflow-tracking/<br/>- mlruns/<br/>- mlflow.db<br/><br/>Tracks:<br/>- Parameters<br/>- Metrics<br/>- Artifacts<br/>- Models"]
+        
+        LOGS["📋 logs/<br/>algorithm_comparison_<br/>  timestamp.log<br/><br/>Contains:<br/>- Execution trace<br/>- Error messages<br/>- Performance logs"]
+    end
+    
+    %% Dependencies
+    ROOT_CONFIG --> DVC_QUALITY
+    ROOT_CONFIG --> DVC_SAMPLE
+    ROOT_CONFIG --> DVC_PREPROC
+    
+    CONFIG_SAMP --> DVC_SAMPLE
+    CONFIG_PRE --> DVC_PREPROC
+    CONFIG_EDA --> EDA_MAIN
+    CONFIG_EXP --> ALGO_COMP
+    
+    DVC_QUALITY --> QUALITY_FUNC
+    DVC_QUALITY --> METRICS_DATA
+    
+    DVC_SAMPLE --> RAW_DATA
+    DVC_SAMPLE --> PROCESSED
+    
+    DVC_PREPROC --> PROCESSED
+    
+    EDA_MAIN --> PROCESSED
+    
+    ALGO_COMP --> PROCESSED
+    ALGO_COMP --> RESULTS_DIR
+    ALGO_COMP --> MLFLOW_DIR
+    ALGO_COMP --> LOGS
+    
+    INDIVIDUAL --> RESULTS_DIR
+    CONSOLIDATE --> RESULTS_DIR
+    
+    %% Styling
+    style ALGO_COMP fill:#ffcdd2,stroke:#c62828,stroke-width:3px
+    style METRICS_COL fill:#fff9c4
+    style INDIVIDUAL fill:#c5e1a5
+    style CONSOLIDATE fill:#b2dfdb
+    style ADVANCED_PLOTS fill:#ce93d8
+    style PROCESSED fill:#e1f5ff
+    style RESULTS_DIR fill:#f8bbd0
+    style MLFLOW_DIR fill:#d1c4e9
+

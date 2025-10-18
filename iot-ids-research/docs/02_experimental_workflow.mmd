@@ -1,0 +1,99 @@
+%% ========================================
+%% Diagrama 2: Workflow Detalhado dos Experimentos
+%% Formato: Mermaid (Flowchart)
+%% Mostra o fluxo sequencial de execução dos experimentos
+%% ========================================
+
+flowchart TD
+    START([🚀 Início do Experimento])
+    
+    %% Configuração Inicial
+    INIT["⚙️ Inicialização<br/>- Setup logging<br/>- Criar execution_id<br/>- Verificar TEST_MODE"]
+    CONFIG_LOAD["📋 Carregar Configuração<br/>- experiment_config.yaml<br/>- Definir hiperparâmetros<br/>- Estratégia adaptativa"]
+    
+    %% Carregamento de Dados
+    LOAD_DATA["📥 Carregar Dados<br/>- X_train_binary.npy<br/>- X_test_binary.npy<br/>- y_train/y_test<br/>- metadata.json"]
+    VERIFY_DATA{"✅ Dados válidos?<br/>Shape correto?<br/>Labels balanceados?"}
+    
+    %% Sampling Opcional
+    SAMPLE_CHECK{"🔀 TEST_MODE?<br/>Sample = 1000?"}
+    SAMPLE_DATA["📊 Sampling<br/>Reduzir dataset<br/>para 1000 amostras"]
+    
+    %% Loop Principal de Algoritmos
+    SELECT_ALGO["🎯 Selecionar Algoritmo<br/>Por complexidade:<br/>O(n) → O(n²)"]
+    
+    %% Loop de Execuções
+    EXECUTION_LOOP{"🔄 Loop de Execuções<br/>N_RUNS vezes"}
+    
+    subgraph "Training & Evaluation"
+        direction TB
+        RESOURCE_START["📊 Snapshot Inicial<br/>CPU, Memory baseline"]
+        
+        TRAIN["🏋️ Treinamento<br/>- fit() no train set<br/>- Monitorar tempo<br/>- Medir recursos"]
+        
+        PREDICT["🔮 Predição<br/>- predict() no test set<br/>- Calcular latência<br/>- Throughput"]
+        
+        CALC_METRICS["📏 Calcular Métricas<br/>- Accuracy, Precision<br/>- Recall, F1, Balanced Accuracy<br/>- ROC-AUC, Confusion Matrix"]
+        
+        RESOURCE_END["📊 Snapshot Final<br/>Delta de recursos<br/>Peak memory"]
+        
+        RESOURCE_START --> TRAIN
+        TRAIN --> PREDICT
+        PREDICT --> CALC_METRICS
+        CALC_METRICS --> RESOURCE_END
+    end
+    
+    %% Salvamento
+    SAVE_RUN["💾 Salvar Execução<br/>- results.json<br/>- params & metrics<br/>- MLflow tracking"]
+    
+    %% Decisões de Loop
+    MORE_RUNS{"➕ Mais execuções?<br/>run < N_RUNS"}
+    MORE_ALGOS{"🔁 Mais algoritmos?<br/>Na fila de execução"}
+    
+    %% Análise Individual
+    INDIVIDUAL_ANALYSIS["📊 Análise Individual<br/>- Agregar por param_id<br/>- Média & Std Dev<br/>- Plots específicos<br/>- Summary report"]
+    
+    %% Consolidação Final
+    CONSOLIDATE["🔗 Consolidar Resultados<br/>- Comparar todos algoritmos<br/>- Rankings<br/>- Pareto frontier<br/>- Advanced plots"]
+    
+    %% Fim
+    FINISH([✅ Experimento Completo])
+    ERROR([❌ Erro])
+    
+    %% Fluxo Principal
+    START --> INIT
+    INIT --> CONFIG_LOAD
+    CONFIG_LOAD --> LOAD_DATA
+    LOAD_DATA --> VERIFY_DATA
+    
+    VERIFY_DATA -->|Sim| SAMPLE_CHECK
+    VERIFY_DATA -->|Não| ERROR
+    
+    SAMPLE_CHECK -->|Sim| SAMPLE_DATA
+    SAMPLE_CHECK -->|Não| SELECT_ALGO
+    SAMPLE_DATA --> SELECT_ALGO
+    
+    SELECT_ALGO --> EXECUTION_LOOP
+    EXECUTION_LOOP -->|Iniciar run| RESOURCE_START
+    
+    RESOURCE_END --> SAVE_RUN
+    SAVE_RUN --> MORE_RUNS
+    
+    MORE_RUNS -->|Sim| EXECUTION_LOOP
+    MORE_RUNS -->|Não| INDIVIDUAL_ANALYSIS
+    
+    INDIVIDUAL_ANALYSIS --> MORE_ALGOS
+    MORE_ALGOS -->|Sim| SELECT_ALGO
+    MORE_ALGOS -->|Não| CONSOLIDATE
+    
+    CONSOLIDATE --> FINISH
+    
+    %% Styling
+    style START fill:#c8e6c9
+    style FINISH fill:#c8e6c9
+    style ERROR fill:#ffcdd2
+    style TRAIN fill:#bbdefb
+    style PREDICT fill:#bbdefb
+    style CALC_METRICS fill:#fff9c4
+    style CONSOLIDATE fill:#f8bbd0
+

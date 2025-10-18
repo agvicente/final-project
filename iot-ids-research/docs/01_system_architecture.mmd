@@ -1,0 +1,88 @@
+%% ========================================
+%% Diagrama 1: Arquitetura Geral do Sistema IDS para IoT
+%% Formato: Mermaid
+%% Como editar: https://mermaid.live ou VS Code com extensão Mermaid
+%% Como exportar: PNG/SVG de alta qualidade para artigos
+%% ========================================
+
+graph TB
+    subgraph "Data Layer"
+        RAW[("📦 Raw Data<br/>CICIoT2023<br/>CSV Files")]
+        PROCESSED[("💾 Processed Data<br/>Train/Test Split<br/>Normalized")]
+    end
+    
+    subgraph "Preprocessing Pipeline"
+        QUALITY["🔍 Quality Check<br/>dvc_run_quality_check.py<br/>Validação de dataset"]
+        SAMPLING["📊 Sampling<br/>dvc_sampling.py<br/>Balanceamento estratificado"]
+        EDA["📈 EDA<br/>src/eda/dvc_eda.py<br/>Análise exploratória"]
+        PREPROC["⚙️ Preprocessing<br/>dvc_preprocessing.py<br/>Split & Normalization"]
+        
+        RAW --> QUALITY
+        QUALITY --> SAMPLING
+        SAMPLING --> EDA
+        EDA --> PREPROC
+        PREPROC --> PROCESSED
+    end
+    
+    subgraph "ML Experimentation Layer"
+        direction TB
+        CONFIG["📋 Configuration<br/>configs/experiment_config.yaml"]
+        
+        subgraph "Algorithms"
+            direction LR
+            SUPERVISED["👨‍🏫 Supervised Learning<br/>- Logistic Regression<br/>- Random Forest<br/>- Gradient Boosting<br/>- Linear SVC<br/>- SGD Classifier<br/>- MLP"]
+            ANOMALY["🚨 Anomaly Detection<br/>- Isolation Forest<br/>- Local Outlier Factor<br/>- Elliptic Envelope<br/>- SGD One-Class SVM"]
+        end
+        
+        RUNNER["🏃 Runner<br/>run_single_algorithm.py"]
+        METRICS["📏 Metrics Collector<br/>enhanced_metrics_collector.py<br/>CPU, Memory, Time"]
+        
+        CONFIG --> RUNNER
+        PROCESSED --> RUNNER
+        RUNNER --> SUPERVISED
+        RUNNER --> ANOMALY
+        SUPERVISED --> METRICS
+        ANOMALY --> METRICS
+    end
+    
+    subgraph "Analysis & Results Layer"
+        INDIVIDUAL["📊 Individual Analysis<br/>individual_analysis.py<br/>Per-algorithm insights"]
+        CONSOLIDATE["🔗 Consolidation<br/>consolidate_results.py<br/>Cross-algorithm comparison"]
+        PLOTS["📈 Advanced Plots<br/>iot_advanced_plots.py<br/>Visualizations"]
+        
+        METRICS --> INDIVIDUAL
+        INDIVIDUAL --> CONSOLIDATE
+        CONSOLIDATE --> PLOTS
+    end
+    
+    subgraph "Output & Tracking"
+        MLFLOW[("🗂️ MLflow<br/>Experiment Tracking<br/>mlruns/")]
+        RESULTS[("📁 Results<br/>test/ & full/<br/>JSON + Plots")]
+        MODELS[("🤖 Models<br/>Trained artifacts<br/>.pkl files")]
+        
+        METRICS --> MLFLOW
+        INDIVIDUAL --> RESULTS
+        CONSOLIDATE --> RESULTS
+        RUNNER --> MODELS
+    end
+    
+    subgraph "Orchestration"
+        DVC["🔧 DVC Pipeline<br/>dvc.yaml<br/>Reproducible workflow"]
+        
+        DVC -.-> QUALITY
+        DVC -.-> SAMPLING
+        DVC -.-> EDA
+        DVC -.-> PREPROC
+        DVC -.-> RUNNER
+        DVC -.-> CONSOLIDATE
+    end
+    
+    style RAW fill:#e1f5ff
+    style PROCESSED fill:#e1f5ff
+    style MLFLOW fill:#fff9e1
+    style RESULTS fill:#fff9e1
+    style MODELS fill:#fff9e1
+    style DVC fill:#e8f5e9
+    style SUPERVISED fill:#ffebee
+    style ANOMALY fill:#fce4ec
+

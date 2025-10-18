@@ -1,0 +1,102 @@
+%% ========================================
+%% Diagrama 3: Fluxo de Processamento de Dados
+%% Formato: Mermaid (Detailed Flow)
+%% Mostra como os dados fluem desde raw até resultados
+%% Com foco na prevenção de data leakage
+%% ========================================
+
+graph LR
+    subgraph "Raw Data Ingestion"
+        RAW["📦 CICIoT2023<br/>Raw CSV Files<br/>~46M records<br/>Multiple attack types"]
+        QUALITY["🔍 Quality Check<br/>✓ Missing values<br/>✓ Duplicates<br/>✓ Data types<br/>✓ Label distribution"]
+        
+        RAW --> QUALITY
+    end
+    
+    subgraph "Sampling & Balancing"
+        SAMPLE["📊 Stratified Sampling<br/>✓ Maintain class proportions<br/>✓ Random state = 42<br/>✓ Configurable size"]
+        BALANCED["⚖️ Sampled Dataset<br/>sampled.csv<br/>Balanced classes<br/>Representative sample"]
+        
+        QUALITY --> SAMPLE
+        SAMPLE --> BALANCED
+    end
+    
+    subgraph "Exploratory Data Analysis"
+        EDA_DIST["📈 Distribution Analysis<br/>- Feature distributions<br/>- Correlation matrix<br/>- Class balance"]
+        EDA_STATS["📊 Statistical Analysis<br/>- Descriptive stats<br/>- ANOVA tests<br/>- Skewness & CV"]
+        EDA_VIZ["🎨 Visualizations<br/>- Plots<br/>- Tables<br/>- Reports"]
+        
+        BALANCED --> EDA_DIST
+        EDA_DIST --> EDA_STATS
+        EDA_STATS --> EDA_VIZ
+    end
+    
+    subgraph "Critical: Prevent Data Leakage"
+        direction TB
+        SPLIT["✂️ SPLIT FIRST<br/><b>train_test_split</b><br/>80% train / 20% test<br/>stratified by label<br/>random_state = 42"]
+        
+        subgraph "Train Set Processing"
+            TRAIN_RAW["📋 X_train (raw)<br/>y_train"]
+            SCALER_FIT["🔧 StandardScaler<br/><b>fit_transform</b><br/>Learn μ, σ from TRAIN only"]
+            TRAIN_NORM["✨ X_train_normalized<br/>μ ≈ 0, σ ≈ 1"]
+            
+            TRAIN_RAW --> SCALER_FIT
+            SCALER_FIT --> TRAIN_NORM
+        end
+        
+        subgraph "Test Set Processing"
+            TEST_RAW["📋 X_test (raw)<br/>y_test"]
+            SCALER_TRANSFORM["🔧 StandardScaler<br/><b>transform</b><br/>Apply μ, σ from TRAIN"]
+            TEST_NORM["✨ X_test_normalized<br/>μ ≈ 0.02, σ ≈ 0.98<br/>(slight deviation OK)"]
+            
+            TEST_RAW --> SCALER_TRANSFORM
+            SCALER_TRANSFORM --> TEST_NORM
+        end
+        
+        SPLIT --> TRAIN_RAW
+        SPLIT --> TEST_RAW
+        SCALER_FIT -.->|"Scaler params"| SCALER_TRANSFORM
+        
+        EDA_VIZ --> SPLIT
+    end
+    
+    subgraph "Data Persistence"
+        direction TB
+        
+        CSV["💾 CSV Files<br/>train_normalized.csv<br/>test_normalized.csv<br/>(Human readable)"]
+        
+        NPY["⚡ NumPy Arrays<br/>X_train.npy, y_train.npy<br/>X_test.npy, y_test.npy<br/>(ML optimized)"]
+        
+        SCALER_PKL["🔧 Scaler Object<br/>scaler.pkl<br/>(Production use)"]
+        
+        META["📋 Metadata<br/>preprocessing_metadata.json<br/>- Feature names<br/>- Config used<br/>- Statistics"]
+        
+        TRAIN_NORM --> CSV
+        TEST_NORM --> CSV
+        TRAIN_NORM --> NPY
+        TEST_NORM --> NPY
+        SCALER_FIT --> SCALER_PKL
+        SPLIT --> META
+    end
+    
+    subgraph "Binary Classification Variant"
+        BINARY["🔀 Binary Transform<br/>Attack vs Normal<br/>Separate pipeline<br/>binary/ folder"]
+        
+        CSV -.-> BINARY
+        NPY -.-> BINARY
+    end
+    
+    subgraph "ML Training Ready"
+        READY["✅ Ready for ML<br/>- No data leakage<br/>- Reproducible<br/>- Normalized<br/>- Balanced<br/>- Multiple formats"]
+        
+        NPY --> READY
+        BINARY --> READY
+    end
+    
+    style SPLIT fill:#ffcdd2,stroke:#d32f2f,stroke-width:3px
+    style SCALER_FIT fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style SCALER_TRANSFORM fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px
+    style READY fill:#c8e6c9,stroke:#388e3c,stroke-width:3px
+    style QUALITY fill:#e3f2fd
+    style SAMPLE fill:#e3f2fd
+
