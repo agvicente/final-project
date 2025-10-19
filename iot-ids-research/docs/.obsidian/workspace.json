@@ -1,0 +1,174 @@
+{
+  "main": {
+    "id": "0c51c775395f82fd",
+    "type": "split",
+    "children": [
+      {
+        "id": "aae76c13e2a30803",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e480d78f0d8ea882",
+            "type": "leaf",
+            "state": {
+              "type": "pdf",
+              "state": {
+                "file": "fase1/papers/Evolving clustering algorithm based on mixture of typicalities for stream data mining.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "Evolving clustering algorithm based on mixture of typicalities for stream data mining"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "4ccf30813d421ce9",
+    "type": "split",
+    "children": [
+      {
+        "id": "4d17295c27dabc4b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1beed1bc8b2011d4",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "b715ac1761b54e67",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "eebd5de3f8ef1de7",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "834e61ca524be373",
+    "type": "split",
+    "children": [
+      {
+        "id": "ad7cef140a91e9dd",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "03d3766d9e119a7f",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "fase1/papers/Evolving clustering algorithm based on mixture of typicalities for stream data mining.pdf",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for Evolving clustering algorithm based on mixture of typicalities for stream data mining"
+            }
+          },
+          {
+            "id": "11d0a74dc13e80ae",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "fase1/papers/Evolving clustering algorithm based on mixture of typicalities for stream data mining.pdf",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from Evolving clustering algorithm based on mixture of typicalities for stream data mining"
+            }
+          },
+          {
+            "id": "691e925b9f125f06",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "a8cc51a0e939db6b",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "fase1/papers/Evolving clustering algorithm based on mixture of typicalities for stream data mining.pdf",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of Evolving clustering algorithm based on mixture of typicalities for stream data mining"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "e480d78f0d8ea882",
+  "lastOpenFiles": [
+    "fase1/papers/The_Balanced_Accuracy_and_Its_Posterior_Distribution.pdf"
+  ]
+}
