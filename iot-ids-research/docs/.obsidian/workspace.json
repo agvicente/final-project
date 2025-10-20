@@ -11,12 +11,14 @@
             "id": "e480d78f0d8ea882",
             "type": "leaf",
             "state": {
-              "type": "pdf",
+              "type": "markdown",
               "state": {
-                "file": "fase1/papers/Evolving clustering algorithm based on mixture of typicalities for stream data mining.pdf"
+                "file": "obsidian/Acurácia_Balanceada.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-file-text",
-              "title": "Evolving clustering algorithm based on mixture of typicalities for stream data mining"
+              "icon": "lucide-file",
+              "title": "Acurácia_Balanceada"
             }
           }
         ]
@@ -92,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "fase1/papers/Evolving clustering algorithm based on mixture of typicalities for stream data mining.pdf",
+                "file": "obsidian/Acurácia_Balanceada.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Evolving clustering algorithm based on mixture of typicalities for stream data mining"
+              "title": "Backlinks for Acurácia_Balanceada"
             }
           },
           {
@@ -111,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "fase1/papers/Evolving clustering algorithm based on mixture of typicalities for stream data mining.pdf",
+                "file": "obsidian/Acurácia_Balanceada.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from Evolving clustering algorithm based on mixture of typicalities for stream data mining"
+              "title": "Outgoing links from Acurácia_Balanceada"
             }
           },
           {
@@ -140,13 +142,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "fase1/papers/Evolving clustering algorithm based on mixture of typicalities for stream data mining.pdf",
+                "file": "obsidian/Acurácia_Balanceada.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of Evolving clustering algorithm based on mixture of typicalities for stream data mining"
+              "title": "Outline of Acurácia_Balanceada"
             }
           }
         ]
@@ -169,6 +171,34 @@
   },
   "active": "e480d78f0d8ea882",
   "lastOpenFiles": [
-    "fase1/papers/The_Balanced_Accuracy_and_Its_Posterior_Distribution.pdf"
+    "obsidian/Exercícios_Práticos.md",
+    "obsidian/Referências_Bibliográficas.md",
+    "obsidian/Aplicação_ao_IoT_IDS.md",
+    "obsidian/Inferência_Bayesiana.md",
+    "obsidian/Métodos_Paramétricos_vs_Não_Paramétricos.md",
+    "obsidian/Distribuição_Beta.md",
+    "obsidian/Distribuições_de_Probabilidade.md",
+    "obsidian/Intervalos_de_Confiança.md",
+    "obsidian/Média_Desvio_Padrão_Erro_Padrão.md",
+    "obsidian/Acurácia_Balanceada.md",
+    "obsidian/The_Balanced_Accuracy_and_Its_Posterior_Distribution.md",
+    "obsidian/INDEX.md",
+    "obsidian/Acurácia.md",
+    "obsidian",
+    "books/RM-StatRethink-Bayes.pdf",
+    "books/Handbook_of_Parametric_and_Nonparametric_Statistical_Procedures_SecondEdition.pdf",
+    "books/Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf",
+    "books/Bayesian_Data_Analysis.pdf",
+    "books/MathematicalStatisticsandDataAnalysis3ed.pdf",
+    "books/All_of_Statistics_A_Concise_Course_in_Statistical_Inference_Springer.pdf",
+    "books",
+    "Nova pasta",
+    "fase1/papers/Evolving clustering algorithm based on mixture of typicalities for stream data mining.pdf",
+    "cronograma_fase1_detalhado.md",
+    "artigo_completo_metodologia_pt.md",
+    "artigo_completo_metodologia.md",
+    "meetings/2025-10-17_reuniao_mestrado.md",
+    "meetings/2025-10-17_insights_comparacao_algoritmos.md",
+    "meetings/2025-10-17_implementacao_cpu_analysis.md"
   ]
 }
