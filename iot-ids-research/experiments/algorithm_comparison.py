@@ -17,6 +17,7 @@ from enhanced_metrics_collector import (
     collect_enhanced_metrics,
     monitor_resource_usage_detailed
 )
+from bayesian_metrics import BayesianAccuracyEvaluator
 from sklearn.ensemble import IsolationForest, RandomForestClassifier
 from sklearn.svm import OneClassSVM, SVC, LinearSVC
 from sklearn.neighbors import LocalOutlierFactor
@@ -749,6 +750,21 @@ def run_single_experiment(algorithm_name, algorithm_class, params, X_train, X_te
         logger.info(f"         ⏱️ Tempo métricas: {metrics_time:.3f}s")
         logger.info(f"         ⏱️ Tempo total: {total_time:.3f}s")
         
+        # 🔬 MÉTRICAS BAYESIANAS (Brodersen et al., 2010)
+        bayesian_metrics = None
+        try:
+            logger.info(f"         🔬 Calculando métricas Bayesianas (Brodersen et al., 2010)...")
+            bayesian_eval = BayesianAccuracyEvaluator(y_test, y_pred)
+            bayesian_metrics = bayesian_eval.compute_metrics(confidence=0.95, n_samples=50000)
+            
+            ba_bayes = bayesian_metrics['balanced_accuracy']
+            logger.info(f"         📊 MÉTRICAS BAYESIANAS:")
+            logger.info(f"            BA Média: {ba_bayes['mean']:.4f}")
+            logger.info(f"            BA IC 95%: [{ba_bayes['ci'][0]:.4f}, {ba_bayes['ci'][1]:.4f}]")
+            logger.info(f"            BA Mediana: {ba_bayes['median']:.4f}")
+        except Exception as e:
+            logger.warning(f"         ⚠️  Erro ao calcular métricas Bayesianas: {e}")
+        
         result = {
             'algorithm': algorithm_name,
             'params': params,
@@ -768,6 +784,27 @@ def run_single_experiment(algorithm_name, algorithm_class, params, X_train, X_te
             'run_id': run_id,
             'param_id': param_id
         }
+        
+        # Adicionar métricas Bayesianas se disponíveis
+        if bayesian_metrics is not None:
+            result['bayesian'] = {
+                'accuracy_posterior': {
+                    'mean': bayesian_metrics['accuracy']['mean'],
+                    'median': bayesian_metrics['accuracy']['median'],
+                    'ci_lower': bayesian_metrics['accuracy']['ci'][0],
+                    'ci_upper': bayesian_metrics['accuracy']['ci'][1],
+                    'std': bayesian_metrics['accuracy']['std']
+                },
+                'balanced_accuracy_posterior': {
+                    'mean': bayesian_metrics['balanced_accuracy']['mean'],
+                    'median': bayesian_metrics['balanced_accuracy']['median'],
+                    'std': bayesian_metrics['balanced_accuracy']['std'],
+                    'ci_lower': bayesian_metrics['balanced_accuracy']['ci'][0],
+                    'ci_upper': bayesian_metrics['balanced_accuracy']['ci'][1]
+                },
+                'sensitivity': bayesian_metrics['sensitivity']['mean'],
+                'specificity': bayesian_metrics['specificity']['mean']
+            }
         
         # 📊 COLETAR MÉTRICAS APRIMORADAS PARA IoT
         try:

@@ -883,6 +883,16 @@ def consolidate_all_results(test_mode=None):
             print(f"⚠️  Erro nas análises IoT avançadas: {e}")
             import traceback
             traceback.print_exc()
+        
+        # 🔬 ANÁLISES BAYESIANAS (Brodersen et al., 2010)
+        print("\n🔬 Gerando análises Bayesianas (Brodersen et al., 2010)...")
+        try:
+            from bayesian_plots import generate_all_bayesian_plots
+            generate_all_bayesian_plots(df_detailed, final_plots_dir)
+        except Exception as e:
+            print(f"⚠️  Erro nas análises Bayesianas: {e}")
+            import traceback
+            traceback.print_exc()
     
     print("\n📋 Gerando tabelas avançadas...")
     generate_summary_table(df_summary, final_tables_dir)
