@@ -233,7 +233,7 @@ def get_algorithm_configs(test_mode=None):
     use_test_mode = test_mode if test_mode is not None else TEST_MODE
     
     if use_test_mode:
-        # Configurações simples para teste - ORDENADOS POR COMPLEXIDADE COMPUTACIONAL
+        # Configurações simples para teste - ORDENADOS POR COMPLEXIDADE (GradientBoosting por último)
         return {
             # 1. MAIS RÁPIDO - O(n)
             'LogisticRegression': {
@@ -253,16 +253,7 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 3. MODERADO - O(n log n)
-            'GradientBoostingClassifier': {
-                'class': GradientBoostingClassifier,
-                'param_combinations': [
-                    {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 3, 'random_state': 42}
-                ],
-                'n_runs': N_RUNS
-            },
-            
-            # 4. RÁPIDO PARA ANOMALIAS - O(n log n)
+            # 3. RÁPIDO PARA ANOMALIAS - O(n log n)
             'IsolationForest': {
                 'class': IsolationForest,
                 'param_combinations': [
@@ -272,7 +263,7 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 5. MODERADO PARA ANOMALIAS - O(n²)
+            # 4. MODERADO PARA ANOMALIAS - O(n²)
             'EllipticEnvelope': {
                 'class': EllipticEnvelope,
                 'param_combinations': [
@@ -282,7 +273,7 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 6. Local Outlier Factor
+            # 5. Local Outlier Factor
             'LocalOutlierFactor': {
                 'class': LocalOutlierFactor,
                 'param_combinations': [
@@ -292,7 +283,7 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 7. PESADO - LinearSVC otimizado para datasets grandes
+            # 6. PESADO - LinearSVC otimizado para datasets grandes
             'LinearSVC': {
                 'class': LinearSVC,
                 'param_combinations': [
@@ -301,7 +292,7 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 8. RÁPIDO - SVM via gradiente estocástico
+            # 7. RÁPIDO - SVM via gradiente estocástico
             'SGDClassifier': {
                 'class': SGDClassifier,
                 'param_combinations': [
@@ -310,7 +301,7 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 9. OTIMIZADO - OneClassSVM via gradiente estocástico
+            # 8. OTIMIZADO - OneClassSVM via gradiente estocástico
             'SGDOneClassSVM': {
                 'class': SGDOneClassSVM,
                 'param_combinations': [
@@ -320,12 +311,21 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 10. MLP Classifier - Otimizado para teste rápido
+            # 9. MLP Classifier - Otimizado para teste rápido
             'MLPClassifier': {
                 'class': MLPClassifier,
                 'param_combinations': [
                     {'hidden_layer_sizes': (20,), 'max_iter': 50, 'early_stopping': True, 
                      'validation_fraction': 0.1, 'n_iter_no_change': 5, 'random_state': 42}
+                ],
+                'n_runs': N_RUNS
+            },
+            
+            # 10. ÚLTIMO - Gradient Boosting (mais pesado)
+            'GradientBoostingClassifier': {
+                'class': GradientBoostingClassifier,
+                'param_combinations': [
+                    {'n_estimators': 5, 'learning_rate': 0.1, 'max_depth': 3, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             }
@@ -393,30 +393,7 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 3. Gradient Boosting - 10 configurações (ALGORITMO PESADO)
-            # LR × n_estimators trade-off, subsample agressivo para velocidade
-            'GradientBoostingClassifier': {
-                'class': GradientBoostingClassifier,
-                'param_combinations': [
-                    # LEVES (1-2): Convergência rápida - 20%
-                    {'n_estimators': 30, 'learning_rate': 0.2, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
-                    {'n_estimators': 50, 'learning_rate': 0.15, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
-                    # SWEET SPOT (3-6): IoT-viável - 40%
-                    {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 4, 'subsample': 0.7, 'random_state': 42},
-                    {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 5, 'subsample': 0.7, 'random_state': 42},
-                    {'n_estimators': 100, 'learning_rate': 0.05, 'max_depth': 5, 'subsample': 0.7, 'random_state': 42},
-                    {'n_estimators': 150, 'learning_rate': 0.05, 'max_depth': 5, 'subsample': 0.7, 'random_state': 42},
-                    # MÉDIAS (7-8) - 20%
-                    {'n_estimators': 150, 'learning_rate': 0.1, 'max_depth': 6, 'subsample': 0.7, 'random_state': 42},
-                    {'n_estimators': 200, 'learning_rate': 0.05, 'max_depth': 6, 'subsample': 0.7, 'random_state': 42},
-                    # PESADAS (9-10): Limite IoT - 20%
-                    {'n_estimators': 200, 'learning_rate': 0.1, 'max_depth': 7, 'subsample': 0.7, 'random_state': 42},
-                    {'n_estimators': 250, 'learning_rate': 0.05, 'max_depth': 7, 'subsample': 0.7, 'random_state': 42}
-                ],
-                'n_runs': N_RUNS
-            },
-            
-            # 4. Isolation Forest - 15 configurações (ALGORITMO MÉDIO)
+            # 3. Isolation Forest - 15 configurações (ALGORITMO MÉDIO)
             # Contamination crescente + n_estimators
             'IsolationForest': {
                 'class': IsolationForest,
@@ -445,7 +422,7 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 5. Elliptic Envelope - 15 configurações (ALGORITMO MÉDIO)
+            # 4. Elliptic Envelope - 15 configurações (ALGORITMO MÉDIO)
             # Apenas contamination varia (algoritmo simples, mas O(n³) em covariance)
             'EllipticEnvelope': {
                 'class': EllipticEnvelope,
@@ -474,7 +451,7 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 6. Local Outlier Factor - 8 configurações (ALGORITMO MUITO PESADO)
+            # 5. Local Outlier Factor - 8 configurações (ALGORITMO MUITO PESADO)
             # n_neighbors crescente (complexidade O(n²)), reduzido para tempo < 24h
             'LocalOutlierFactor': {
                 'class': LocalOutlierFactor,
@@ -496,7 +473,7 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 7. LinearSVC - 18 configurações (ALGORITMO RÁPIDO/MÉDIO)
+            # 6. LinearSVC - 18 configurações (ALGORITMO RÁPIDO/MÉDIO)
             # Escala logarítmica, dual=False para n_samples > n_features
             'LinearSVC': {
                 'class': LinearSVC,
@@ -527,7 +504,7 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 8. SGDClassifier - 20 configurações (ALGORITMO MUITO RÁPIDO)
+            # 7. SGDClassifier - 20 configurações (ALGORITMO MUITO RÁPIDO)
             # Online learning, ideal para IoT streaming. Escala logarítmica em alpha
             'SGDClassifier': {
                 'class': SGDClassifier,
@@ -560,7 +537,7 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 9. SGDOneClassSVM - 15 configurações (ALGORITMO MÉDIO)
+            # 8. SGDOneClassSVM - 15 configurações (ALGORITMO MÉDIO)
             # Nu crescente (sensibilidade a outliers), online learning para anomalias
             'SGDOneClassSVM': {
                 'class': SGDOneClassSVM,
@@ -589,7 +566,7 @@ def get_algorithm_configs(test_mode=None):
                 'n_runs': N_RUNS
             },
             
-            # 10. MLP Classifier - 8 configurações (ALGORITMO MUITO PESADO)
+            # 9. MLP Classifier - 8 configurações (ALGORITMO MUITO PESADO)
             # Early stopping agressivo para manter tempo < 24h
             'MLPClassifier': {
                 'class': MLPClassifier,
@@ -624,6 +601,29 @@ def get_algorithm_configs(test_mode=None):
                     {'hidden_layer_sizes': (50, 25, 10), 'max_iter': 80, 'early_stopping': True, 
                      'validation_fraction': 0.15, 'n_iter_no_change': 8, 'learning_rate': 'adaptive',
                      'alpha': 0.01, 'random_state': 42}
+                ],
+                'n_runs': N_RUNS
+            },
+            
+            # 10. ÚLTIMO - Gradient Boosting - 10 configurações (ALGORITMO PESADO)
+            # LR × n_estimators trade-off, subsample agressivo para velocidade
+            'GradientBoostingClassifier': {
+                'class': GradientBoostingClassifier,
+                'param_combinations': [
+                    # LEVES (1-2): Convergência rápida - 20%
+                    {'n_estimators': 30, 'learning_rate': 0.2, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 50, 'learning_rate': 0.15, 'max_depth': 3, 'subsample': 0.7, 'random_state': 42},
+                    # SWEET SPOT (3-6): IoT-viável - 40%
+                    {'n_estimators': 50, 'learning_rate': 0.1, 'max_depth': 4, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 5, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 100, 'learning_rate': 0.05, 'max_depth': 5, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 150, 'learning_rate': 0.05, 'max_depth': 5, 'subsample': 0.7, 'random_state': 42},
+                    # MÉDIAS (7-8) - 20%
+                    {'n_estimators': 150, 'learning_rate': 0.1, 'max_depth': 6, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 200, 'learning_rate': 0.05, 'max_depth': 6, 'subsample': 0.7, 'random_state': 42},
+                    # PESADAS (9-10): Limite IoT - 20%
+                    {'n_estimators': 200, 'learning_rate': 0.1, 'max_depth': 7, 'subsample': 0.7, 'random_state': 42},
+                    {'n_estimators': 250, 'learning_rate': 0.05, 'max_depth': 7, 'subsample': 0.7, 'random_state': 42}
                 ],
                 'n_runs': N_RUNS
             }
