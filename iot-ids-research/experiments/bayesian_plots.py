@@ -25,7 +25,7 @@ def plot_posterior_distributions(detailed_df, plots_dir):
         detailed_df: DataFrame com resultados detalhados (precisa ter tp, tn, fp, fn)
         plots_dir: Diretório para salvar plots
     """
-    print("   📊 Gerando distribuições posteriores Bayesianas (Brodersen)...")
+    print("      → Distribuições posteriores...")
     
     fig, ax = plt.subplots(figsize=(14, 8))
     
@@ -85,7 +85,6 @@ def plot_posterior_distributions(detailed_df, plots_dir):
     plt.tight_layout()
     plt.savefig(plots_dir / 'bayesian_posterior_distributions.png', dpi=300, bbox_inches='tight')
     plt.close()
-    print("   ✅ Distribuições posteriores Bayesianas geradas")
 
 
 def plot_credibility_intervals(detailed_df, plots_dir):
@@ -99,7 +98,7 @@ def plot_credibility_intervals(detailed_df, plots_dir):
         detailed_df: DataFrame com resultados detalhados
         plots_dir: Diretório para salvar plots
     """
-    print("   📊 Gerando intervalos de credibilidade Bayesianos...")
+    print("      → Intervalos de credibilidade...")
     
     algorithms = detailed_df['algorithm'].unique()
     results = []
@@ -176,7 +175,6 @@ def plot_credibility_intervals(detailed_df, plots_dir):
     plt.tight_layout()
     plt.savefig(plots_dir / 'bayesian_credibility_intervals.png', dpi=300, bbox_inches='tight')
     plt.close()
-    print("   ✅ Intervalos de credibilidade gerados")
 
 
 def plot_probabilistic_comparison_matrix(detailed_df, plots_dir):
@@ -190,7 +188,7 @@ def plot_probabilistic_comparison_matrix(detailed_df, plots_dir):
         detailed_df: DataFrame com resultados detalhados
         plots_dir: Diretório para salvar plots
     """
-    print("   📊 Gerando matriz de comparação probabilística...")
+    print("      → Matriz de comparação probabilística...")
     
     algorithms = detailed_df['algorithm'].unique()
     n_algos = len(algorithms)
@@ -259,8 +257,8 @@ def plot_probabilistic_comparison_matrix(detailed_df, plots_dir):
     plt.savefig(plots_dir / 'bayesian_comparison_matrix.png', dpi=300, bbox_inches='tight')
     plt.close()
     
-    # Salvar matriz como CSV
-    tables_dir = plots_dir.parent / 'tables'
+    # Salvar matriz como CSV (na pasta tables/ no mesmo nível de plots/)
+    tables_dir = plots_dir.parent.parent / 'tables'
     tables_dir.mkdir(parents=True, exist_ok=True)
     comparison_matrix.to_csv(tables_dir / 'bayesian_comparison_matrix.csv')
     
@@ -275,8 +273,6 @@ def plot_probabilistic_comparison_matrix(detailed_df, plots_dir):
         f.write("- **0.05 < P < 0.95**: Inconclusive or small difference\n")
         f.write("- **P ≈ 0.5**: No difference between algorithms\n\n")
         f.write("Reference: Brodersen et al. (2010) - Bayesian posterior distributions\n")
-    
-    print("   ✅ Matriz de comparação probabilística gerada")
 
 
 def generate_bayesian_statistics_table(detailed_df, plots_dir):
@@ -287,7 +283,7 @@ def generate_bayesian_statistics_table(detailed_df, plots_dir):
         detailed_df: DataFrame com resultados detalhados
         plots_dir: Diretório para salvar (vai salvar em tables/)
     """
-    print("   📊 Gerando tabela de estatísticas Bayesianas...")
+    print("      → Tabela de estatísticas...")
     
     algorithms = detailed_df['algorithm'].unique()
     bayesian_stats = []
@@ -330,8 +326,8 @@ def generate_bayesian_statistics_table(detailed_df, plots_dir):
     # Criar DataFrame
     stats_df = pd.DataFrame(bayesian_stats).sort_values('ba_mean', ascending=False)
     
-    # Salvar CSV
-    tables_dir = plots_dir.parent / 'tables'
+    # Salvar CSV (na pasta tables/ no mesmo nível de plots/)
+    tables_dir = plots_dir.parent.parent / 'tables'
     tables_dir.mkdir(parents=True, exist_ok=True)
     stats_df.to_csv(tables_dir / 'bayesian_statistics.csv', index=False, float_format='%.4f')
     
@@ -349,8 +345,6 @@ def generate_bayesian_statistics_table(detailed_df, plots_dir):
         f.write("- **specificity_mean**: Mean specificity (TN rate)\n")
         f.write("- **prob_ba_above_X**: Probability that BA > X threshold\n\n")
         f.write("Reference: Brodersen, K.H., et al. (2010). 'The balanced accuracy and its posterior distribution'. ICPR.\n")
-    
-    print("   ✅ Tabela de estatísticas Bayesianas gerada")
 
 
 def generate_all_bayesian_plots(detailed_df, plots_dir):
@@ -359,31 +353,25 @@ def generate_all_bayesian_plots(detailed_df, plots_dir):
     
     Args:
         detailed_df: DataFrame com resultados detalhados (precisa ter tp, tn, fp, fn)
-        plots_dir: Diretório para salvar plots
+        plots_dir: Diretório para salvar plots (subpasta bayesian/)
     """
-    print("\n🔬 ANÁLISES BAYESIANAS (Brodersen et al., 2010)")
-    print("=" * 60)
-    
     try:
         plot_posterior_distributions(detailed_df, plots_dir)
     except Exception as e:
-        print(f"   ⚠️  Erro ao gerar distribuições posteriores: {e}")
+        print(f"      ⚠️  Erro ao gerar distribuições posteriores: {e}")
     
     try:
         plot_credibility_intervals(detailed_df, plots_dir)
     except Exception as e:
-        print(f"   ⚠️  Erro ao gerar intervalos de credibilidade: {e}")
+        print(f"      ⚠️  Erro ao gerar intervalos de credibilidade: {e}")
     
     try:
         plot_probabilistic_comparison_matrix(detailed_df, plots_dir)
     except Exception as e:
-        print(f"   ⚠️  Erro ao gerar matriz de comparação: {e}")
+        print(f"      ⚠️  Erro ao gerar matriz de comparação: {e}")
     
     try:
         generate_bayesian_statistics_table(detailed_df, plots_dir)
     except Exception as e:
-        print(f"   ⚠️  Erro ao gerar tabela de estatísticas: {e}")
-    
-    print("=" * 60)
-    print("✅ Análises Bayesianas completas!\n")
+        print(f"      ⚠️  Erro ao gerar tabela de estatísticas: {e}")
 

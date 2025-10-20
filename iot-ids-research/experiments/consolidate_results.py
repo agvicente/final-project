@@ -854,43 +854,57 @@ def consolidate_all_results(test_mode=None):
     final_report_dir = base_consolidation_dir / "report"
     final_results_dir = base_consolidation_dir / "data"
     
-    for dir_path in [final_plots_dir, final_tables_dir, final_report_dir, final_results_dir]:
+    # Criar subpastas organizadas para plots
+    plots_basic_dir = final_plots_dir / "basic"
+    plots_detailed_dir = final_plots_dir / "detailed"
+    plots_iot_dir = final_plots_dir / "iot_advanced"
+    plots_bayesian_dir = final_plots_dir / "bayesian"
+    
+    for dir_path in [final_plots_dir, final_tables_dir, final_report_dir, final_results_dir,
+                     plots_basic_dir, plots_detailed_dir, plots_iot_dir, plots_bayesian_dir]:
         dir_path.mkdir(parents=True, exist_ok=True)
     
     print(f"📁 Salvando consolidação em: {base_consolidation_dir}/ (modo: {mode_str})")
     print(f"🕐 Timestamp da rodada: {shared_timestamp}")
+    print(f"📊 Estrutura de plots organizada:")
+    print(f"   - plots/basic/ (comparações básicas)")
+    print(f"   - plots/detailed/ (análises detalhadas)")
+    print(f"   - plots/iot_advanced/ (métricas IoT)")
+    print(f"   - plots/bayesian/ (análises Bayesianas)")
     
     # Gerar análises avançadas
-    print("📈 Gerando análises avançadas...")
+    print("\n📈 Gerando análises avançadas...")
     
     # Gráficos básicos (mantidos)
-    generate_comparison_plots(df_summary, final_plots_dir)
+    print("   📊 Plots básicos...")
+    generate_comparison_plots(df_summary, plots_basic_dir)
     
     # Análises detalhadas (NOVAS)
     if not df_detailed.empty:
-        generate_confusion_matrices(df_detailed, final_plots_dir)
-        generate_boxplots(df_detailed, final_plots_dir)
-        generate_correlation_heatmap(df_detailed, final_plots_dir)
-        generate_performance_analysis(df_detailed, final_plots_dir)
-        generate_parameter_analysis(df_detailed, final_plots_dir)
-        generate_anomaly_detection_analysis(df_detailed, final_plots_dir)
+        print("   📊 Plots detalhados...")
+        generate_confusion_matrices(df_detailed, plots_detailed_dir)
+        generate_boxplots(df_detailed, plots_detailed_dir)
+        generate_correlation_heatmap(df_detailed, plots_detailed_dir)
+        generate_performance_analysis(df_detailed, plots_detailed_dir)
+        generate_parameter_analysis(df_detailed, plots_detailed_dir)
+        generate_anomaly_detection_analysis(df_detailed, plots_detailed_dir)
         
         # 📊 ANÁLISES AVANÇADAS IoT-IDS
-        print("\n📈 Gerando análises avançadas IoT-IDS...")
+        print("   📊 Plots IoT avançados...")
         try:
-            generate_all_iot_advanced_plots(df_detailed, final_plots_dir)
+            generate_all_iot_advanced_plots(df_detailed, plots_iot_dir)
         except Exception as e:
-            print(f"⚠️  Erro nas análises IoT avançadas: {e}")
+            print(f"   ⚠️  Erro nas análises IoT avançadas: {e}")
             import traceback
             traceback.print_exc()
         
         # 🔬 ANÁLISES BAYESIANAS (Brodersen et al., 2010)
-        print("\n🔬 Gerando análises Bayesianas (Brodersen et al., 2010)...")
+        print("   🔬 Plots Bayesianos (Brodersen et al., 2010)...")
         try:
             from bayesian_plots import generate_all_bayesian_plots
-            generate_all_bayesian_plots(df_detailed, final_plots_dir)
+            generate_all_bayesian_plots(df_detailed, plots_bayesian_dir)
         except Exception as e:
-            print(f"⚠️  Erro nas análises Bayesianas: {e}")
+            print(f"   ⚠️  Erro nas análises Bayesianas: {e}")
             import traceback
             traceback.print_exc()
     
