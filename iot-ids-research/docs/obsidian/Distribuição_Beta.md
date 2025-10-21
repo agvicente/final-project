@@ -660,3 +660,4 @@ Veja [[Exercícios_Práticos#Distribuição Beta]].
 **Artigo:** [[The_Balanced_Accuracy_and_Its_Posterior_Distribution]]  
 **Aplicação:** [[Acurácia_Balanceada]]
 
+

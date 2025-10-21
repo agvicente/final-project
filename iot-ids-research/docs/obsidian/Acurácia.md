@@ -375,3 +375,4 @@ Veja [[Exercícios_Práticos#Acurácia]] para problemas práticos.
 **Voltar para:** [[INDEX]]  
 **Próximo conceito:** [[Acurácia_Balanceada]]
 
+

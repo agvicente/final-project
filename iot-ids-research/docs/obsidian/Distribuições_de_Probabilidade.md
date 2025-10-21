@@ -524,3 +524,4 @@ Veja [[Exercícios_Práticos#Distribuições de Probabilidade]].
 **Aprofundar:** [[Distribuição_Beta]]  
 **Aplicação:** [[Inferência_Bayesiana]]
 
+

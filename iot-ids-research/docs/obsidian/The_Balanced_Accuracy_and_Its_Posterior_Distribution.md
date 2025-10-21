@@ -311,3 +311,4 @@ Para fixar o conteúdo, veja [[Exercícios_Práticos#Balanced Accuracy]].
 **Última atualização:** 2025-10-19  
 **Voltar para:** [[INDEX]]
 
+

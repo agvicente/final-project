@@ -488,3 +488,4 @@ Veja [[Exercícios_Práticos#Paramétrico vs Não-Paramétrico]].
 **Fundamento:** [[Distribuições_de_Probabilidade]]  
 **Aplicação:** [[The_Balanced_Accuracy_and_Its_Posterior_Distribution]]
 
+

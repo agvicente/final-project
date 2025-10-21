@@ -543,3 +543,4 @@ Veja [[Exercícios_Práticos#Balanced Accuracy]] para problemas.
 **Artigo relacionado:** [[The_Balanced_Accuracy_and_Its_Posterior_Distribution]]  
 **Aplicação:** [[Aplicação_ao_IoT_IDS]]
 
+

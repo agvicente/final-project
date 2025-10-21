@@ -494,3 +494,4 @@ Veja [[Exercícios_Práticos#Intervalos de Confiança]].
 **Artigo relacionado:** [[The_Balanced_Accuracy_and_Its_Posterior_Distribution]]  
 **Paradigma:** [[Inferência_Bayesiana]]
 
+

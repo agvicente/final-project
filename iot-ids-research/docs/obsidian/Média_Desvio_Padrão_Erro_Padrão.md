@@ -485,3 +485,4 @@ Veja [[Exercícios_Práticos#Estatística Descritiva]].
 **Voltar para:** [[INDEX]]  
 **Próximo:** [[Intervalos_de_Confiança]]
 
+
