@@ -510,6 +510,199 @@ For each algorithm, we generate comprehensive individual analysis:
 - Post-hoc tests with Bonferroni correction
 - Effect size calculation (Cohen's d)
 
+#### 3.5.4 Bayesian Approach for Balanced Accuracy (Brodersen et al., 2010)
+
+**Motivation and Traditional Method Limitations**:
+
+Point estimates of performance present two critical limitations identified by Brodersen et al. (2010):
+
+1. **Absence of Quantified Uncertainty**: Simple averages don't allow derivation of meaningful confidence intervals
+2. **Bias in Imbalanced Datasets**: Biased classifiers tested on imbalanced sets produce optimistic accuracy estimates
+
+**Solution: Bayesian Posterior Distributions**:
+
+We implement the Bayesian approach of Brodersen et al. (2010) that models Balanced Accuracy as a random variable with full posterior distribution instead of a point estimate.
+
+**Theoretical Foundation**:
+
+**1. Accuracy Posterior**:
+
+Treating each prediction as an independent Bernoulli experiment, the accuracy posterior follows a conjugate Beta distribution:
+
+```
+A ~ Beta(C + 1, I + 1)
+```
+
+Where:
+- `C` = number of correct predictions (TP + TN)
+- `I` = number of incorrect predictions (FP + FN)
+- Non-informative prior: Beta(1, 1) = Uniform[0,1]
+
+**2. Balanced Accuracy Posterior**:
+
+Balanced Accuracy is defined as:
+
+```
+BA = ½(Sensitivity + Specificity) = ½(TP/(TP+FN) + TN/(TN+FP))
+```
+
+Its posterior distribution is obtained via **convolution of two Beta distributions** (Equation 7 from the paper):
+
+```
+p_BA(x; TP, FP, FN, TN) = ∫₀¹ p_A(2(x-z); TP+1, FN+1) × p_A(2z; TN+1, FP+1) dz
+```
+
+Where:
+- `p_A` is the Beta density for sensitivity and specificity
+- The integral represents the convolution of the two posteriors
+
+**Monte Carlo Implementation**:
+
+Due to the analytical complexity of the convolution, we implement Monte Carlo Sampling approximation:
+
+```python
+# Posteriors for each class
+sensitivity_posterior = Beta(TP + 1, FN + 1)
+specificity_posterior = Beta(TN + 1, FP + 1)
+
+# Sampling (50k during experiments, 100k during consolidation)
+sensitivity_samples = sensitivity_posterior.rvs(n_samples)
+specificity_samples = specificity_posterior.rvs(n_samples)
+
+# Balanced Accuracy posterior
+ba_samples = 0.5 * (sensitivity_samples + specificity_samples)
+```
+
+**Derived Metrics**:
+
+For each algorithm, we calculate:
+
+1. **Posterior Statistics**:
+   - Mean (Bayesian estimator)
+   - Median (robust estimator)
+   - Standard deviation (uncertainty)
+   - Mode (maximum a posteriori)
+
+2. **Bayesian Credibility Intervals** (95%):
+   ```
+   CI_95% = [percentile_2.5%, percentile_97.5%]
+   ```
+   - Direct probabilistic interpretation: "95% probability that BA is in this interval"
+   - Respect natural bounds [0,1] (unlike frequentist CIs)
+   - Asymmetric when appropriate
+
+3. **Threshold Probabilities**:
+   ```
+   P(BA > threshold) = ∫_threshold^1 p_BA(x) dx
+   ```
+   Examples: P(BA > 0.80), P(BA > 0.85), P(BA > 0.90), P(BA > 0.95)
+
+4. **Probabilistic Comparisons between Algorithms**:
+   ```
+   P(Algorithm_A > Algorithm_B) = E[1_{BA_A > BA_B}]
+   ```
+   Estimated via:
+   ```python
+   prob_A_better = mean(ba_samples_A > ba_samples_B)
+   ```
+
+**Advantages over Frequentist Methods**:
+
+1. **Direct Interpretation**: Credibility intervals have direct probabilistic interpretation
+2. **Boundary Respect**: Automatically respects [0,1] without ad-hoc corrections
+3. **Imbalance Robustness**: BA posterior detects bias even with high accuracy
+4. **Rigorous Comparisons**: Probabilistic comparisons P(A > B) are more informative than p-values
+5. **Natural Asymmetry**: Asymmetric distributions when justified by data
+
+**Framework Implementation**:
+
+**Modules Developed**:
+
+1. **`experiments/bayesian_metrics.py`**:
+   - `BayesianAccuracyEvaluator` class
+   - Beta posteriors calculation
+   - Convolution implementation (Eq. 7)
+   - Credibility intervals
+   - Probabilistic comparisons
+
+2. **`experiments/bayesian_plots.py`**:
+   - BA posterior distributions per algorithm
+   - 95% credibility intervals
+   - P(A > B) comparison matrix
+   - Bayesian statistical tables
+
+**Automatic Integration**:
+
+Bayesian metrics are calculated automatically:
+- **During experiments**: Metrics added to each individual result
+- **During consolidation**: Bayesian plots generated automatically
+- **Output**: 4 plots + 2 tables (CSV + Markdown) with complete analysis
+
+**Generated Outputs**:
+
+1. **Visualizations**:
+   - `bayesian_posterior_distributions.png`: Posterior densities via KDE
+   - `bayesian_credibility_intervals.png`: Horizontal bars with 95% CI
+   - `bayesian_comparison_matrix.png`: Heatmap P(row > column)
+
+2. **Tables**:
+   - `bayesian_statistics.csv`: Complete statistics
+   - `bayesian_comparison_matrix.csv`: Full comparison matrix
+
+**Results Interpretation**:
+
+**Credibility Intervals**:
+- Narrow CI → Low uncertainty, reliable estimate
+- Wide CI → High uncertainty, more data needed
+- No overlap with threshold → Strong evidence
+
+**Probabilistic Comparisons**:
+- P(A > B) > 0.95 → Strong evidence that A is superior
+- P(A > B) < 0.05 → Strong evidence that B is superior  
+- 0.05 < P(A > B) < 0.95 → Inconclusive difference
+- P(A > B) ≈ 0.5 → Equivalent algorithms
+
+**Usage Example in Results**:
+
+```json
+{
+  "bayesian": {
+    "accuracy_posterior": {
+      "mean": 0.8992,
+      "median": 0.8995,
+      "ci_lower": 0.8798,
+      "ci_upper": 0.9171,
+      "std": 0.0095
+    },
+    "balanced_accuracy_posterior": {
+      "mean": 0.8985,
+      "median": 0.8986,
+      "ci_lower": 0.8791,
+      "ci_upper": 0.9165,
+      "std": 0.0095
+    },
+    "prob_ba_above_90": 0.42,
+    "prob_ba_above_85": 0.89
+  }
+}
+```
+
+**Significance for Imbalanced Datasets**:
+
+The CICIoT2023 dataset has significant imbalance (97.7% malicious vs 2.3% benign). The Bayesian BA approach:
+
+1. **Detects Bias**: Identifies when high accuracy results from majority class bias
+2. **Penalizes Appropriately**: Low BA posterior even with high accuracy if one class is ignored
+3. **Provides Uncertainty**: Quantifies confidence in estimates considering imbalance
+
+**Implementation Validation**:
+
+✅ Posterior distributions calculated correctly
+✅ Credibility intervals respect [0,1]
+✅ Monte Carlo convolution validated with 50k-100k samples
+✅ Probabilistic comparisons functioning
+✅ Automatic integration with experimental pipeline
+
 ### 3.6 Computational Efficiency for Large-Scale IoT Datasets
 
 #### 3.6.1 SVM Optimization for Large-Scale Data
@@ -839,6 +1032,12 @@ Consolidated Analysis:
 5. **ROC curves**: Threshold-independent performance comparison
 6. **Anomaly Detection Analysis**: Specialized metrics for unsupervised algorithms
 
+**Bayesian Analysis (Brodersen et al., 2010)**:
+1. **BA Posterior Distributions**: Posterior densities via KDE for each algorithm with marked means and 95% CI
+2. **Credibility Intervals**: Horizontal bars with 95% Bayesian credibility intervals and P(BA > 0.90) probabilities
+3. **Probabilistic Comparison Matrix**: Heatmap with P(Algorithm_i > Algorithm_j) for all combinations
+4. **Bayesian Statistical Tables**: Complete metrics including posterior means, medians, 95% CI, and threshold probabilities
+
 **Resource and Efficiency Analysis**:
 1. **Memory usage patterns** over time with peak detection
 2. **Training time scaling** with algorithm complexity analysis
@@ -867,21 +1066,23 @@ Consolidated Analysis:
 
 1. **Comprehensive Baseline**: Systematic comparison of 10 ML algorithms for IoT anomaly detection using CICIoT2023
 2. **SVM Scalability Solutions**: Implementation of LinearSVC, SGDClassifier, and SGDOneClassSVM as practical alternatives to kernel-based methods for large-scale data
-3. **Methodological Framework**: Advanced modular pipeline with individual algorithm analysis and cross-algorithm comparison
-4. **Statistical Rigor**: Multi-run experiments with comprehensive statistical validation and stability analysis
-5. **Reproducible Research**: Complete DVC pipeline with timestamp-based result organization for perfect reproducibility
-6. **Algorithm Classification**: Clear distinction between supervised classification and true anomaly detection approaches
-7. **Large-Scale Deployment Guidelines**: Practical recommendations for algorithm selection on large IoT datasets
+3. **Rigorous Bayesian Evaluation**: Complete implementation of Brodersen et al. (2010) approach for Balanced Accuracy posterior distributions with credibility intervals and probabilistic comparisons P(A > B)
+4. **Methodological Framework**: Advanced modular pipeline with individual algorithm analysis and cross-algorithm comparison
+5. **Statistical Rigor**: Multi-run experiments with comprehensive statistical validation (both frequentist and Bayesian) and stability analysis
+6. **Reproducible Research**: Complete DVC pipeline with timestamp-based result organization for perfect reproducibility
+7. **Algorithm Classification**: Clear distinction between supervised classification and true anomaly detection approaches
+8. **Large-Scale Deployment Guidelines**: Practical recommendations for algorithm selection on large IoT datasets
 
 ### 5.2 Technical Contributions
 
 1. **Modular Pipeline Architecture**: Independent DVC stages for each algorithm enabling parallel execution and selective re-runs
 2. **SVM Scalability Suite**: Implementation of LinearSVC, SGDClassifier, and SGDOneClassSVM as practical alternatives to kernel-based methods
-3. **Dynamic Configuration System**: Single-point control (`TEST_MODE`) for switching between validation and full experiments
-4. **Advanced Result Organization**: Hierarchical timestamp-based structure preventing data loss and enabling historical analysis
-5. **Individual Algorithm Analysis**: Comprehensive per-algorithm reporting with performance evolution, parameter impact, and efficiency analysis
-6. **Cross-Algorithm Comparison**: Statistical significance testing with specialized anomaly detection metrics
-7. **Resource Optimization**: Computational ordering from least to most complex algorithms for faster feedback
+3. **Bayesian Analysis Module**: `BayesianAccuracyEvaluator` class and complete visualization suite implementing Brodersen et al. (2010) with posterior calculation via Beta distribution convolution
+4. **Dynamic Configuration System**: Single-point control (`TEST_MODE`) for switching between validation and full experiments
+5. **Advanced Result Organization**: Hierarchical timestamp-based structure preventing data loss and enabling historical analysis
+6. **Individual Algorithm Analysis**: Comprehensive per-algorithm reporting with performance evolution, parameter impact, and efficiency analysis
+7. **Cross-Algorithm Comparison**: Statistical significance testing (both frequentist and Bayesian) with specialized anomaly detection metrics
+8. **Resource Optimization**: Computational ordering from least to most complex algorithms for faster feedback
 
 ### 5.3 Practical Contributions
 
