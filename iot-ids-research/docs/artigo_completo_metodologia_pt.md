@@ -2,7 +2,7 @@
 
 ## Resumo
 
-As redes de Internet das Coisas (IoT) enfrentam ameaças de segurança crescentes devido à sua natureza heterogênea e restrições de recursos. Este estudo apresenta uma comparação abrangente de algoritmos de machine learning para detecção de anomalias em ambientes IoT usando o dataset CICIoT2023. Implementamos um pipeline reproduzível usando Data Version Control (DVC) para avaliar sete algoritmos diferentes em múltiplas configurações. Nossa metodologia emprega amostragem estratificada, pré-processamento padronizado e classificação binária para distinguir entre tráfego de rede benigno e malicioso. O framework experimental inclui validação estatística rigorosa através de múltiplas execuções e métricas de desempenho abrangentes incluindo acurácia, precisão, recall, F1-score e ROC AUC. Esta pesquisa contribui para o entendimento do desempenho de algoritmos em detecção de intrusão IoT e fornece uma baseline para estudos comparativos futuros.
+As redes de Internet das Coisas (IoT) enfrentam ameaças de segurança crescentes devido à sua natureza heterogênea e restrições de recursos. Este estudo apresenta uma comparação abrangente de algoritmos de machine learning para detecção de anomalias em ambientes IoT usando o dataset CICIoT2023. Implementamos um pipeline reproduzível usando Data Version Control (DVC) para avaliar sete algoritmos diferentes em múltiplas configurações. Nossa metodologia emprega amostragem estratificada, pré-processamento padronizado e classificação binária para distinguir entre tráfego de rede benigno e malicioso. O framework experimental inclui validação estatística rigorosa através de múltiplas execuções e métricas de desempenho abrangentes incluindo acurácia, acurácia balanceada, precisão, recall, F1-score e ROC AUC. Esta pesquisa contribui para o entendimento do desempenho de algoritmos em detecção de intrusão IoT e fornece uma baseline para estudos comparativos futuros.
 
 **Palavras-chave:** Segurança IoT, Detecção de Anomalias, Machine Learning, Detecção de Intrusão, Classificação Binária
 
@@ -42,7 +42,9 @@ Redes IoT apresentam desafios de segurança únicos incluindo:
 
 ### 2.2 Machine Learning para Segurança IoT
 
-Estudos anteriores demonstraram a efetividade de abordagens de machine learning para detecção de intrusão IoT. No entanto, a maioria dos estudos foca em algoritmos específicos ou datasets limitados, carecendo de análise comparativa abrangente sob condições padronizadas.
+Estudos anteriores demonstraram a efetividade de abordagens de machine learning para detecção de intrusão IoT. Benkhelifa et al. (2018) fornecem uma revisão crítica das práticas e desafios em sistemas de detecção de intrusão para IoT, destacando a necessidade de abordagens mais robustas e adaptativas. Cook et al. (2020) apresentam um survey abrangente sobre detecção de anomalias em dados de séries temporais IoT, identificando técnicas baseadas em aprendizado de máquina como promissoras para identificar padrões anômalos em ambientes IoT heterogêneos.
+
+No entanto, a maioria dos estudos foca em algoritmos específicos ou datasets limitados, carecendo de análise comparativa abrangente sob condições padronizadas.
 
 ### 2.3 Lacuna de Pesquisa
 
@@ -61,7 +63,7 @@ Este estudo aborda a lacuna fornecendo:
 
 #### 3.1.1 Descrição do Dataset CICIoT2023
 
-**Fonte**: Canadian Institute for Cybersecurity  
+**Fonte**: Canadian Institute for Cybersecurity (Neto et al., 2023)  
 **Tamanho Original**: ~23 milhões de registros de tráfego de rede  
 **Características**: 46 features de fluxo de rede  
 **Tipos de Ataque**: DDoS, Mirai, Reconhecimento, Spoofing, Web-based, Força Bruta, Man-in-the-Middle  
@@ -69,7 +71,7 @@ Este estudo aborda a lacuna fornecendo:
 
 #### 3.1.2 Estratégia de Amostragem
 
-Devido a restrições computacionais, implementamos uma **abordagem de amostragem estratificada**:
+Devido a restrições computacionais, implementamos uma **abordagem de amostragem estratificada** (Cochran, 1977):
 
 ```
 Amostra Total: 4.501.906 registros (19,5% do dataset original)
@@ -114,14 +116,14 @@ Selecionamos dez algoritmos representando diferentes paradigmas de aprendizado, 
 
 **Algoritmos de Aprendizado Supervisionado** (ordenados por complexidade):
 1. **Regressão Logística**: Classificador probabilístico linear (O(n))
-2. **Random Forest**: Método ensemble com bagging (O(n log n))
+2. **Random Forest** (Breiman, 2001): Método ensemble com bagging (O(n log n))
 3. **Gradient Boosting**: Método ensemble com boosting (O(n log n))
 4. **LinearSVC**: Classificador de Vetores de Suporte Linear com formulação primal (O(n), otimizado para grandes datasets)
 5. **SGDClassifier**: Stochastic Gradient Descent com perda hinge (O(n), aproximação escalável de SVM)
 6. **Multi-Layer Perceptron (MLP)**: Classificador de rede neural (O(n³))
 
 **Algoritmos Não-Supervisionados/Semi-Supervisionados** (detecção de anomalias):
-7. **Isolation Forest**: Detecção de anomalias baseada em árvores (O(n log n))
+7. **Isolation Forest** (Liu et al., 2008, 2012): Detecção de anomalias baseada em árvores (O(n log n))
 8. **Elliptic Envelope**: Detecção de anomalias baseada em Gaussiana (O(n²))
 9. **Local Outlier Factor (LOF)**: Detecção de anomalias baseada em densidade (O(n²))
 10. **SGDOneClassSVM**: One-Class SVM via stochastic gradient descent (O(n), otimizado para larga escala)
@@ -412,7 +414,7 @@ experiments/results/
 
 3. **Padrões de Benchmarking**:
    - **MLPerf** (Mattson et al. 2020): Regra explícita "Um treinamento de modelo por vez"
-   - **SPEC CPU**: Separa speed runs (sequencial) de rate runs (paralelo)
+   - **SPEC CPU** (SPEC, 2017): Separa speed runs (sequencial) de rate runs (paralelo)
    - **Edge Computing**: Papadopoulos et al. (2019) recomendam execução sequencial para benchmarks IoT
 
 4. **Reprodutibilidade**: Execução sequencial elimina dependência de:
@@ -454,12 +456,12 @@ A janela de execução de 30 horas é aceitável para pesquisa de nível de mest
    Recall = TP / (TP + FN)
    ```
 
-4. **F1-Score**: Média harmônica de precisão e recall (métrica principal de ranking)
+4. **F1-Score**: Média harmônica de precisão e recall (métrica principal de ranking; Powers, 2011)
    ```
    F1-Score = 2 × (Precisão × Recall) / (Precisão + Recall)
    ```
 
-5. **ROC AUC**: Área Sob a Curva Receiver Operating Characteristic
+5. **ROC AUC**: Área Sob a Curva Receiver Operating Characteristic (Davis & Goadrich, 2006)
    ```
    AUC = ∫₀¹ TPR(FPR⁻¹(x))dx
    ```
@@ -508,7 +510,7 @@ Para cada algoritmo, geramos análise individual abrangente:
 **Estatísticas Inferenciais**:
 - ANOVA para comparação de desempenho de algoritmos
 - Testes post-hoc com correção de Bonferroni
-- Cálculo de tamanho de efeito (d de Cohen)
+- Cálculo de tamanho de efeito (d de Cohen; Cohen, 1988)
 
 #### 3.5.4 Abordagem Bayesiana para Balanced Accuracy (Brodersen et al., 2010)
 
@@ -1051,7 +1053,7 @@ Análise Consolidada:
 - H₀: Não há diferença significativa entre desempenhos de algoritmos
 - H₁: Existem diferenças significativas de desempenho
 - α = 0,05 nível de significância
-- Correção de comparação múltipla (Bonferroni)
+- Correção de comparação múltipla (Bonferroni; Demšar, 2006)
 
 **Análise de Tamanho de Efeito**:
 - d de Cohen para significância prática

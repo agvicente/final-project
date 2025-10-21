@@ -2,7 +2,7 @@
 
 ## Abstract
 
-Internet of Things (IoT) networks face increasing security threats due to their heterogeneous nature and resource constraints. This study presents a comprehensive comparison of machine learning algorithms for anomaly detection in IoT environments using the CICIoT2023 dataset. We implemented a reproducible pipeline using Data Version Control (DVC) to evaluate seven different algorithms across multiple configurations. Our methodology employs stratified sampling, standardized preprocessing, and binary classification to distinguish between benign and malicious network traffic. The experimental framework includes rigorous statistical validation through multiple runs and comprehensive performance metrics including accuracy, precision, recall, F1-score, and ROC AUC. This research contributes to the understanding of algorithm performance in IoT intrusion detection and provides a baseline for future comparative studies.
+Internet of Things (IoT) networks face increasing security threats due to their heterogeneous nature and resource constraints. This study presents a comprehensive comparison of machine learning algorithms for anomaly detection in IoT environments using the CICIoT2023 dataset. We implemented a reproducible pipeline using Data Version Control (DVC) to evaluate seven different algorithms across multiple configurations. Our methodology employs stratified sampling, standardized preprocessing, and binary classification to distinguish between benign and malicious network traffic. The experimental framework includes rigorous statistical validation through multiple runs and comprehensive performance metrics including accuracy, balanced accuracy,precision, recall, F1-score, and ROC AUC. This research contributes to the understanding of algorithm performance in IoT intrusion detection and provides a baseline for future comparative studies.
 
 **Keywords:** IoT Security, Anomaly Detection, Machine Learning, Intrusion Detection, Binary Classification
 
@@ -42,7 +42,9 @@ IoT networks present unique security challenges including:
 
 ### 2.2 Machine Learning for IoT Security
 
-Previous studies have shown the effectiveness of machine learning approaches for IoT intrusion detection. However, most studies focus on specific algorithms or limited datasets, lacking comprehensive comparative analysis under standardized conditions.
+Previous studies have shown the effectiveness of machine learning approaches for IoT intrusion detection. Benkhelifa et al. (2018) provide a critical review of practices and challenges in intrusion detection systems for IoT, highlighting the need for more robust and adaptive approaches. Cook et al. (2020) present a comprehensive survey on anomaly detection for IoT time-series data, identifying machine learning-based techniques as promising for identifying anomalous patterns in heterogeneous IoT environments.
+
+However, most studies focus on specific algorithms or limited datasets, lacking comprehensive comparative analysis under standardized conditions.
 
 ### 2.3 Research Gap
 
@@ -61,7 +63,7 @@ This study addresses the gap by providing:
 
 #### 3.1.1 CICIoT2023 Dataset Description
 
-**Source**: Canadian Institute for Cybersecurity  
+**Source**: Canadian Institute for Cybersecurity (Neto et al., 2023)  
 **Original Size**: ~23 million network traffic records  
 **Features**: 46 network flow features  
 **Attack Types**: DDoS, Mirai, Recon, Spoofing, Web-based, Brute Force, Man-in-the-Middle  
@@ -69,7 +71,7 @@ This study addresses the gap by providing:
 
 #### 3.1.2 Sampling Strategy
 
-Due to computational constraints, we implemented a **stratified sampling approach**:
+Due to computational constraints, we implemented a **stratified sampling approach** (Cochran, 1977):
 
 ```
 Total Sample: 4,501,906 records (19.5% of original dataset)
@@ -114,14 +116,14 @@ We selected ten algorithms representing different learning paradigms, ordered by
 
 **Supervised Learning Algorithms** (ordered by complexity):
 1. **Logistic Regression**: Linear probabilistic classifier (O(n))
-2. **Random Forest**: Ensemble method with bagging (O(n log n))
+2. **Random Forest** (Breiman, 2001): Ensemble method with bagging (O(n log n))
 3. **Gradient Boosting**: Ensemble method with boosting (O(n log n))
 4. **LinearSVC**: Linear Support Vector Classifier with primal formulation (O(n), optimized for large datasets)
 5. **SGDClassifier**: Stochastic Gradient Descent with hinge loss (O(n), scalable SVM approximation)
 6. **Multi-Layer Perceptron (MLP)**: Neural network classifier (O(n³))
 
 **Unsupervised/Semi-Supervised Algorithms** (anomaly detection):
-7. **Isolation Forest**: Tree-based anomaly detection (O(n log n))
+7. **Isolation Forest** (Liu et al., 2008, 2012): Tree-based anomaly detection (O(n log n))
 8. **Elliptic Envelope**: Gaussian-based anomaly detection (O(n²))
 9. **Local Outlier Factor (LOF)**: Density-based anomaly detection (O(n²))
 10. **SGDOneClassSVM**: One-Class SVM via stochastic gradient descent (O(n), optimized for large-scale)
@@ -412,7 +414,7 @@ experiments/results/
 
 3. **Benchmarking Standards**:
    - **MLPerf** (Mattson et al. 2020): Explicit rule "One model training at a time"
-   - **SPEC CPU**: Separates speed runs (sequential) from rate runs (parallel)
+   - **SPEC CPU** (SPEC, 2017): Separates speed runs (sequential) from rate runs (parallel)
    - **Edge Computing**: Papadopoulos et al. (2019) recommend sequential execution for IoT benchmarks
 
 4. **Reproducibility**: Sequential execution eliminates dependency on:
@@ -454,12 +456,12 @@ The 30-hour execution window is acceptable for master's level research and align
    Recall = TP / (TP + FN)
    ```
 
-4. **F1-Score**: Harmonic mean of precision and recall (primary ranking metric)
+4. **F1-Score**: Harmonic mean of precision and recall (primary ranking metric; Powers, 2011)
    ```
    F1-Score = 2 × (Precision × Recall) / (Precision + Recall)
    ```
 
-5. **ROC AUC**: Area Under the Receiver Operating Characteristic curve
+5. **ROC AUC**: Area Under the Receiver Operating Characteristic curve (Davis & Goadrich, 2006)
    ```
    AUC = ∫₀¹ TPR(FPR⁻¹(x))dx
    ```
@@ -508,7 +510,7 @@ For each algorithm, we generate comprehensive individual analysis:
 **Inferential Statistics**:
 - ANOVA for comparing algorithm performance
 - Post-hoc tests with Bonferroni correction
-- Effect size calculation (Cohen's d)
+- Effect size calculation (Cohen's d; Cohen, 1988)
 
 #### 3.5.4 Bayesian Approach for Balanced Accuracy (Brodersen et al., 2010)
 
@@ -1051,7 +1053,7 @@ Consolidated Analysis:
 - H₀: No significant difference between algorithm performances
 - H₁: Significant performance differences exist
 - α = 0.05 significance level
-- Multiple comparison correction (Bonferroni)
+- Multiple comparison correction (Bonferroni; Demšar, 2006)
 
 **Effect Size Analysis**:
 - Cohen's d for practical significance
