@@ -1,0 +1,57 @@
+{
+  "summary": {
+    "total_algorithms": 9,
+    "total_experiments": 270,
+    "total_execution_time": 97682.83895349503,
+    "accuracy_cv": 0.0049190909743703475,
+    "f1_cv": 0.002522801286853831
+  },
+  "best_results": {
+    "best_accuracy": {
+      "algorithm": "GradientBoostingClassifier",
+      "value": 0.993099595505019,
+      "stability": 0.0010193451224037586
+    },
+    "best_f1": {
+      "algorithm": "GradientBoostingClassifier",
+      "value": 0.996466298451894,
+      "stability": 0.0005215279508410386
+    },
+    "fastest": {
+      "algorithm": "SGDOneClassSVM",
+      "time": 35.85937190055847,
+      "efficiency": 0.02762100228415837
+    }
+  },
+  "statistics": {
+    "mean_accuracy": 0.9859368332305374,
+    "std_accuracy": 0.004849912977643619,
+    "mean_f1": 0.9927816647048819,
+    "std_f1": 0.0025045908612823646,
+    "mean_execution_time": 10853.648772610559,
+    "total_experiments_per_minute": 0.165842845821798
+  },
+  "rankings": {
+    "by_f1": [
+      "GradientBoostingClassifier",
+      "RandomForest",
+      "LogisticRegression",
+      "LinearSVC",
+      "SGDClassifier"
+    ],
+    "by_speed": [
+      "SGDOneClassSVM",
+      "IsolationForest",
+      "SGDClassifier",
+      "LogisticRegression",
+      "EllipticEnvelope"
+    ],
+    "by_efficiency": [
+      "SGDOneClassSVM",
+      "IsolationForest",
+      "SGDClassifier",
+      "LogisticRegression",
+      "EllipticEnvelope"
+    ]
+  }
+}

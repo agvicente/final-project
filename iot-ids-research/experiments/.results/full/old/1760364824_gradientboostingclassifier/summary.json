@@ -1,0 +1,16 @@
+{
+  "algorithm": "GradientBoostingClassifier",
+  "total_experiments": 30,
+  "configurations": 10,
+  "runs_per_config": 3,
+  "execution_time": 62848.244401454926,
+  "best_accuracy": 0.993099595505019,
+  "mean_accuracy": 0.9920802503826153,
+  "best_f1": 0.996466298451894,
+  "mean_f1": 0.995944770501053,
+  "test_mode": false,
+  "results_path": "experiments/results/full/1760364824_gradientboostingclassifier",
+  "timestamp": 1760448004.9213674,
+  "best_balanced_accuracy": 0.9305704237286548,
+  "mean_balanced_accuracy": 0.916944361165408
+}

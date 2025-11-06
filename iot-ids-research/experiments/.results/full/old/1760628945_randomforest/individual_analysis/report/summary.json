@@ -1,0 +1,26 @@
+{
+  "algorithm": "RandomForest",
+  "mode": "COMPLETO",
+  "executions": 60,
+  "best_performance": {
+    "f1_score": 0.9963833501018338,
+    "accuracy": 0.9929374421079054,
+    "precision": 0.9966401259753648,
+    "recall": 0.9961267065064735,
+    "training_time": 1853.5617686748506
+  },
+  "average_performance": {
+    "f1_score": 0.9960586332605973,
+    "accuracy": 0.9923016934293812,
+    "precision": 0.9961519652343827,
+    "recall": 0.9959656983432932,
+    "training_time": 685.611987944444
+  },
+  "stability": {
+    "f1_std": 0.0004993398614253367,
+    "accuracy_std": 0.0009790705619375246,
+    "stability_score": 0.0005171790183343234
+  },
+  "efficiency": 0.00427755878332892,
+  "generated_at": "2025-10-17T16:52:12.732856"
+}

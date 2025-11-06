@@ -1,0 +1,16 @@
+{
+  "algorithm": "SGDClassifier",
+  "total_experiments": 100,
+  "configurations": 20,
+  "runs_per_config": 5,
+  "execution_time": 2904.3478469848633,
+  "best_accuracy": 0.9871410134809447,
+  "mean_accuracy": 0.9860981783287535,
+  "best_balanced_accuracy": 0.891376052080192,
+  "mean_balanced_accuracy": 0.831731083028067,
+  "best_f1": 0.9934229586347385,
+  "mean_f1": 0.9928883960830197,
+  "test_mode": false,
+  "results_path": "experiments/results/full/1760998223_sgdclassifier",
+  "timestamp": 1761175400.1715848
+}

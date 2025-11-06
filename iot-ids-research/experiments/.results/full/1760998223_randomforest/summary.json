@@ -1,0 +1,16 @@
+{
+  "algorithm": "RandomForest",
+  "total_experiments": 60,
+  "configurations": 12,
+  "runs_per_config": 5,
+  "execution_time": 53476.13809347153,
+  "best_accuracy": 0.9929374421079054,
+  "mean_accuracy": 0.9923016934293812,
+  "best_balanced_accuracy": 0.9286325925164525,
+  "mean_balanced_accuracy": 0.9175188425769508,
+  "best_f1": 0.9963833501018338,
+  "mean_f1": 0.9960586332605973,
+  "test_mode": false,
+  "results_path": "experiments/results/full/1760998223_randomforest",
+  "timestamp": 1761054955.4506454
+}

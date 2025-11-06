@@ -1,0 +1,26 @@
+{
+  "algorithm": "LocalOutlierFactor",
+  "mode": "COMPLETO",
+  "executions": 24,
+  "best_performance": {
+    "f1_score": 0.9909383742064867,
+    "accuracy": 0.9823752585013916,
+    "precision": 0.9951885359844749,
+    "recall": 0.9867243604687527,
+    "training_time": 142.0595858891805
+  },
+  "average_performance": {
+    "f1_score": 0.9900369644804701,
+    "accuracy": 0.9806726478316982,
+    "precision": 0.9968237679990142,
+    "recall": 0.9833460320348437,
+    "training_time": 140.01816402872404
+  },
+  "stability": {
+    "f1_std": 0.0007048115160430613,
+    "accuracy_std": 0.0013399594340625502,
+    "stability_score": 0.0007376107917548794
+  },
+  "efficiency": 0.007071461152405527,
+  "generated_at": "2025-10-20T02:12:32.860479"
+}
