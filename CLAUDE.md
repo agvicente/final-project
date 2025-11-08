@@ -279,6 +279,42 @@ experiments/results/<mode>/consolidation/<timestamp>_consolidation/final_report.
 - Compare experiments, view metrics, and explore parameters interactively
 - See the MLflow Experiment Tracking section for details
 
+## Research Acceleration System (NEW!)
+
+**Sistema configurado em 2025-11-08 para acelerar desenvolvimento do mestrado.**
+
+### Quick Commands
+- `/resume` - Carrega contexto atual e próximos passos
+- `/start-sprint` - Inicia nova semana de trabalho
+- `/finalize-week` - Gera relatório para orientador
+- `/paper-summary [nome]` - Resume paper do Zotero
+
+### Skills Automáticas (9 total)
+- `iot-ids-research-context` - Contexto sempre ativo
+- `evolutionary-clustering-guide` - Ensina clustering evolutivo
+- `kafka-streaming-iot` - Guia de streaming
+- `paper-reading-accelerator` - Resume papers rapidamente
+- `experiment-design-validator` - Valida rigor científico
+- `scientific-paper-writer` - Escreve papers incrementalmente
+- `dissertation-writer` - Escreve dissertação (PT/EN)
+- `overleaf-formatter-artigo` - Mantém formatação artigo1
+- `overleaf-formatter-dissertation` - Mantém formatação dissertação
+
+### Hooks de Automação
+- **Auto-save a cada 10min** - Proteção contra travamentos
+- **Session start/end** - Carrega e salva contexto automaticamente
+
+### Documentação Evolutiva
+- **docs/SESSION_CONTEXT.md** - "Cérebro" do projeto (SEMPRE LEIA ESTE ARQUIVO)
+- **docs/weekly-reports/current-week.md** - Relatório semanal vivo
+- **docs/progress/** - Logs de cada sessão
+
+### Guias
+- **QUICK_START_GUIDE.md** - Como usar o sistema
+- **ZOTERO_SETUP.md** - Configurar integração Zotero
+
+---
+
 ## Notes for Development
 
 - Always check `TEST_MODE` setting before running full experiments (can take 60+ hours)
@@ -287,3 +323,4 @@ experiments/results/<mode>/consolidation/<timestamp>_consolidation/final_report.
 - MLflow tracks all experiments automatically when running via `algorithm_comparison.py`
 - Resource usage is monitored and logged for every experiment run
 - Binary classification is used for Phase 1; multi-class support exists for future phases
+- **NEW:** Use `/resume` para carregar contexto completo em qualquer sessão

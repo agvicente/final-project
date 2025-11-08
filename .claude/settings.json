@@ -1,0 +1,87 @@
+{
+	"includeCoAuthoredBy": true,
+	"env": {
+		"BASH_DEFAULT_TIMEOUT_MS": "60000",
+		"BASH_MAX_TIMEOUT_MS": "120000",
+		"BASH_MAX_OUTPUT_LENGTH": "500000",
+		"CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
+		"ENABLE_BACKGROUND_TASKS": "1",
+		"MAX_THINKING_TOKENS": "64000",
+		"MCP_TIMEOUT": "60000",
+		"MCP_TOOL_TIMEOUT": "120000",
+		"MAX_MCP_OUTPUT_TOKENS": "50000",
+		"CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "1",
+		"CLAUDE_CODE_ENABLE_UNIFIED_READ_TOOL": "true",
+		"USE_BUILTIN_RIPGREP": "0",
+		"PROJECT_ROOT": "/Users/augusto/mestrado/final-project",
+		"RESEARCH_PHASE": "2",
+		"ZOTERO_BIB_PATH": "/Users/augusto/mestrado/references.bib"
+	},
+	"enabledMcpjsonServers": [
+		"context7",
+		"sequential-thinking"
+	],
+	"permissions": {
+		"allow": [
+			"Edit:*",
+			"Write:*",
+			"MultiEdit:*",
+			"NotebookEdit:*",
+			"Bash:*",
+			"WebSearch:*",
+			"WebFetch:*",
+			"Bash(grep:*)",
+			"Bash(diff:*)",
+			"Bash(echo:*)",
+			"Bash(tree:*)",
+			"Bash(python:*)",
+			"Bash(python3:*)",
+			"Bash(pip:*)",
+			"Bash(pip3:*)",
+			"Bash(dvc:*)",
+			"Bash(docker:*)",
+			"Bash(docker-compose:*)",
+			"Bash(kafka-*)",
+			"Bash(mlflow:*)",
+			"Bash(jupyter:*)",
+			"Bash(curl:*)",
+			"Bash(ls:*)",
+			"Bash(mkdir:*)",
+			"Bash(cp:*)",
+			"Bash(mv:*)",
+			"Bash(rm:*)",
+			"Bash(find:*)",
+			"Bash(wait)",
+			"Bash(git:*)",
+			"Bash(gh:*)",
+			"Bash(touch:*)",
+			"Bash(chmod:*)",
+			"Bash(sed:*)",
+			"Bash(awk:*)",
+			"Bash(head:*)",
+			"Bash(cat:*)",
+			"Bash(tail:*)",
+			"Bash(pdflatex:*)",
+			"Bash(latexmk:*)",
+			"Bash(bibtex:*)",
+			"mcp__sequential-thinking__sequentialthinking",
+			"mcp__context7"
+		],
+		"deny": []
+	},
+	"hooks": {
+		"SessionStart": {
+			"command": ".claude/hooks/session-start.sh",
+			"enabled": true
+		},
+		"SessionEnd": {
+			"command": ".claude/hooks/session-end.sh",
+			"enabled": true
+		},
+		"BackgroundTask": {
+			"command": ".claude/hooks/auto-save.sh",
+			"enabled": true,
+			"interval": 600000
+		}
+	}
+}
