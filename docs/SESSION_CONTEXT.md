@@ -54,6 +54,12 @@
 
 **✅ SISTEMA COMPLETO E OPERACIONAL!**
 
+**NEW (2025-11-08 16:59):**
+- ✅ Added `academic-paper-reviewer` skill (Senior PhD reviewer)
+- ✅ Added `/review-paper` command for comprehensive reviews
+- ✅ 5-pass review process: Structure, Technical, Writing, Figures, Final
+- ✅ Ready to review artigo1 before publication
+
 **Last Session (2025-11-08):**
 - ✅ Defined complete strategy with brainstorming skill
 - ✅ Created folder structure (docs/, .claude/, src/)
