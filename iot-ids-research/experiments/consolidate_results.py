@@ -460,12 +460,12 @@ def generate_comparison_plots(df, plots_dir):
     plt.savefig(plots_dir / 'accuracy_comparison.png', dpi=300, bbox_inches='tight')
     plt.close()
     
-    # 2. Balanced Accuracy Comparison (se disponível)
+    # 2. Balanced Accuracy Comparison (if available)
     if 'best_balanced_accuracy' in df.columns:
         plt.figure(figsize=(12, 6))
         sns.barplot(data=df, x='algorithm', y='best_balanced_accuracy')
-        plt.title('Comparação de Balanced Accuracy entre Algoritmos', fontsize=14, fontweight='bold')
-        plt.xlabel('Algoritmo', fontsize=12)
+        plt.title('Balanced Accuracy Comparison Across Algorithms', fontsize=14, fontweight='bold')
+        plt.xlabel('Algorithm', fontsize=12)
         plt.ylabel('Best Balanced Accuracy', fontsize=12)
         plt.xticks(rotation=45, ha='right')
         plt.grid(axis='y', alpha=0.3)
