@@ -1,5 +1,5 @@
 # SESSION CONTEXT - IoT IDS Research Project
-**Last Updated:** 2025-12-04 (Sprint start: Fase 2, Semana 1)
+**Last Updated:** 2025-12-09 (Session: K-means + DBSCAN fundamentals complete)
 
 ---
 
@@ -46,10 +46,10 @@
 **Started:** 2025-12-04
 
 **Tasks This Week:**
-- [ ] Revisar K-means: algoritmo, limitações, quando usar
-- [ ] Revisar DBSCAN: density-based, parâmetros eps/min_samples
-- [ ] Entender clustering particional vs hierárquico vs density-based
-- [ ] Ler paper Maia et al. (2020) - Mixture of Typicalities
+- [x] Revisar K-means: algoritmo, limitações, quando usar ✅
+- [x] Revisar DBSCAN: density-based, parâmetros eps/min_samples ✅
+- [x] Entender clustering particional vs density-based ✅
+- [ ] Ler paper Maia et al. (2020) - Mixture of Typicalities ← PRÓXIMO
 - [ ] Extrair pseudocódigo e parâmetros principais
 - [ ] Entender como lida com concept drift
 - [ ] Criar resumo estruturado dos conceitos

@@ -22,10 +22,10 @@
 ## 📅 Sprint Plan
 
 ### Dias 1-2 (~4-6h): Fundamentos de Clustering
-- [ ] Revisar K-means: algoritmo, limitações, quando usar
-- [ ] Revisar DBSCAN: density-based, parâmetros eps/min_samples
-- [ ] Entender clustering particional vs hierárquico vs density-based
-- [ ] Relacionar com contexto IoT IDS
+- [x] Revisar K-means: algoritmo, limitações, quando usar ✅
+- [x] Revisar DBSCAN: density-based, parâmetros eps/min_samples ✅
+- [x] Entender clustering particional vs density-based ✅
+- [x] Relacionar com contexto IoT IDS ✅
 
 ### Dias 3-4 (~4-6h): Paper Maia et al. (2020)
 - [ ] Ler "Mixture of Typicalities" paper completo
@@ -57,39 +57,79 @@
 
 ## 💻 Sessions Log
 
-### Session 2025-12-04
-**Duration:** Starting
-**Focus:** Sprint planning e início dos estudos
+### Session 2025-12-09
+**Duration:** ~2-3 horas
+**Focus:** Sprint planning + Fundamentos de Clustering
 
 **Progress:**
 - ✅ Sprint iniciada oficialmente
 - ✅ SESSION_CONTEXT.md atualizado
 - ✅ Plano semanal definido e aprovado
-- 🔄 Iniciando estudo de fundamentos de clustering
+- ✅ K-means: conceito, implementação, limitações com classes desbalanceadas
+- ✅ Silhouette Score e Método do Cotovelo aprendidos
+- ✅ Descoberta: CICIoT2023 tem ~8-10 clusters naturais
+- ✅ DBSCAN: conceito, parâmetros eps/min_samples, comportamento não-linear
+- ✅ Comparação K-means vs DBSCAN para IDS
+
+**Experimentos Realizados:**
+- K-means com K=2 em 500 amostras (accuracy 90%, mas problemas com classe minoritária)
+- Silhouette Score para K=2 até K=10 (melhor em K=10)
+- DBSCAN com eps variando de 0.3 a 7.0 (entendido comportamento de pico)
+
+**Decisões:**
+- K-means/DBSCAN servem para aprendizado, não precisam de experimentos publicáveis
+- Fase 1 já tem baselines não-supervisionados (Isolation Forest, LOF)
+- Foco principal será clustering evolutivo (contribuição)
 
 **Notes:**
-- Usando skill `evolutionary-clustering-guide` para aprendizado iterativo
-- Foco em entender "por que clustering para IDS" antes de "como implementar"
+- Skill `evolutionary-clustering-guide` funcionou bem para aprendizado iterativo
+- Abordagem "prática primeiro, teoria depois" eficaz
+- Próximo: Leitura do paper Maia et al. (2020)
 
 ---
 
 ## 📈 Learning Progress
 
 ### Clustering Fundamentals
-- [ ] K-means understood
-- [ ] DBSCAN understood
-- [ ] Hierarchical clustering understood
+- [x] K-means understood ✅
+- [x] DBSCAN understood ✅
+- [ ] Hierarchical clustering (não prioritário)
 - [ ] Concept drift understood
 - [ ] Mixture of Typicalities understood
 
 ### Key Concepts Captured
-*(To be filled as learning progresses)*
+
+**K-means:**
+- Algoritmo iterativo: assign → update centroids → repeat
+- Assume clusters esféricos e balanceados
+- Silhouette Score: mede qualidade dos clusters (-1 a +1)
+- Método do Cotovelo: encontrar K ótimo via inertia
+- Limitação: não lida bem com classes desbalanceadas (16 vs 484 no CICIoT2023)
+- CICIoT2023 tem ~8-10 clusters naturais (provavelmente tipos de ataque)
+
+**DBSCAN:**
+- Density-based: não precisa definir K
+- Parâmetros: eps (raio vizinhança), min_samples (mínimo para cluster)
+- Detecta outliers automaticamente (label=-1)
+- Comportamento não-linear: existe "pico" de clusters em eps intermediário
+- Alta dimensionalidade requer eps maior que intuitivo
+
+**Para IDS:**
+- K-means/DBSCAN são estáticos - não adaptam a concept drift
+- Motivação clara para clustering evolutivo
 
 ---
 
 ## 🧠 Insights & Decisions
 
-*(To be filled during the week)*
+**Decisão 001:** K-means/DBSCAN são para aprendizado, não publicação
+- Fase 1 já tem baselines não-supervisionados rigorosos
+- Foco deve ser no clustering evolutivo (contribuição)
+- Experimentos exploratórios suficientes para fundamentação teórica
+
+**Insight:** Abordagem "prática primeiro" funciona
+- Experimentar antes de ler papers ajuda a entender as motivações dos autores
+- Descobrir limitações na prática → entender por que soluções foram propostas
 
 ---
 
