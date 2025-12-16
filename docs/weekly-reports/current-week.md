@@ -28,14 +28,14 @@
 - [x] Relacionar com contexto IoT IDS ✅
 
 ### Dias 3-4 (~4-6h): Paper Maia et al. (2020)
-- [ ] Ler "Mixture of Typicalities" paper completo
-- [ ] Extrair: algoritmo, pseudocódigo, parâmetros principais
-- [ ] Entender: como lida com concept drift
-- [ ] Identificar: adaptações necessárias para IoT IDS
+- [x] Ler "Mixture of Typicalities" paper completo ✅
+- [x] Extrair: algoritmo, pseudocódigo, parâmetros principais ✅
+- [x] Entender: como lida com concept drift ✅
+- [x] Identificar: adaptações necessárias para IoT IDS ✅
 
 ### Dias 5-6 (~4-6h): Síntese e Design
-- [ ] Criar resumo estruturado dos conceitos aprendidos
-- [ ] Esboçar design inicial da arquitetura
+- [x] Criar resumo estruturado dos conceitos aprendidos ✅
+- [ ] Esboçar design inicial da arquitetura ← PRÓXIMO
 - [ ] Identificar gaps de conhecimento
 - [ ] Preparar relatório semanal
 
@@ -94,8 +94,15 @@
 - [x] K-means understood ✅
 - [x] DBSCAN understood ✅
 - [ ] Hierarchical clustering (não prioritário)
-- [ ] Concept drift understood
-- [ ] Mixture of Typicalities understood
+- [x] Concept drift understood ✅
+- [x] Mixture of Typicalities understood ✅
+
+### TEDA Framework (Maia et al. 2020)
+- [x] Eccentricidade e Tipicalidade ✅
+- [x] Atualização recursiva (single-pass) ✅
+- [x] Micro-clusters e Macro-clusters ✅
+- [x] Teste de Chebyshev ✅
+- [x] Tratamento de concept drift ✅
 
 ### Key Concepts Captured
 
@@ -117,6 +124,17 @@
 **Para IDS:**
 - K-means/DBSCAN são estáticos - não adaptam a concept drift
 - Motivação clara para clustering evolutivo
+
+**TEDA Framework:**
+- Eccentricidade: mede "estranheza" de um ponto (0=típico, 1=outlier)
+- Tipicalidade: 1 - eccentricidade (pertencimento ao cluster)
+- Single-pass: atualização recursiva sem armazenar todos os dados
+- Cold start: ~100-200 pontos para estabilizar
+- Micro-clusters: múltiplos centros locais com tipicalidade própria
+- Mixture of Typicalities: atribuir ao cluster com maior tipicalidade
+- Chebyshev test: threshold adaptativo para aceitar/rejeitar pontos
+- Clusters maduros são mais "exigentes" (threshold menor)
+- Concept drift: novos padrões → novos clusters automaticamente
 
 ---
 
