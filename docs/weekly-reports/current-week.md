@@ -35,8 +35,10 @@
 
 ### Dias 5-6 (~4-6h): Síntese e Design
 - [x] Criar resumo estruturado dos conceitos aprendidos ✅
+- [x] Documentar concept drift fundamentals ✅
+- [x] Analisar requisitos PCAP vs CSV ✅
+- [x] Documentar ferramentas de processamento PCAP ✅
 - [ ] Esboçar design inicial da arquitetura ← PRÓXIMO
-- [ ] Identificar gaps de conhecimento
 - [ ] Preparar relatório semanal
 
 ### Dia 7 (~2h): Revisão e Planejamento
@@ -85,6 +87,32 @@
 - Skill `evolutionary-clustering-guide` funcionou bem para aprendizado iterativo
 - Abordagem "prática primeiro, teoria depois" eficaz
 - Próximo: Leitura do paper Maia et al. (2020)
+
+### Session 2025-12-17
+**Duration:** ~2 horas
+**Focus:** Análise PCAP vs CSV + Documentação de requisitos
+
+**Progress:**
+- ✅ Análise crítica: CSVs do CICIoT2023 são SHUFFLED (sem ordem temporal)
+- ✅ Conclusão: Processamento de PCAPs é MANDATÓRIO para streaming válido
+- ✅ Pesquisa de ferramentas: NFStream, DPKT, Scapy, tcpreplay
+- ✅ Documento completo: `pcap-processing-requirements.md` criado
+- ✅ Referências coletadas: 15+ links para ferramentas e tutoriais
+
+**Descoberta Crítica:**
+O paper do CICIoT2023 (linha 1839) confirma explicitamente:
+> "are combined and **shuffled** into a single dataset"
+
+Isso invalida o uso de CSVs para simulação de concept drift natural.
+
+**Decisões:**
+- Abordagem Híbrida recomendada: Pré-processar PCAPs → Parquet → Kafka
+- NFStream como ferramenta principal de extração
+- Subset inicial de ~50GB para validação
+
+**Documentos Criados:**
+- `docs/summaries/concept-drift-fundamentals.md`
+- `docs/summaries/pcap-processing-requirements.md`
 
 ---
 
@@ -149,11 +177,27 @@
 - Experimentar antes de ler papers ajuda a entender as motivações dos autores
 - Descobrir limitações na prática → entender por que soluções foram propostas
 
+**Decisão 002:** Processamento de PCAPs é MANDATÓRIO
+- CSVs do CICIoT2023 são shuffled (confirmado no paper, linha 1839)
+- Sem ordem temporal, concept drift só pode ser simulado artificialmente
+- Para streaming válido com drift natural, precisamos processar os 548GB de PCAPs
+- Abordagem híbrida: PCAPs → Parquet (com timestamp) → Kafka
+
+**Decisão 003:** Arquitetura técnica definida
+- NFStream para extração de features (48+ features, alta performance)
+- Parquet com Snappy para armazenamento intermediário
+- Kafka para streaming
+- Subset inicial de ~50GB para validação
+
+**Recurso disponível:** PCAPs do CICIoT2023
+- Todos os arquivos PCAP (~548GB) disponíveis em máquina remota via SSH
+- Não há bloqueio de acesso aos dados
+
 ---
 
 ## 🚧 Blockers & Challenges
 
-*None yet*
+*None - PCAPs disponíveis via SSH*
 
 ---
 
