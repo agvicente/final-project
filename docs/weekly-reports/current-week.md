@@ -38,8 +38,9 @@
 - [x] Documentar concept drift fundamentals ✅
 - [x] Analisar requisitos PCAP vs CSV ✅
 - [x] Documentar ferramentas de processamento PCAP ✅
-- [ ] Esboçar design inicial da arquitetura ← PRÓXIMO
-- [ ] Preparar relatório semanal
+- [x] Esboçar design inicial da arquitetura ✅
+- [x] Criar plano de leituras obrigatórias (4 áreas, 8 principais, 12+ auxiliares) ✅
+- [ ] Preparar relatório semanal ← PRÓXIMO
 
 ### Dia 7 (~2h): Revisão e Planejamento
 - [ ] Finalizar relatório semanal
@@ -113,6 +114,8 @@ Isso invalida o uso de CSVs para simulação de concept drift natural.
 **Documentos Criados:**
 - `docs/summaries/concept-drift-fundamentals.md`
 - `docs/summaries/pcap-processing-requirements.md`
+- `docs/plans/2025-12-17-architecture-design.md`
+- `docs/reading-plan.md`
 
 ---
 
