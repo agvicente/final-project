@@ -1,22 +1,23 @@
 # SESSION CONTEXT - IoT IDS Research Project
-**Last Updated:** 2025-12-09 (Session: K-means + DBSCAN fundamentals complete)
+**Last Updated:** 2025-12-17 (Session: Architecture design + Reading plan complete)
 
 ---
 
 ## 🎯 CURRENT STATUS
 
-**Phase:** Fase 2 - Evolutionary Clustering
-**Week:** Semana 1 de 10-12 (Teoria - Fundamentos)
-**Current Task:** Estudar fundamentos de clustering e paper Maia et al. (2020)
+**Phase:** Fase 2A - Teoria + Design + Setup
+**Week:** Semana 1 de 24 (~90% complete)
+**Current Task:** Finalizar relatório semanal, iniciar leitura Angelov (2014)
 
 ---
 
 ## 📊 PROJECT OVERVIEW
 
 **Master's Dissertation - UFMG PPGEE**
-*Anomaly-based Intrusion Detection System for IoT Networks using Evolutionary Clustering*
+*Detecção de Intrusão Baseada em Anomalias em Sistemas IoT com Clustering Evolutivo e Arquitetura de Alto Desempenho em Fluxos*
 
-**Timeline:** 5-7 months remaining
+**Advisor:** Frederico Gadelha Guimarães (co-autor do paper Maia et al. 2020)
+**Timeline:** ~6 meses restantes (24 semanas)
 **Weekly Dedication:** 10-20 hours
 **Weekly Meetings:** Every week with advisor (flexible day)
 
@@ -37,116 +38,182 @@
 - `artigo1/` - Paper comparing baseline algorithms
 - `REPOSITORY_ANALYSIS.md` - Complete Phase 1 analysis
 
+### Fase 2A, Semana 1: Teoria + Design (90% COMPLETE)
+- ✅ K-means: algoritmo, limitações, Silhouette Score, Elbow method
+- ✅ DBSCAN: density-based, eps/min_samples, comportamento não-linear
+- ✅ TEDA Framework: eccentricidade, tipicalidade, Chebyshev test
+- ✅ MicroTEDAclus: micro-clusters, mixture of typicalities
+- ✅ Concept drift: 4 tipos (súbito, gradual, incremental, recorrente)
+- ✅ Análise PCAP vs CSV: CSV é shuffled, PCAP obrigatório
+- ✅ Design arquitetura MVP: Kafka 2 tópicos, TEDA apenas
+- ✅ Plano de leituras: 8 principais + 12 auxiliares em 4 áreas
+- ⏳ Finalizar relatório semanal
+
 ---
 
 ## 🔄 IN PROGRESS
 
-### Current Week: Fase 2, Semana 1 (Teoria - Fundamentos)
-**Goal:** Estudar fundamentos de clustering e clustering evolutivo
+### Current Week: Fase 2A, Semana 1 (Teoria - Fundamentos)
+**Goal:** Fundamentação teórica + design de arquitetura
 **Started:** 2025-12-04
 
-**Tasks This Week:**
-- [x] Revisar K-means: algoritmo, limitações, quando usar ✅
-- [x] Revisar DBSCAN: density-based, parâmetros eps/min_samples ✅
-- [x] Entender clustering particional vs density-based ✅
-- [ ] Ler paper Maia et al. (2020) - Mixture of Typicalities ← PRÓXIMO
-- [ ] Extrair pseudocódigo e parâmetros principais
-- [ ] Entender como lida com concept drift
-- [ ] Criar resumo estruturado dos conceitos
-- [ ] Esboçar design inicial da arquitetura
-- [ ] Preparar relatório semanal
+**Completed:**
+- [x] Revisar K-means e DBSCAN ✅
+- [x] Estudar TEDA/MicroTEDAclus ✅
+- [x] Documentar concept drift ✅
+- [x] Analisar PCAP vs CSV (conclusão: PCAP obrigatório) ✅
+- [x] Design arquitetura MVP ✅
+- [x] Criar plano de leituras obrigatórias ✅
 
-**Entregáveis:**
-1. Resumo de Clustering Fundamentals
-2. Resumo do Paper Maia et al. 2020
-3. Design Draft - esboço inicial da arquitetura
-4. Relatório Semanal para orientador
+**Remaining:**
+- [ ] Finalizar relatório semanal
+- [ ] Atualizar SESSION_CONTEXT ✅ (este update)
 
-**Previous Week (Setup Week - COMPLETE):**
-- ✅ Sistema de aceleração completo e operacional
-- ✅ 9 skills + 4 hooks + 4 comandos configurados
-- ✅ Zotero integrado (references.bib: 161KB)
-- ✅ Skill academic-paper-reviewer adicionada
+**Deliverables Created:**
+1. `docs/summaries/clustering-evolutivo-concepts.md` ✅
+2. `docs/summaries/concept-drift-fundamentals.md` ✅
+3. `docs/summaries/pcap-processing-requirements.md` ✅
+4. `docs/plans/2025-12-17-architecture-design.md` ✅
+5. `docs/reading-plan.md` ✅
 
 ---
 
-## 📅 ROADMAP (30% Theory / 60% Practice / 10% Review)
+## 📅 ROADMAP ATUALIZADO (24 semanas)
 
-### Fase 2: Evolutionary Clustering (10-12 weeks, ~120-150h)
-**Goal:** Implement Mixture of Typicalities (Maia et al. 2020)
+### Fase 2A: Teoria + Design + Setup (Semanas 1-4)
+**Goal:** Fundamentação sólida + ambiente pronto
 
-- Weeks 1-3 (30% theory): Study papers, K-means/DBSCAN review, design
-- Weeks 4-9 (60% practice): Implement clustering evolutivo + experiments
-- Weeks 10-12 (10% review): Analysis, validation, write chapter
+| Semana | Foco Principal | Leituras | Entregáveis |
+|--------|---------------|----------|-------------|
+| **S1** ✅ | K-means, DBSCAN, TEDA, Design | - | Resumos, Arquitetura |
+| **S2** | Setup remoto, Producer v0.1 | Angelov (2014) | Ambiente Kafka rodando |
+| **S3** | Consumer 1 (windowing) | Maia (2020) | Features extraídas |
+| **S4** | TEDA v0.1 | Survey Drift | Pipeline básico E2E |
 
-### Fase 3: Streaming Architecture (10-12 weeks, ~120-150h)
-**Goal:** Kafka + Real-time clustering integration
+### Fase 2B: Implementação TEDA + Kafka (Semanas 5-10)
+**Goal:** MVP funcional com experimentos básicos
 
-- Weeks 1-3 (30% theory): Streaming architectures, Kafka fundamentals
-- Weeks 4-9 (60% practice): Build streaming pipeline + benchmarks
-- Weeks 10-12 (10% review): Performance analysis, write chapter
+| Semana | Foco Principal | Leituras | Entregáveis |
+|--------|---------------|----------|-------------|
+| **S5** | TEDA v0.2 (micro-clusters) | Kafka Guide (1-3) | Multi-cluster funcionando |
+| **S6** | Métricas de avaliação | Temporal Silhouette | Sistema de métricas |
+| **S7** | Experimentos drift sintético | CICIoT2023 releitura | Primeiros resultados |
+| **S8** | TEDA v0.3 (merge/split) | Kafka Guide (4-6) | MicroTEDAclus completo |
+| **S9** | Experimentos comparativos | Survey IDS IoT | Comparação com Fase 1 |
+| **S10** | Otimização, bug fixes | Edge IDS | MVP estável |
 
-### Fase 4: Finalization (6-8 weeks, ~80-100h)
-**Goal:** Complete dissertation and prepare defense
+### Fase 2C: Experimentos + Validação (Semanas 11-14)
+**Goal:** Resultados publicáveis
 
-- Weeks 1-2: Final optimizations
-- Weeks 3-4: Write complete dissertation (PT)
-- Weeks 5-6: Translate to English + review
-- Weeks 7-8: Defense preparation
+| Semana | Foco Principal | Leituras | Entregáveis |
+|--------|---------------|----------|-------------|
+| **S11** | Experimentos full dataset | IoT Security Survey | Resultados completos |
+| **S12** | Análise concept drift | Mirai Analysis | Gráficos de adaptação |
+| **S13** | Validação estatística | Métricas papers | Tabelas comparativas |
+| **S14** | Documentação resultados | - | Capítulo de resultados |
+
+### Fase 3: Otimização + Análise (Semanas 15-18)
+**Goal:** Refinamento e análise profunda
+
+| Semana | Foco Principal | Entregáveis |
+|--------|---------------|-------------|
+| **S15** | Performance tuning | Benchmarks otimizados |
+| **S16** | Análise de escalabilidade | Gráficos de throughput |
+| **S17** | Casos especiais, edge cases | Robustez documentada |
+| **S18** | Preparação para dissertação | Outline completo |
+
+### Fase 4: Dissertação + Defesa (Semanas 19-24)
+**Goal:** Completar dissertação e defender
+
+| Semana | Foco Principal | Entregáveis |
+|--------|---------------|-------------|
+| **S19-20** | Escrita dissertação (PT) | Caps 1-4 |
+| **S21-22** | Escrita dissertação (PT) | Caps 5-7, revisão |
+| **S23** | Tradução (EN) + revisão | Versão EN |
+| **S24** | Preparação defesa | Slides, ensaio |
 
 ---
 
 ## 🧠 KEY DECISIONS LOG
 
 ### Decision 001: Development System Architecture (2025-11-08)
-**Context:** Project delayed, need to accelerate development while maximizing learning
-**Decision:** Implement automated documentation system with:
-- 9 specialized skills for research context
-- 4 hooks for auto-save, session recovery, weekly reports
-- Iterative learning approach (concept → code → experiment → repeat)
-- Weekly sprints aligned with advisor meetings
+**Context:** Project delayed, need to accelerate development
+**Decision:** Automated documentation system with skills/hooks
+**Impact:** 2-3x acceleration expected
 
-**Rationale:**
-- 10-20h/week requires high efficiency
-- Terminal crashes require protection against data loss
-- Flexible meeting dates need continuous report generation
-- Learning from scratch (clustering + streaming) needs guided approach
+### Decision 002: PCAP Processing Required (2025-12-17)
+**Context:** CSVs do CICIoT2023 são shuffled (paper linha 1839)
+**Decision:** Processar PCAPs originais (~548GB) é MANDATÓRIO
+**Impact:** Pipeline mais complexo, mas streaming válido
+**Details:** `docs/summaries/pcap-processing-requirements.md`
 
-**Impact:** Expected 2-3x acceleration in development speed
+### Decision 003: Integrated MVP Architecture (2025-12-17)
+**Context:** Tempo limitado, Kafka era Fase 3 separada
+**Decision:** Integrar Kafka desde o MVP, remover RF do escopo inicial
+**Impact:** Foco em TEDA + Kafka, RF fica para evolução futura
+**Details:** `docs/plans/2025-12-17-architecture-design.md`
+
+### Decision 004: Mandatory Reading Plan (2025-12-17)
+**Context:** Rigor acadêmico requer fundamentação nas 4 áreas
+**Decision:** Mínimo 1 paper principal/semana, 8 principais + 12 auxiliares
+**Impact:** Leituras integradas ao cronograma de desenvolvimento
+**Details:** `docs/reading-plan.md`
 
 ---
 
-## 🎓 LEARNING OBJECTIVES
+## 📚 READING PLAN SUMMARY
+
+### Four Areas of Knowledge
+
+| Área | Papers Principais | Status |
+|------|------------------|--------|
+| **ML (Clustering)** | Angelov (2014), Maia (2020) | 1 parcial |
+| **Cibersegurança** | CICIoT2023, Survey IDS IoT | 1 parcial |
+| **IoT** | Survey IoT Security, Edge IDS | 0 |
+| **Arquitetura** | Streaming paper, Kafka Guide | 0 |
+
+### Next Readings
+1. **S2 (próxima):** Angelov (2014) - TEDA Framework original
+2. **S3:** Maia (2020) - Releitura completa + Survey Drift
+
+**Full plan:** `docs/reading-plan.md`
+
+---
+
+## 🎓 LEARNING OBJECTIVES (Updated)
 
 **ML Domain:**
-- Clustering algorithms (K-means, DBSCAN, hierarchical)
-- Evolutionary clustering (Mixture of Typicalities)
-- Concept drift detection and adaptation
-- Statistical validation methods
+- [x] K-means, DBSCAN fundamentals ✅
+- [x] TEDA: eccentricidade, tipicalidade ✅
+- [x] Concept drift types ✅
+- [ ] Métricas de avaliação para clustering (pesquisar)
+- [ ] Validação estatística para streaming
 
 **IoT Security Domain:**
-- IoT attack patterns and taxonomy
-- Network intrusion detection approaches
-- Real-time anomaly detection
-- CICIoT2023 dataset characteristics
+- [x] CICIoT2023 structure (33 attacks, 7 categories) ✅
+- [ ] IoT attack patterns in depth
+- [ ] Real-time detection challenges
 
 **Streaming/Infrastructure:**
-- Apache Kafka architecture
-- Real-time data processing
-- High-throughput system design
-- Performance benchmarking
+- [x] Kafka 2-topic architecture designed ✅
+- [ ] Kafka implementation
+- [ ] Performance benchmarking
 
 ---
 
-## 📚 KEY REFERENCES
+## 📁 KEY DOCUMENTS
 
-**Core Papers:**
-1. Maia et al. (2020) - Evolving clustering algorithm (Mixture of Typicalities)
-2. Neto et al. (2023) - CICIoT2023 dataset
-3. Surianarayanan et al. (2024) - High-throughput streaming architecture
-4. Brodersen et al. - Bayesian accuracy evaluation (used in Phase 1)
+### Summaries (Fundamentação)
+- `docs/summaries/clustering-evolutivo-concepts.md` - TEDA/MicroTEDAclus
+- `docs/summaries/concept-drift-fundamentals.md` - 4 tipos de drift
+- `docs/summaries/pcap-processing-requirements.md` - Pipeline PCAP + ferramentas
 
-**Zotero Library:** Auto-exported to `/Users/augusto/mestrado/references.bib`
+### Plans (Planejamento)
+- `docs/plans/2025-12-17-architecture-design.md` - Arquitetura MVP
+- `docs/reading-plan.md` - Plano de leituras 4 áreas
+
+### Reports (Acompanhamento)
+- `docs/weekly-reports/current-week.md` - Relatório semanal atual
 
 ---
 
@@ -155,15 +222,29 @@
 **Primary Tools:**
 - Claude Code with custom skills and hooks
 - Python 3.12 + scikit-learn, pandas, numpy
+- NFStream (feature extraction from PCAPs)
+- Apache Kafka (Docker)
 - DVC for pipeline orchestration
-- MLflow for experiment tracking
-- Docker for reproducibility
-- Overleaf for papers and dissertation
+- MLflow for experiment tracking (a validar)
+
+**Remote Resources:**
+- PCAPs CICIoT2023 (~548GB) via SSH
+- Processamento/Kafka rodará na máquina remota
 
 **Active Repositories:**
 - `final-project/iot-ids-research/` - Main research code
 - `artigo1/` - Baseline comparison paper
 - `dissertation/` - Master's dissertation (PT + EN)
+
+---
+
+## 🔍 RESEARCH GAPS (To Investigate)
+
+| Gap | Área | Prioridade | Leituras Relacionadas |
+|-----|------|------------|----------------------|
+| Métricas de avaliação para clustering evolutivo | ML | Alta | ML-A1, ML-A3 |
+| Design de experimentos de concept drift | ML/Cyber | Alta | ML-A1, ML-A2 |
+| Sistema de tracking para streaming | Arq | Média | Testar MLflow |
 
 ---
 
@@ -174,46 +255,34 @@
 1. Open new Claude Code session
 2. Type: `/resume` OR "Continue from SESSION_CONTEXT.md"
 3. Claude will read this file and present current status
-4. Auto-save hook protects against data loss (commits every 10min to wip/auto-save)
 
-**If auto-save branch exists:**
-- Claude will ask if you want to recover from interrupted session
-- Say "yes" to continue from last saved state
+**Key files to read on resume:**
+- This file (`SESSION_CONTEXT.md`)
+- `docs/weekly-reports/current-week.md`
+- `docs/plans/2025-12-17-architecture-design.md`
 
 ---
 
 ## 📝 WEEKLY REPORT STATUS
 
 **Current Week Report:** `docs/weekly-reports/current-week.md`
-**Status:** In progress (continuously updated)
+**Status:** ~90% complete, needs finalization
 **Last Finalized:** None yet (first week)
 
 To finalize weekly report: `/finalize-week`
 
 ---
 
-## 🔧 SYSTEM CONFIGURATION
+## 🔧 USEFUL COMMANDS
 
-**Skills Active:**
-- iot-ids-research-context (always)
-- Additional skills load based on context
-
-**Hooks Active:**
-- auto-save-hook (every 10 minutes)
-- session-start-hook (on startup)
-- session-end-hook (on close)
-- overleaf-validation-hook (on LaTeX commits)
-
-**Useful Commands:**
 - `/resume` - Show current context and next steps
 - `/start-sprint` - Begin new weekly sprint
 - `/finalize-week` - Generate weekly report for advisor
 - `/paper-summary <name>` - Summarize paper from Zotero
-- `/check-overleaf` - Validate LaTeX compilation
 
 ---
 
 **END OF SESSION CONTEXT**
 
-*This file is automatically updated by hooks and can also be manually edited.*
+*This file is manually updated at the end of each session.*
 *Use `/resume` in any new session to load this context.*
