@@ -1,13 +1,13 @@
 # SESSION CONTEXT - IoT IDS Research Project
-**Last Updated:** 2025-12-17 (Session: Architecture design + Reading plan complete)
+**Last Updated:** 2026-01-03 (Session: Fichamento Angelov 2014 - 85% completo)
 
 ---
 
 ## 🎯 CURRENT STATUS
 
 **Phase:** Fase 2A - Teoria + Design + Setup
-**Week:** Semana 1 de 24 (~90% complete)
-**Current Task:** Finalizar relatório semanal, iniciar leitura Angelov (2014)
+**Week:** Semana 2 de 24 (~40% complete)
+**Current Task:** Finalizar fichamento Angelov (2014), relacionar com MicroTEDAclus
 
 ---
 
@@ -38,7 +38,7 @@
 - `artigo1/` - Paper comparing baseline algorithms
 - `REPOSITORY_ANALYSIS.md` - Complete Phase 1 analysis
 
-### Fase 2A, Semana 1: Teoria + Design (90% COMPLETE)
+### Fase 2A, Semana 1: Teoria + Design (100% COMPLETE)
 - ✅ K-means: algoritmo, limitações, Silhouette Score, Elbow method
 - ✅ DBSCAN: density-based, eps/min_samples, comportamento não-linear
 - ✅ TEDA Framework: eccentricidade, tipicalidade, Chebyshev test
@@ -47,34 +47,44 @@
 - ✅ Análise PCAP vs CSV: CSV é shuffled, PCAP obrigatório
 - ✅ Design arquitetura MVP: Kafka 2 tópicos, TEDA apenas
 - ✅ Plano de leituras: 8 principais + 12 auxiliares em 4 áreas
-- ⏳ Finalizar relatório semanal
+- ✅ Relatório semanal finalizado
+
+### Fase 2A, Semana 2: Leitura Angelov + Setup (40% COMPLETE)
+- ✅ Fichamento Angelov (2014) - 85% completo
+  - Conceitos: frequentista, belief/possibility theory, first principles
+  - Métricas de distância: Euclidean, Manhattan, Mahalanobis, Cosine
+  - Normalização e por que ξ = π normalizado
+  - Fórmulas: π, ξ, τ com exemplos numéricos
+- ⏳ Relacionar TEDA com MicroTEDAclus (Maia 2020)
+- ⏳ Setup ambiente Kafka remoto
+- ⏳ Producer v0.1
+
+**Key Files Created:**
+- `docs/paper-summaries/angelov-2014-teda.md` - Fichamento detalhado (~85%)
 
 ---
 
 ## 🔄 IN PROGRESS
 
-### Current Week: Fase 2A, Semana 1 (Teoria - Fundamentos)
-**Goal:** Fundamentação teórica + design de arquitetura
-**Started:** 2025-12-04
+### Current Week: Fase 2A, Semana 2 (Leitura Angelov + Setup)
+**Goal:** Fichamento Angelov (2014) + Setup Kafka + Producer v0.1
+**Started:** 2025-12-23
 
 **Completed:**
-- [x] Revisar K-means e DBSCAN ✅
-- [x] Estudar TEDA/MicroTEDAclus ✅
-- [x] Documentar concept drift ✅
-- [x] Analisar PCAP vs CSV (conclusão: PCAP obrigatório) ✅
-- [x] Design arquitetura MVP ✅
-- [x] Criar plano de leituras obrigatórias ✅
+- [x] Ler paper Angelov (2014) completo ✅
+- [x] Criar fichamento estruturado ✅
+- [x] Extrair fórmulas e pseudocódigo ✅
+- [x] Documentar conceitos: frequentista, kernels, normalização ✅
+- [x] Documentar métricas de distância ✅
 
 **Remaining:**
-- [ ] Finalizar relatório semanal
-- [ ] Atualizar SESSION_CONTEXT ✅ (este update)
+- [ ] Relacionar TEDA com MicroTEDAclus (Maia 2020)
+- [ ] Setup Kafka ambiente remoto
+- [ ] Producer v0.1 (PCAP reader)
+- [ ] Atualizar relatório semanal
 
 **Deliverables Created:**
-1. `docs/summaries/clustering-evolutivo-concepts.md` ✅
-2. `docs/summaries/concept-drift-fundamentals.md` ✅
-3. `docs/summaries/pcap-processing-requirements.md` ✅
-4. `docs/plans/2025-12-17-architecture-design.md` ✅
-5. `docs/reading-plan.md` ✅
+1. `docs/paper-summaries/angelov-2014-teda.md` ✅ (85% completo)
 
 ---
 

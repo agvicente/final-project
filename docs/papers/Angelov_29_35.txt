@@ -1,0 +1,2843 @@
+Journal of Automation, Mobile Robotics & Intelligent Systems
+
+VOLUME 8,
+
+N° 2
+
+2014
+
+Outside the Box: An Alternative Data Analytics Frame-work
+Submitted: 13th February 2013; accepted 26th February 2013
+
+Plamen Angelov
+DOI: DOI 10.14313/JAMRIS_2-2014/16
+Abstract: In this paper, an alternative framework for data
+analytics is proposed which is based on the spatially-aware
+concepts of eccentricity and typicality which represent the
+density and proximity in the data space. This approach
+is statistical, but differs from the traditional probability
+theory which is frequentist in nature. It also differs from the
+belief and possibility-based approaches as well as from the
+deterministic first principles approaches, although it can be
+seen as deterministic in the sense that it provides exactly
+the same result for the same data. It also differs from the
+subjective expert-based approaches such as fuzzy sets.
+It can be used to detect anomalies, faults, form clusters,
+classes, predictive models, controllers. The main motivation
+for introducing the new typicality- and eccentricity-based
+data analytics (TEDA) is the fact that real processes
+which are of interest for data analytics, such as climate,
+economic and financial, electro-mechanical, biological,
+social and psychological etc., are often complex, uncertain
+and poorly known, but not purely random. Unlike, purely
+random processes, such as throwing dices, tossing coins,
+choosing coloured balls from bowls and other games, real
+life processes of interest do violate the main assumptions
+which the traditional probability theory requires. At the
+same time they are seldom deterministic (more precisely,
+have always uncertainty/noise component which is nondeterministic), creating expert and belief-based possibilistic
+models is cumbersome and subjective. Despite this,
+different groups of researchers and practitioners favour and
+do use one of the above approaches with probability theory
+being (perhaps) the most widely used one. The proposed
+new framework TEDA is a systematic methodology which
+does not require prior assumptions and can be used for
+development of a range of methods for anomalies and
+fault detection, image processing, clustering, classification,
+prediction, control, filtering, regression, etc. In this paper
+due to the space limitations, only few illustrative examples
+are provided aiming proof of concept.
+Keywords: data density, proximity measures, RDE, data
+analytics, data-driven approaches, machine learning,
+Bayesian
+
+1. Introduction
+Probability theory was around for over two
+centuries [1]. It is well established and widely
+(over)used. Its basis was set up by Thomas Bayes,
+
+generalised later by Pierre-Simon Laplace and other
+researchers based on observations of purely random
+processes, such as games and gambling. It is perfectly
+suitable for describing such purely random processes
+and variables. However, it is also (extremely) widely
+(over)used to describe real world processes which
+are not purely random and have inter-sample
+dependence, not normal distributions and may have
+small number of observations. For example, climate,
+economic, physical, biological, social, psychological
+and many other real processes are complex and
+difficult to tackle using first principle or expert-based
+models. The traditional probability theory, on the
+other hand, is based on several assumptions which do
+not hold in practice, such as:
+a) independence of the individual data samples (observations) from each other;
+b) large (theoretically, infinite) number of data samples (observations);
+c) prior assumption of the distribution or kernel
+(most often, normal/Gaussian).
+The first assumption is fully satisfied for pure
+random processes, but not for real processes which
+are usually of interest. Therefore, the application
+of traditional probability theory for pure random
+processes is justified, but the same is not necessarily
+the case for the real processes which are the vast
+majority of applications of interest.
+In this paper, a new systematic framework for
+data analytics is proposed which requires no prior
+assumptions or kernels, user- or problem-specific
+thresholds and parameters to be pre-specified. It is
+entirely based on the data and their mutual distribution
+in the data space. It does not require independence
+of the individual data samples (observations); on the
+contrary, the proposed approach builds upon their
+mutual dependence. It also does not require infinite
+number of observations and can work with as little as
+3 data samples.
+The new typicality and eccentricity based
+data analytics (TEDA) is an alternative statistical
+framework which can work efficiently with any data
+except pure random processes when individual data
+samples (observations) are completely independent
+from each other. For such pure random data the
+traditional probability theory is the best tool to be
+used. However, for real data processes – which are the
+majority of the cases – we argue that TEDA is better
+justified, because it does not rely on assumptions
+which are not satisfied by such processes.
+
+29
+
+Journal of Automation, Mobile Robotics & Intelligent Systems
+
+VOLUME 8,
+
+The term typicality was used recently [2] to
+describe “the extent to which objects are ‘good
+examples’ of a concept”. By differ from [2] were only
+conceptual, philosophical considerations are made, in
+this paper a systematic mathematical framework is
+introduced.
+Eccentricity can be very useful for anomaly
+detection, image processing, fault detection, etc.
+Both typicality and eccentricity can be very useful for
+development of new clustering, classification, multimodel prognostic, control, soft sensors, etc.
+In the remainder of this paper the proposed new
+TEDA methodology will be described first in section
+2. In section 3, some simple examples will be provided
+mostly aiming proof of concept. Next, in section 4, an
+anomaly detection approach based on eccentricity will
+be outlined. In section 5 the clustering, classification
+in section 6 and prediction and control in section 7,
+all within the TEDA framework are outlined. Finally,
+section 8 concludes the paper.
+
+2. Description of the proposed methodology
+
+Let us start with data samples (observations) that
+we may have, xÎRn (where n is the number of features/
+characteristics; in Fig. 1 n=2 for illustration purposes;
+in the rest of the paper we will use n=1 without any
+limitations to the concept which is applicable for any
+positive integer). If we have a single or just two data
+samples (observations) there is no much sense to introduce the value of its typicality and eccentricity. It
+will be the only value observed/recorded or the only
+single distance between the two samples, k=2 (they
+will be equally untypical except the extreme case
+when they coincide when they will be equally typical).
+For any number of data samples, k>1 we can define
+the distance between them, d. This distance/proximity measure can be of any form, e.g. Euclidean, Mahalonobis, cosine, Manhattan/city/L1, etc. Let us denote
+the distance between two data samples, xi and xj by dij.
+
+N° 2
+
+ple calculated when k (k >2) data samples are available (and they are not all the same by value) is defined
+as the relative (normalised) π of that data sample as
+a fraction of π’s of all other data samples:
+k
+
+x kj =
+
+2π kj
+k
+
+∑π
+
+=
+k
+i
+
+i =1
+
+∑d
+
+2
+
+ij
+
+k
+
+∑π > 0 j > 1 k > 2
+
+i =1
+k
+k
+
+∑∑ d
+
+k
+i
+
+i =1
+
+il
+
+l =1 i =1
+
+(2)
+
+The coefficient 2 is due to the fact that each distance is counted twice and can be seen as a normalisation coefficient.
+The typicality of the jth (j >1) data sample calculated when k (k >2) non-identical data samples are available is defined as the complement of the eccentricity,
+ξ of that data sample:
+k
+
+t kj = 1 − x kj
+
+k >2
+
+∑π > 0
+
+j >1
+
+k
+
+k
+
+0 < x kj < 1
+
+∑x =2 ∑π > 0 ∀k > 2 ∀j > 1
+
+0 < t kj < 1
+
+∑t =k − 2 ∑π > 0 ∀j > 1
+
+k
+i
+
+i =1
+
+k
+i
+
+k
+
+k
+
+k
+i
+
+i =1
+
+k
+i
+
+(4b)
+
+i =1
+
+These definitions of eccentricity and typicality
+resemble fuzzy set membership functions since
+being values between 0 and 1, summing up to a value
+larger than 1 (for τ and k=3 it sums up to 1). We can
+also introduce normalised eccentricity and typicality
+which integrate to 1:
+		
+ξ kj
+2
+
+k
+
+1
+
+∑ζ = 1 0 < ζ < 2 k > 2
+i =1
+
+k
+i
+
+k
+i
+
+k
+
+i=1
+
+π k (x j ) = π kj =
+
+k
+
+∑d
+i =1
+
+30
+
+ij
+
+k >1
+
+j >1
+
+(1)
+
+The eccentricity of a particular jth (j >1) data samArticles
+
+(4a)
+
+i =1
+
+j >1
+
+∑π > 0
+
+We can also calculate the accumulated proximity/
+sum distances, π to all available data samples from
+a given, jth (j>1) data sample calculated when k (k>1)
+data samples are available:
+
+(3)
+
+k
+i
+
+i =1
+
+It is easy to check that both eccentricity, x and typicality, t are bounded:
+
+ζ kj =
+
+Fig. 1. A 2D data distribution (A is a rather eccentric
+data point; B – a typical one)
+
+2014
+
+t kj =
+
+τ kj
+
+k
+
+k
+i
+
+(5)
+1
+
+∑t = 1 0 < t < k − 2 k > 2
+k −2
+i =1
+
+k
+i
+
+k
+i
+
+k
+
+∑π > 0
+i=1
+
+k
+i
+
+j >1
+
+(6)
+
+Normalised eccentricity and typicality resemble
+probability distribution function (pdf) in that
+they sum to 1, but they are different as they do not
+require the prior assumptions that are a must for the
+probability theory and they represent both the spatial
+distribution pattern and the frequency of occurrence
+of a data sample.
+
+Journal of Automation, Mobile Robotics & Intelligent Systems
+
+VOLUME 8,
+
+All of the above definitions are applicable to data
+streams (online, when k is incrementally increased).
+In case of data sets (offline, fixed amount of data, k) the
+upper index, k can be omitted in all notations because
+it only indicates based on how many data samples
+the respective value has been calculated. The above
+definitions are global (defined over all available data);
+one can also define local eccentricity and typicality.
+They can also be very useful for local regions, groups/
+clusters/data clouds, classes (then summation is only
+over the data samples concerned), see also section 6.
+The typicality can also be seen as an analogue to
+the histograms of distributions, but it is in a closed
+analytical form and does take into account the
+mutual influence of the neighbouring data samples/
+observations. When normalised eccentricity is above
+1/k the data sample is rather untypical/eccentric/
+anomalous. If the value of typicality is above 1/k then
+the data sample is rather typical.
+It can also be proven that both eccentricity and
+typicality can be calculated recursively by updating
+only the global or local mean, µ and scalar product,
+X for the cases when Euclidean square distance [3],
+[4] is used and similarly if cosine [5] or Mahalonobis
+square distance [6] are used. For example, for the
+Euclidean square distance, without limiting the scope
+of applicability of the typicality and eccentricity in
+general, we have [3], [4]:
+
+(
+
+pkj = k || x j − mk ||2 + X k − || mk ||2
+mk =
+
+Xk =
+
+k − 1 k −1 1
+m + xk
+k
+k
+
+k − 1 k −1 1
+X + || x k ||2
+k
+k
+
+)
+
+(7)
+
+m1 = x1
+
+(8)
+
+X 1 =|| x1 ||2
+
+(9)
+
+where m– recursively updated (local or global) mean;
+X is the recursively updated scalar product.
+Furthermore, we do not need to calculate
+k
+
+∑π
+
+k
+i
+
+i =1
+
+each time, but we can update it recursively by:
+k
+
+k −1
+
+∑π = ∑π
+i =1
+
+k
+i
+
+i =1
+
+k −1
++ 2π kk
+i
+
+π 11 = 0
+
+2014
+
+Algorithm 1. TEDA (Euclidean square distance used for d)
+Initialise k=1; j=1; x1; X 1 =|| x1 ||2; m1 = x1; p11= 0;
+WHILE data points
+from the data
+stream are available (or until not interrupted) DO
+1. Read the next (k:=k+1) data point xk;
+2. Update
+a.
+
+b.
+
+mk from equation (8);
+
+Xk from equation (9);
+
+3. For 1£ j£ k compute π j from equation (7);
+k
+
+k
+
+4. Update
+
+∑ π from equation (10);
+i =1
+
+k
+i
+
+5. For 1£ j£ k compute:
+a.
+
+x jk from equation (2);
+
+b.
+
+t kj from equation (3);
+
+d.
+
+t kj from equation (6);
+
+c.
+
+z jk from equation (5);
+
+End WHILE
+The recalculation/update of the values of eccentricity
+and typicality based on k data samples from the same
+values based on k–1 data samples (observations)
+can be seen as similar to the posterior probabilities
+update in the Bayesian rule. The prior estimation for
+feasible but not yet observed data points can be done
+by interpolating the existing x, z, t, t. Interpolation
+can be local or global, linear or more complex.
+
+3. TEDA Primer
+
+Due to the space and time limitations in this
+paper only the basic concept will be laid down and
+several illustrative examples aiming proof of concept.
+Further publications will detail and expand this new
+theoretical framework for objective data analytics.
+Let us consider an extremely simple data stream
+which consists of just three data samples (these may
+be thought of – without limiting the generality of the
+concept – as values of the temperature in oC):
+y = {20; 12; 10}
+
+(10)
+
+N° 2
+
+(11)
+
+Obviously, k = 3. We can easily get:
+
+x3 = {0.9;0.5;0.6} t3 = {0.1;0.5;0.4} V3 = {0.45;0.25;0.3}
+
+x3 that
+= {0.9;0.5;0.6}
+The coefficient 2 is due to the fact
+each dis- t3 = {0.1;0.5;0.4} V3 = {0.45;0.25;0.3} t 3 = t
+(12)
+tance counts once from the kth point towards the ith
+point and once from the ith point towards the kth point.
+We can see that the sum of eccentricity values is
+It can be proven [12] and it is obvious from (7) that
+= 2 and of the typicality values is =1; they are between
+the minimum value of eccentricity (and respectively,
+0 and 1 as expected. Similarly, the normalized
+the maximum of the typicality) is obtained for the
+eccentricity and typicality both sum up to 1 with the
+data points that are closer to (or coincide with) the
+normalized eccentricity being in the range [0;0.5] and
+mean, mk which is quite logical. It has to be stressed
+normalized typicality- in the range [0;1] as expected.
+that this applies globally as well as locally.
+Moreover, the normalized typicality of y2 is above 1/3,
+Now, we can formulate the following recursive
+which means it is a typical value of the temperature
+procedure:
+(based on these three observations). We can also
+3
+
+Articles
+
+31
+
+Journal of Automation, Mobile Robotics & Intelligent Systems
+Journal of
+of Automation,
+Automation, Mobile
+Mobile Robotics
+Robotics &
+& Intelligent
+Intelligent Systems
+Systems
+Journal
+
+see in Fig.2 top line of plots that the eccentricity of
+in Fig.2
+top line of plots
+eccentricity
+of
+ysee
+=20°C
+is substantially
+higherthat
+thanthe
+that
+of the other
+1
+ydata
+=20°C
+is
+substantially
+higher
+than
+that
+of
+the
+other
+samples
+and
+the
+normalized
+eccentricity
+(0.45)
+1
+data
+samples
+the normalized
+eccentricity
+(0.45)
+is
+>1/3.
+The and
+typicality
+of y2=12°C
+is highest;
+the
+is >1/3. The
+typicality
+y2o=12°C
+is>1/3,
+highest;
+the
+normalized
+typicality
+of yof
+=10
+C
+is
+also
+but
+less
+3
+normalized
+y3=10oC is also >1/3, but less
+obvious
+thantypicality
+that of y2of
+=12°C.
+obvious
+of y2=12°C. are quite logical and,
+The than
+abovethat
+observations
+The above
+are prior
+quiteassumptions
+logical and,
+importantly,
+we observations
+did not made any
+importantly,
+we did
+made
+any prior
+on
+the number
+of not
+data
+points,
+their assumptions
+distributions,
+on the number
+of used
+dataany
+points,
+their
+distributions,
+kernels,
+we did not
+expert
+or first
+principles
+kernels, we did
+any objectively
+expert or first
+knowledge.
+Yet,not
+weused
+derived
+theprinciples
+common
+knowledge. Yet,
+derived
+objectively
+the eccentric,
+common
+knowledge
+fact we
+that
+y1=20°C
+is rather
+knowledge
+that thus,
+y1=20°C
+is rather
+unusual (for fact
+England),
+a candidate
+foreccentric,
+anomaly
+unusual
+(for England),
+anomaly
+being
+declared
+while y2thus,
+=12°Caiscandidate
+the mostfor
+typical
+one,
+beingadeclared
+while
+=12°C
+is
+the
+most
+typical
+one,
+thus,
+candidate
+for ayprototype.
+2
+thus,
+candidate
+for a prototype.
+If awe
+have an additional
+observation of 18°C then
+weestimate
+have an additional
+observation
+then
+we Ifcan
+posterior values
+of x, of
+z, 18°C
+t, t using
+we
+estimate
+posterior
+values
+x, result
+z, t, twill
+using
+the can
+procedure
+described
+above
+andofthe
+be
+the procedure
+described
+the result
+will be
+different
+because
+it will beabove
+basedand
+on four
+data samples
+different because
+it will
+based
+onestimation,
+four data samples
+observed
+not three
+(fact,benot
+prior
+similar
+observed
+not threetheory’s
+(fact, not
+prior estimation,
+to
+the probability
+Bayesian
+rule), z4: similar
+to the probability theory’s Bayesian rule), z4:
+z 44 = { y ;17} = {20,12,10,17}
+z = { y ;17} = {20,12,10,17}
+We can use the procedure (Algorithm 1) to easily get
+can use the procedure (Algorithm 1) to easily get
+the We
+following:
+the following:
+x44 = {0.6;0.43;0.54;0.43} t 44 = {0.4;0.57;0.46;0.57}
+x = {0.6;0.43;0.54;0.43} t = {0.4;0.57;0.46;0.57}
+(13)
+(13)
+We can check that both x and t sum up to 2 and
+Wet sum
+can check
+x and
+t sum
+tot2isand
+z and
+up to 1that
+andboth
+that the
+range
+of xup
+and
+bez and t0sum
+to 1 and
+range
+of x and
+t is1/2.
+between
+andup
+1 while
+of zthat
+andthe
+t it is
+between
+0 and
+tween 0 and 1 while of z and t it is between 0 and 1/2.
+
+Fig. 2. The left column represents the eccentricity; the
+Fig.
+The
+left
+represents
+the corresponds
+eccentricity;to
+The
+leftcolumn
+column
+represents
+they
+right2.one
+- typicality;
+top
+line of plots
+right
+one
+–
+typicality;
+top
+line
+of
+typicality;
+top
+line
+of
+plots
+corresponds
+to
+and the bottom one – to z. Right hand side vertical axesy
+and
+the bottom
+one – to z.the
+Right
+hand side eccentricity/
+vertical axes
+on each
+plot represent
+normalized
+on
+each
+plot
+represent
+the
+normalized
+eccentricity/
+typicality, z/t resp.)
+typicality, z/t resp.)
+56
+56
+32
+
+Articles
+Articles
+Articles
+
+VOLUME 8,
+VOLUME 8,
+8,
+VOLUME
+
+N° 2
+N° 22
+N°
+
+2014
+2014
+2014
+
+We can also observe (compare in Fig. 2 the two lines
+Weplots)
+can also
+(compare
+in Fig.
+2 the
+twotolines
+of
+thatobserve
+by adding
+just a single
+point
+close
+the
+of plots)
+that that
+by adding
+just a single
+to the
+data
+sample
+was eccentric
+the point
+wholeclose
+pattern
+is
+data sample
+that
+the whole
+pattern
+is
+changing
+with
+all was
+foureccentric
+data samples
+becoming
+more
+changing in
+with
+all four
+dataeccentricity
+samples becoming
+more
+balanced
+terms
+of their
+and typicality
+balanced
+in terms
+of their
+eccentricity
+and (which
+typicality
+with
+higher
+normalized
+typicality
+of 0.286
+is
+with notably
+higher normalized
+0.286
+(which
+is
+also
+higher thantypicality
+1/k=1/4, of
+but
+not so
+promialso notably
+1/k=1/4,
+but not
+prominently
+now), higher
+for the than
+two inner
+samples,
+z2 =so
+12°C
+and
+nently
+now),
+foristhe
+twological
+inner for
+samples,
+z2 = 12°C and
+z4 = 17°C
+which
+quite
+these observations
+z4 = 17°C
+which
+is quite unlike
+logical iffor
+thesewere
+observations
+and
+for the
+UK climate
+these
+numbers
+and
+for the
+UK would
+climatehave
+unlike
+if these
+were numbers
+of
+bingo
+which
+been
+completely
+indepenof bingo
+which
+would
+been
+independent
+indeed.
+Note
+thathave
+we do
+notcompletely
+need to assume
+any
+dent indeed. or
+Note
+we do not need
+to assume
+distribution
+to that
+parameterize
+it a priori.
+We any
+can
+distribution
+or todistributions
+parameterizearound
+it a priori.
+We data
+can
+derive
+two local
+the two
+derive two
+theabove
+two data
+samples
+thatlocal
+havedistributions
+normalized around
+typicality
+1/k,
+samplesz that
+typicality
+above
+1/k,
+namely
+and have
+z4 butnormalized
+this would be
+knowledge
+extract2
+namely
+z2 and
+z4 but this would
+extracted/learned
+automatically
+from be
+theknowledge
+data.
+ed/learned
+automatically
+from thenow
+data.we have two
+This is quite
+logical because
+is quite
+logical because
+now weofhave
+veryThis
+simple
+groups/data
+clouds/clusters
+data two
+and
+very simple
+groups/data
+clouds/clusters
+of to
+data
+and
+modes
+of the
+distribution.
+It is important
+stress
+modes
+ofifthe
+It is important
+to stress
+that
+even
+it isdistribution.
+not strongly obvious
+the two modes
+of
+thatdistribution
+even if it is not
+strongly
+obvious
+thedata
+twoautomatimodes of
+the
+were
+derived
+from the
+the distribution
+derived
+thenot
+data
+automatically
+(they both were
+are above
+1/kfrom
+= 1/2),
+assumed
+or
+cally (they both
+above
+1/kis=no
+1/2),
+notfor
+assumed
+or
+pre-defined!
+In are
+TEDA
+there
+need
+prior aspre-defined!All
+Inthe
+TEDA
+there
+is no need
+prior assumptions.
+useful
+information
+is for
+contained
+in
+sumptions.
+All the useful information is contained in
+the
+data distribution.
+the Finally,
+data distribution.
+let us consider a more realistic data stream
+Finally,
+letamount
+us consider
+a more
+realistic
+data
+stream
+with
+a larger
+of data:
+n14 = {20.2,
+3, 6.4,
+11.6,
+8.2,
+{20.2,
+3, 6.4,represent
+11.6, 8.2,
+with11.2,5.2,
+a larger amount
+n14 =3.8}
+2.2,
+6.2,0.2, of
+1,data:
+4.8, 2.4,
+which
+2.2, precipitation
+11.2,5.2, 6.2,0.2,
+1, 4.8, measured
+2.4, 3.8} which
+represent
+the
+(rainfall)
+(in mm)
+at Filthe precipitation
+(rainfall)
+mm)
+at Filton
+station near Bristol,
+UKmeasured
+in the first(in
+two
+weeks
+of
+ton station
+near
+Bristol,
+UKthe
+in the
+first
+two weeks
+of
+January
+2014
+[11].
+Due to
+larger
+amount
+(k=14)
+January
+2014
+[11].
+Due
+the larger
+amount descri(k=14)
+of
+(still 1D,
+n=1)
+data
+wetoused
+the procedure
+of (still
+1D,Algorithms
+n=1) data we
+used isthe
+procedure
+bed
+in the
+1 which
+based
+on the descrisquare
+bed in the Algorithms 1 which
+is based
+on theand
+square
+Euclidean
+distance
+reEuclidean
+distance and recursive
+calculations.
+cursive
+calculations.
+It is clearly
+seen from the
+It isthat
+clearly
+the
+plots
+the seen
+high from
+amount
+plots
+that (over
+the high
+amount
+of
+rainfall
+20 mm)
+on
+of rainfall
+(overDay
+20 is
+mm)
+on
+the
+New Years
+rather
+the New Years
+rather
+untypical.
+It is Day
+alsoisuntypiuntypical.
+It isfirst
+alsotwo
+untypical
+for these
+wecal for
+these first
+weeks
+of January
+2014two
+to have
+eks oflevel
+January
+2014 to have
+low
+of precipitation,
+low level
+of precipitation,
+close
+to 0. The
+most typical
+close to of
+0. The
+most
+amount
+rainfall
+fortypical
+these
+amount
+of rainfall
+for these
+two
+weeks
+of January
+2014
+two 6.2
+weeks
+was
+mm.of January 2014
+wasEven
+6.2 mm.
+with these exEven simplistic
+with these
+extremely
+(handtremely examples
+simplistic the
+(handcrafted)
+difcrafted) that
+examples
+difference
+TEDAthe
+brings
+ference
+that TEDA
+brings
+in
+comparison
+with the
+train comparison
+with the
+traditional
+probability
+theory,
+ditional probability
+theory,
+deterministic,
+possibilistic,
+deterministic,
+fuzzy
+and otherpossibilistic,
+representafuzzy is
+and
+other representations
+obvious.
+For examtionstraditional
+is obvious.probability
+For example,
+ple, traditional
+probability
+theory
+would suggest
+equal
+theory
+suggest equal
+(1/3
+orwould
+1/4) probability
+for
+(1/3
+or 1/4)(we
+probability
+for
+all
+samples
+also do not
+all samples (we also do not
+
+Journal of Automation, Mobile Robotics & Intelligent Systems
+Journal of Automation, Mobile Robotics & Intelligent Systems
+
+Fig. 3 Real rainfall data from Bristol, UK, first two weeks
+of January, 2014. The notations are same as in Figure 2
+need to build histograms which provide no information about (completely ignore) the inter-sample influence. An alternative which is often (over)used is to
+impose/assume a distribution or a kernel, for example Gaussian/normal or another type, to determine
+its parameters (where to position it, how much will
+be the spread). To escape these problems, sometimes,
+one can also use a mixture of distributions, but then
+the parameters that need to be determined are even
+more and the problem is not fully solved as the distributions are approximations of the real/true ones. On
+the other hand, in comparison with the fuzzy set theory [7] we do not need to ask experts, to build membership functions. What we only need is to calculate
+the eccentricity and typicality of each observation and
+we get (recursively/computationally efficiently using
+(7)–(10)) in a closed analytical form (equations (2)–
+(3)) the distributions.
+Moreover, the information that we have in x and t
+(resp. z and t) is closer to the nature of real processes
+(not the pure random ones and not subjective ones,
+for which the traditional probability and fuzzy set
+theories, respectively are more appropriate). In
+particular, from Fig. 2 we can see that y2 = 12°C is the
+most typical data sample, but its degree of typicality
+is significantly reduced if another sample is added.
+On the contrary, the data sample/observation
+y1=20°C is rather eccentric initially but becomes
+neutral (both typicality and eccentricity are about
+1/k) when we add the fourth sample. Now, if we try
+to answer the question, “What is the most typical or
+likely temperature (or amount of rainfall) based on the
+observations we have (y and z for the temperature and
+the real observations of the rainfall, v)”. TEDA suggests
+that based on 3 observations, y the most typical/likely
+temperature is 12°C (t=t=0.5 that is 50%). Based on
+the same limited number of observations we can
+also conclude that to have a temperature 10°C is also
+not untypical (t=t=0.4 that is 40%), but this is now
+much closer to 1/k=1/3. To have a temperature 20°C
+is possible, but not very typical for England (t=t=0.1
+that is 10% based on these three observations). If we
+have another observation of z4=17°C, however the
+typicality changes significantly (t=0.2 that is 20%)
+
+VOLUME 8,
+VOLUME 8,
+
+N° 2
+N° 2
+
+2014
+2014
+
+because it is now based
+on a quite different
+(balanced) data pattern,
+but this is still below the
+1/k level which means
+that it is still untypical
+(but less so based on
+these four observations
+in comparison with
+the three observations
+only).
+For
+the
+same
+observations
+the
+traditional probability
+theory [1] would suggest p=1/3 (same for all the
+3 observations) or we would need to choose and
+parameterize distribution(s). However, the problems
+of how many distributions to consider, which type
+of distributions to use for particular data sets, what
+their parameters are left for the problem solver
+to decide. Many prefer to approximate the real/
+true distributions with some smooth functions
+(such as Gaussian and others), but these are just
+approximations.
+The reason for the difference between TEDA
+and the traditional probability theory is the spatial
+awareness which in the traditional probability theory
+is ignored, but in real processes is a fact. For example,
+for the very simplistic example we considered above,
+2 data samples are quite close and influence each
+other. TEDA offers instead an automatic mechanism
+to extract the real/true data distributions and a closed
+analytical recursive form (which can be differentiated
+and analyzed) and this is dictated by the data pattern,
+not pre-defined or assumed. In addition, it does take
+into account inter-sample influence which is typical
+for real processes (not pure random ones).
+
+4. Anomaly Detection Based on Eccentricity
+
+Anomaly detection in TEDA can easily and intuitively be
+done on the basis of eccentricity. For example, any data
+sample that has high normalised eccentricity (ξ>1/k)
+is a suspected anomaly. Different algorithms can be
+developed and applied to image processing and video
+analytics, fault detection, user behaviour modelling,
+etc. One can take into account not only the absolute
+value of x and z, but also the context of the problem
+at hand. However, the eccentricity offers new angle of
+view towards the problems in comparison with the
+traditionally used probability because of the reasons
+mentioned above. For example, the eccentricity of the
+data sample/observation y1=20oC is much higher than
+that of the other data samples but the probability of
+all samples is equal (1/3). No distributions or kernels
+needs to be assumed, no need to have large amount of
+data, the distribution of typicality and eccentricity can
+be extracted from the data in a closed analytical form,
+(2)–(3), and is exact (not approximated), recursively
+updated. One emerging area of research and interest
+for the society is the study of extreme natural and
+man-made (anthropogenic) events (including, but
+Articles
+Articles
+
+57
+33
+
+Journal of Automation, Mobile Robotics & Intelligent Systems
+
+not limited to climate, volcanoes, earthquakes,
+tsunami, nuclear and other disasters, terrorism, etc.)
+– traditional probability theory is limited in studying
+the probability of occurrence of such events and
+this is also limited by the amount of available data,
+representativeness of the ‘training data’ which in
+such problems are a bottleneck, distributions which
+are not normal etc. TEDA framework offers not only
+a convenient approach to easily detect anomalies, but
+also to estimate the degree of severity (how bigger ζ is
+in comparison with 1/k and, respectively, how smaller
+τ is in comparison with 1/k).
+
+5. Clustering and Data Clouds Based on
+Typicality
+
+Clustering is an important part of pattern
+recognition, machine learning, data mining [1] and
+many other related areas, including autonomous
+learning systems [3]. The term “data cloud” was
+introduced in the so called AnYa framework [8] and
+differs from clusters by the fact that data clouds have
+no specific shape, parameters, and boundaries. In
+TEDA, data clouds (or clustering if that is the preferred
+form of data partitioning) can be formed on the basis
+of the typicality. For example, data sample that has
+the highest t is logical to be selected as the focal
+point/prototype or a centre of the first data cloud
+(or cluster). There can be different ways to form the
+other data clouds (or clusters) but their focal points/
+prototypes (or centres) will also have high typicality
+(e.g. it is logical to require τ>1/k). For example, a zone
+of influence/radius can be defined and the data points
+that are outside the zone of influence/radius of the
+data point with the maximum τ (τmax) and have τ>1/k
+can be considered as candidates to be prototypes/
+focal points of the next data clouds/clusters and the
+point with the maximum τ but out of these points
+only (except the data points that fall in the zone of
+influence associated with the previous focal point(s))
+will, be the obvious new focal point, etc. until there
+are points that satisfy these conditions.
+It is important to stress that within TEDA
+framework one can extract automatically and
+recursively closed form analytical expressions
+of the real/true distributions of local typicality
+and eccentricity with the former resembling the
+membership functions or pdf but being conceptually
+different (we can argue richer because it takes into
+account objectively both the frequency of occurrence
+and the spatial distribution and mutual influences). For
+example, if we have data of two clusters/data clouds,
+say coloured blue and red, we can automatically and
+recursively extract from the real data distribution, xred,
+tred, and xblue, tblue.
+In an online and evolving scenario in the memory
+only the accumulated values per data cloud/cluster
+can be kept (not for each data sample – see steps 2 and
+4 of the TEDA procedure (Algorithm1 in section 2) –
+these include:
+xi*, mi*, Xi*,
+
+58
+34
+
+Articles
+
+k
+
+∑π ;
+i =1
+
+k
+i
+
+VOLUME 8,
+
+N° 2
+
+2014
+
+where i* denotes the index of the data cloud/cluster
+prototype/focal point. The typicality and eccentricity
+can be updated for the current, kth data point only plus
+for the data cloud/cluster prototypes, centres, not for
+all past, k data (see steps 3 and 5 of the procedure).
+An important aspect is the dynamic nature of the data
+streams and their order dependency. One can chose
+to have a forgetting factor or mechanism to introduce the importance of the time instances when a particular data sample was read. This is important for data
+streams.
+
+6. Classification based on typicality
+
+Classification is another central element of pattern
+recognition, machine learning, data mining [1]. Within the TEDA framework classification can be done using local (instead of global) values for x, t, z, and t. The
+main difference between the global and local expressions is the summation limits – the data samples over
+which the summation is performed. In the global case,
+it is performed over all available (by this moment in
+time) data samples, k. In the local case, the summation
+is over a group of data samples from a particular class
+or data cloud/cluster (in general, there may be more
+than one data cloud/cluster per class [3]); say, if we
+have data for healthy and ill patients, good and bad
+examples of something etc. we can accumulate data
+samples/observations for each one separately and
+get in this way, x good,tgood, and xbad,tbad. Then the classifiers of zero, first or higher order can be built similarly
+to the AutoClass concept described in [3, chapter 8].
+Zero order classifier means using the label of the classifier (singleton) as an output. First order means using a regression style classifier where for each data
+cloud/cluster a separate linear regression function
+over the input features is generated. Higher order
+classifiers may have non-linear output. In all cases the
+input part of the classifier can be seen as a clustering or data clouds (or simply data partitioning) which
+was described in the previous section. Zero order
+classifiers are more attractive from the point of view
+that they are easier to interpret and can be fully unsupervised [9]. First order classifiers, on the other hand,
+can lead to a better performance [10].
+
+7. Prediction (and Control) Based
+on Typicality
+
+Predictive models and controllers can be built using the multi-model principle where each local submodel is quite simple (e.g. linear or even zero order
+singleton) [3]. The problem then translates to the decomposition of the data space into (possibly overlapping) local regions in which often overlapping regimes
+and local behaviours is easier to define and tune. This
+problem on its own has been demonstrated to be
+possible to successfully address using clustering (or
+forming data clouds) in [3]. Clustering was described
+earlier in section 5, therefore, due to the lack of space
+in this paper we will limit to just pointing towards
+the applicability of TEDA framework to develop and
+design new predictors and controllers which are not
+based on the traditional probability theory and, thus,
+
+Journal
+Journal of
+of Automation,
+Automation, Mobile
+Mobile Robotics
+Robotics &
+& Intelligent
+Intelligent Systems
+Systems
+Journal of Automation, Mobile Robotics & Intelligent Systems
+
+do
+do not
+not suffer
+suffer from
+from the
+the limitations
+limitations and
+and assumptions
+assumptions on
+on
+which
+it
+is
+based,
+e.g.
+normal
+or
+known
+distribution
+do
+not
+suffer
+from
+the
+limitations
+and
+assumptions
+which it is based, e.g. normal or known
+distribution
+of
+(in)dependence
+the
+samples/
+which
+it is based,
+e.g. normal orof
+distribution
+of the
+the variables,
+variables,
+(in)dependence
+ofknown
+the data
+data
+samples/
+observations,
+their
+limited
+(not
+infinite)
+amount,
+etc.
+of
+the
+variables,
+(in)dependence
+of
+the
+data
+samples/
+observations, their limited (not infinite) amount,
+etc.
+Moreover,
+the
+proposed
+TEDA
+framework
+makes
+posobservations,
+their
+limited
+(not
+infinite)
+amount,
+etc.
+Moreover, the proposed TEDA framework makes possible
+to
+extract
+recursively
+in
+a
+closed
+analytical
+form
+Moreover,
+the
+proposed
+TEDA
+framework
+makes
+possible to extract recursively in a closed analytical form
+the
+distributions
+from
+real
+sible
+to extract
+recursively
+a closed
+analytical form
+the xact
+xact
+distributions
+frominthe
+the
+real ata.
+ata.
+the exact distributions from the real data.
+
+8.
+8. Conclusions
+Conclusions
+8. Conclusions
+In
+In this
+this paper,
+paper, aa new
+new systematic
+systematic framework
+framework for
+for
+
+data
+based
+on
+typicalityand
+this paper,
+a new
+systematic
+framework
+for
+dataInanalytics,
+analytics,
+based
+on the
+the
+typicalityand eccentrieccentricity
+of
+the
+data
+is
+proposed
+which
+is
+spatially-aware,
+data
+analytics,
+based
+on
+the
+typicalityand
+eccentricity of the data is proposed which is spatially-aware,
+non-frequentist
+non-parametric.
+The
+city
+of the data isand
+proposed
+which is spatially-aware,
+non-frequentist
+and
+non-parametric.
+The proposed
+proposed
+new
+typicalityand
+eccentricity-based
+data
+analytics
+non-frequentist
+and
+non-parametric.
+new typicality- and eccentricity-based The
+data proposed
+analytics
+(TEDA)
+framework
+is
+free
+from
+prior
+assumptions
+new
+typicalityand
+eccentricity-based
+data
+analytics
+(TEDA) framework is free from prior assumptions
+(such
+as
+Gaussian
+or
+any
+other
+specific
+distribution
+(TEDA)
+framework
+is
+free
+from
+prior
+assumptions
+(such as Gaussian or any other specific distribution of
+of
+the
+the
+to
+have
+subjectively
+defined
+(such
+as Gaussian
+other
+specific distribution
+of
+the data,
+data,
+the need
+needor
+toany
+have
+subjectively
+defined memmembership
+functions,
+kernels,
+specific
+proximity/distanthe
+data,
+the
+need
+to
+have
+subjectively
+defined
+membership functions, kernels, specific proximity/distance
+availability
+of
+of
+bership
+functions,
+kernels,
+specificamount
+proximity/distance measures,
+measures,
+availability
+of infinite
+infinite
+amount
+of data,
+data, inindependence
+of
+the
+data
+samples,
+tc.).
+Both,
+typicality
+ce
+measures,
+availability
+of
+infinite
+amount
+of
+data, independence of the data samples, tc.). Both, typicality
+and
+can
+be
+by
+dependence
+of the
+samples, etc.).
+Both, typicality
+and eccentricity
+eccentricity
+candata
+be calculated
+calculated
+by computationally
+computationally
+efficient
+recursive
+formulas.
+Typicality
+and
+eccentricity
+can
+be
+calculated
+by
+computationally
+efficient recursive formulas. Typicality resembles
+resembles fuzfuzzy
+membership
+functions
+(having
+maximum
+1)
+is
+efficient
+recursive
+formulas.
+Typicality
+resembles
+fuzzy membership functions (having maximum
+1) but
+but
+is
+objectively
+derived
+from
+the
+data
+pattern
+(not
+due
+to
+zy
+membership
+functions
+(having
+maximum
+1)
+but
+is
+objectively derived from the data pattern (not due to
+prior
+assumptions).
+Normalised
+typicality
+resembles
+objectively
+derived
+from
+the
+data
+pattern
+(not
+due
+to
+prior assumptions). Normalised typicality resembles
+pdf
+aa sum/integral
+equal
+1)
+spatiallyprior
+assumptions).
+Normalised
+typicality
+pdf (having
+(having
+sum/integral
+equal to
+to
+1) but
+but is
+isresembles
+spatiallyaware.
+TEDA
+does
+not
+require
+any
+prior
+assumptions
+pdf
+(having
+a
+sum/integral
+equal
+to
+1)
+but
+is
+spatiallyaware. TEDA does not require any prior assumptions
+and
+in
+a
+more
+natural
+manner
+represents
+the
+aware.
+TEDA
+does
+not
+require
+any
+prior
+assumptions
+and in a more natural manner represents the real
+real (not
+(not
+purely
+random)
+processes,
+such
+as
+climate,
+economand
+in
+a
+more
+natural
+manner
+represents
+the
+real (not
+purely random) processes, such as climate, economics,
+processes.
+TEDA
+no
+prior
+purely
+random)
+processes,
+suchrequires
+as climate,
+ics, industrial
+industrial
+processes.
+TEDA
+requires
+no economprior asassumptions
+and
+provides
+close
+analytical
+expression
+ics,
+industrial
+processes.
+TEDA
+requires
+no
+prior assumptions and provides close analytical expression
+and
+multimodal
+distributions
+entirely
+from
+sumptions
+provides close
+analytical
+expression
+and extracts
+extractsand
+multimodal
+distributions
+entirely
+from
+the
+data.
+It
+can
+be
+used
+for
+development
+of
+a
+range
+and
+extracts
+multimodal
+distributions
+entirely
+from
+the data. It can be used for development of a range
+of
+methods
+for
+anomalies
+and
+fault
+detection,
+image
+the
+data.
+It
+can
+be
+used
+for
+development
+of
+a
+range
+of methods for anomalies and fault detection, image
+processing,
+classification,
+prediction,
+conof
+methods clustering,
+for anomalies
+and fault detection,
+processing,
+clustering,
+classification,
+prediction,image
+control,
+filtering,
+regression,
+etc.
+In
+this
+paper
+due
+to
+the
+processing,
+clustering,
+classification,
+prediction,
+trol, filtering, regression, etc. In this paper due toconthe
+space
+limitations,
+only
+few
+illustrative
+examples
+are
+trol,
+filtering,
+regression,
+etc.
+In
+this
+paper
+due
+to
+space limitations, only few illustrative examples the
+are
+provided
+aiming
+proof
+of
+concept.
+space
+limitations,
+only
+few
+illustrative
+examples
+are
+provided aiming proof of concept.
+provided aiming proof of concept.
+
+AUTHOR
+AUTHOR
+Plamen
+AUTHOR
+Plamen Angelov
+Angelov –Intelligent
+–Intelligent Systems
+Systems Research
+Research Lab,
+Lab,
+
+VOLUME
+VOLUME 8,
+8,
+VOLUME 8,
+
+N°
+N° 22
+N° 2
+
+2014
+2014
+2014
+
+5.
+5.
+5.
+
+J.
+J. Iglesias
+Iglesias et
+et al.,
+al., “Creating
+“Creating evolving
+evolving user
+user behavior
+behavior
+profiles
+automatically”,
+IEEE
+Trans.
+on
+J.
+Iglesias
+et
+al.,
+“Creating
+evolving
+behavior
+profiles automatically”, IEEE Trans. user
+on Knowledge
+Knowledge
+Data
+Engineering,
+vol.
+24,
+no.
+5,
+May
+2012,
+profiles
+automatically”,
+IEEE
+Trans.
+on
+Knowledge
+Data Engineering, vol. 24, no. 5, May 2012, pp.
+pp.
+854–867.
+DOI:
+Data
+Engineering,
+24, no. 5, May 2012, pp.
+854–867.
+DOI: vol.http://dx.doi.org/10.1109/
+http://dx.doi.org/10.1109/
+TKDE.2011.17
+854–867.
+DOI:
+http://dx.doi.org/10.1109/
+TKDE.2011.17
+6.
+D.
+Kolev
+et
+al.,
+“ARFA:
+TKDE.2011.17
+6. D. Kolev et al., “ARFA: Automated
+Automated Real-time
+Real-time Flight
+Flight
+Data
+Analysis
+using
+Evolving
+Clustering,
+6. D.
+Kolev
+et
+al.,
+“ARFA:
+Automated
+Real-time
+Flight
+Data Analysis using Evolving Clustering, Classifiers
+Classifiers
+and
+Density
+Estimation”.
+In:
+IEEE
+Data
+Analysis using
+Evolving
+Clustering,
+Classifiers
+and Recursive
+Recursive
+Density
+Estimation”.
+In: Proc.
+Proc.
+IEEE
+Symposium
+Series
+on
+Computational
+Intelligence,
+and
+Recursive
+Density
+Estimation”.
+In:
+Proc.
+IEEE
+Symposium Series on Computational Intelligence,
+SSCI’2013,
+April
+2013,
+ISBN
+Symposium
+Series on
+Computational
+Intelligence,
+SSCI’2013, 16–19
+16–19
+April
+2013, Singapore,
+Singapore,
+ISBN
+978-1-4673-5855-2/13,
+pp.
+91–97.
+DOI:
+http://
+SSCI’2013,
+16–19
+April
+2013,
+Singapore,
+ISBN
+978-1-4673-5855-2/13, pp. 91–97. DOI: http://
+dx.doi.org/10.1109/EAIS.2013.6604110
+978-1-4673-5855-2/13,
+pp. 91–97. DOI: http://
+dx.doi.org/10.1109/EAIS.2013.6604110
+7.
+L.
+A.
+Zadeh,
+“Fuzzy
+sets,
+Information
+dx.doi.org/10.1109/EAIS.2013.6604110
+7. L. A. Zadeh, “Fuzzy sets, Information and
+and Control,
+Control,
+vol.
+8,
+no.
+3,
+1965,
+pp.
+338–353.
+DOI:
+http://
+7. L.
+A.
+Zadeh,
+“Fuzzy
+sets,
+Information
+and
+vol. 8, no. 3, 1965, pp. 338–353. DOI: Control,
+http://
+dx.doi.org/10.1016/S0019-9958(65)90241-X
+vol.
+8,
+no.
+3,
+1965,
+pp.
+338–353.
+DOI:
+http://
+dx.doi.org/10.1016/S0019-9958(65)90241-X
+8.
+P.
+8. dx.doi.org/10.1016/S0019-9958(65)90241-X
+P. Angelov,
+Angelov, R.Yager,
+R.Yager, “A
+“A New
+New Type
+Type of
+of Simplified
+Simplified
+Fuzzy
+Rule-based
+Systems,
+International
+Journal
+8. P.
+Angelov,
+R.Yager,
+“A
+New
+Type
+of
+Simplified
+Fuzzy Rule-based Systems, International
+Journal
+of
+General
+Systems”,
+v.41(2):
+163-185,
+Jan.
+Fuzzy
+Rule-based
+Systems,
+International
+Journal
+Rule-based
+Systems,
+International
+of General
+Systems”, v.41(2):
+163-185,
+Jan. 2012.
+2012.
+DOI:
+http://dx.doi.org/10.1080/03081079.2011.
+of
+General
+163-185,
+Jan.no.
+2012.
+Journal
+of Systems”,
+General v.41(2):
+Systems”,
+vol. 41,
+2,
+DOI:
+http://dx.doi.org/10.1080/03081079.2011.
+634807
+DOI:
+http://dx.doi.org/10.1080/03081079.2011.
+pp.
+163–185,
+Jan. 2012. DOI: http://dx.doi.org/
+634807
+9.
+B.
+634807
+9. 10.1080/03081079.2011.634807
+B. S.
+S. J.
+J. Costa,
+Costa, P.
+P. P.
+P. Angelov,
+Angelov, L.
+L. A.
+A. Guedes,
+Guedes, “Fully
+“Fully
+Unsupervised
+Fault
+Detection
+and
+9. B.
+S.
+J.
+Costa,
+P.
+P.
+Angelov,
+L.
+A.
+Guedes,
+“Fully
+Unsupervised Fault Detection and Identification
+Identification
+Based
+Estimation
+and
+Unsupervised
+Fault Density
+Detection
+and Identification
+Based on
+on Recursive
+Recursive
+Density
+Estimation
+and SelfSelfevolving
+Cloud-based
+Classifier”,
+Neurocomputing,
+Based
+on
+Recursive
+Density
+Estimation
+and
+Selfevolving Cloud-based Classifier”, Neurocomputing,
+2014,
+evolving
+Cloud-based Classifier”, Neurocomputing,
+2014, to
+to appear.
+appear.
+10.
+P.
+Angelov,
+2014,
+to
+appear.
+10. P. Angelov, et
+et al.,
+al., “Symbol
+“Symbol Recognition
+Recognition with
+with aa new
+new
+Autonomously
+Evolving
+Classifier
+10. P.
+Angelov,
+et
+al.,
+“Symbol
+Recognition
+with
+a new
+Autonomously Evolving Classifier AutoClass”,
+AutoClass”,
+2014
+on
+Adaptive
+Autonomously
+Evolving
+Classifierand
+AutoClass”,
+2014 IEEE
+IEEE Conference
+Conference
+on Evolving
+Evolving
+and
+Adaptive
+Intelligent
+Systems,
+EAIS-2014,
+2–4
+June,
+2014
+IEEE
+Conference
+on
+Evolving
+and
+Adaptive
+Intelligent Systems, EAIS-2014, 2–4 June, 2014,
+2014,
+Linz,
+to
+Intelligent
+Systems,
+EAIS-2014, 2–4 June, 2014,
+Linz, Austria,
+Austria,
+to appear.
+appear.
+11.
+http://www.martynhicks.co.uk/weather/data.
+Austria, to appear.
+11. Linz,
+http://www.martynhicks.co.uk/weather/data.
+php?page=m01y2014,
+11. http://www.martynhicks.co.uk/weather/data.
+php?page=m01y2014, accessed
+accessed 6
+6 February
+February 2014
+2014
+12.
+P.
+Angelov,
+“Fuzzily
+Connected
+php?page=m01y2014,
+accessed
+6
+February
+2014
+12. P. Angelov, “Fuzzily Connected Multi-Model
+Multi-Model
+Systems
+Evolving
+from
+12. P.
+Angelov,
+“FuzzilyAutonomously
+Connected Multi-Model
+Systems
+Evolving
+Autonomously
+from Data
+Data
+Streams”,
+IEEE
+Transactions
+on
+Systems,
+and
+Systems
+Evolving
+Autonomously
+from
+Streams”, IEEE Transactions on Systems, Man,
+Man,Data
+and
+Cybernetics
+–
+part
+B,
+Cybernetics,
+vol.
+41,
+no.
+Streams”,
+IEEE
+Transactions
+on
+Systems,
+Man,
+and
+Cybernetics – part B, Cybernetics, vol. 41, no. 4,
+4,
+August
+898–910.
+Cybernetics
+part
+B, Cybernetics, vol. 41, no. 4,
+August 2011,
+2011,– pp.
+pp.
+898–910.
+August 2011, pp. 898–910.
+
+School
+Computing
+and
+Lancaster
+Plamen
+–Intelligent
+Systems Research
+Lab,
+School of
+ofAngelov
+Computing
+and Communications,
+Communications,
+Lancaster
+University,
+LA1
+4WA,
+UK.
+School
+of
+Computing
+and
+Communications,
+Lancaster
+University, LA1 4WA, UK.
+University, LA1 4WA, UK.
+E-mail:
+E-mail: p.angelov@lancaster.ac.uk
+p.angelov@lancaster.ac.uk
+E-mail: p.angelov@lancaster.ac.uk
+
+REFEREnCEs
+REFEREnCEs
+REFEREnCEs
+1.
+C. Bishop,
+Bishop, Machine
+1. C.
+Machine Learning
+Learning and
+and Pattern
+Pattern
+Springer,
+2009.
+1. Classification,
+C.
+Bishop,
+Machine
+Learning
+and Pattern
+Classification, Springer, 2009.
+2. D.
+D. Osherson,
+E.
+“Discussion:
+Classification,
+2.
+Osherson, E.
+E.Springer,
+E. Smith,
+Smith,2009.
+“Discussion: On
+On typicaltypicalityOsherson,
+and
+vagueness”,
+Cognition,
+vol.
+64,
+1997,
+pp.
+2. ity
+D.
+E.
+E.
+Smith,
+“Discussion:
+typicaland vagueness”, Cognition, vol. 64,On
+1997,
+pp.
+189–206.
+ity
+and
+vagueness”,
+Cognition,
+vol.
+64,
+1997,
+pp.
+189–206.
+3.
+P.
+Angelov,
+Autonomous
+Learning
+Systems:
+From
+189–206.
+3. P. Angelov, Autonomous Learning Systems: From
+Data
+Streams
+to
+in
+time,
+John
+3. Data
+P. Angelov,
+Autonomous
+Learning
+Systems:
+Streams
+to Knowledge
+Knowledge
+in Real
+Real
+time, From
+John
+Willey,
+Dec.
+2012,
+ISBN:
+978-1-1199-5152-0.
+DOI:
+Data
+Streams
+to
+Knowledge
+in
+Real
+time,
+Willey, Dec. 2012, ISBN: 978-1-1199-5152-0. John
+DOI:
+http://dx.doi.org/10.1002/9781118481769
+Willey,
+Dec.
+2012,
+ISBN:
+978-1-1199-5152-0.
+http://dx.doi.org/10.1002/9781118481769 DOI:
+4. P.
+P.
+Angelov, Anomalous
+Anomalous System
+http://dx.doi.org/10.1002/9781118481769
+4.
+Angelov,
+System State
+State Identification,
+Identification,
+GB1208542.9
+patent
+application,
+priority
+date,15
+4. GB1208542.9
+P. Angelov, Anomalous
+System
+State
+Identification,
+patent application,
+priority
+date,15
+May
+2012.
+GB1208542.9
+patent
+application,
+priority
+date,15
+May 2012.
+May 2012.
+
+Articles
+Articles
+Articles
+
+59
+59
+59
+35
+
+
