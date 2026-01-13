@@ -41,7 +41,7 @@
 			"Bash(dvc:*)",
 			"Bash(docker:*)",
 			"Bash(docker-compose:*)",
-			"Bash(kafka-*)",
+			"Bash(kafka-:*)",
 			"Bash(mlflow:*)",
 			"Bash(jupyter:*)",
 			"Bash(curl:*)",
@@ -70,18 +70,25 @@
 		"deny": []
 	},
 	"hooks": {
-		"SessionStart": {
-			"command": ".claude/hooks/session-start.sh",
-			"enabled": true
-		},
-		"SessionEnd": {
-			"command": ".claude/hooks/session-end.sh",
-			"enabled": true
-		},
-		"BackgroundTask": {
-			"command": ".claude/hooks/auto-save.sh",
-			"enabled": true,
-			"interval": 600000
-		}
+		"SessionStart": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": ".claude/hooks/session-start.sh"
+					}
+				]
+			}
+		],
+		"SessionEnd": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": ".claude/hooks/session-end.sh"
+					}
+				]
+			}
+		]
 	}
 }
