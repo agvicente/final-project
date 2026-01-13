@@ -938,7 +938,111 @@ Para cada data cloud i*, guardar apenas:
 - Pontos antigos podem ter peso menor (forgetting factor)
 - Ordem de chegada importa (streaming não é batch)
 
-#### 7.2.6 Por que "Fora da Zona + τ > 1/k" para Novo Protótipo?
+#### 7.2.6 Como a Tipicalidade Forma Clusters
+
+A tipicalidade é o **mecanismo central** para formar clusters no TEDA. Esta seção sintetiza o processo completo.
+
+##### 1. Identificação de Protótipos
+
+O ponto com **maior tipicalidade** (τ máximo) em um conjunto de dados é o mais representativo — ele se torna o **protótipo** (focal point) do cluster.
+
+```
+Protótipo = argmax τ(x_j)  para todo x_j no conjunto
+```
+
+**Intuição:** O ponto mais "central", mais próximo de todos os outros.
+
+##### 2. Criação de Novos Clusters (Streaming)
+
+Quando um novo ponto x chega em streaming:
+
+```
+SE x está fora da zona de influência de protótipos existentes
+   E τ(x) > 1/k   (mais típico que a média)
+ENTÃO
+   x se torna protótipo de um NOVO cluster
+```
+
+O threshold **1/k** funciona como filtro: evita criar clusters para outliers (que teriam τ baixo).
+
+##### 3. Atribuição de Pontos a Clusters
+
+Cada novo ponto é atribuído ao cluster cujo protótipo ele é **mais típico em relação a**:
+
+```
+cluster(x) = argmax τ_c(x)  para cada cluster c
+```
+
+Onde τ_c(x) é a tipicalidade de x calculada usando as estatísticas **locais** do cluster c (μ_c, σ²_c).
+
+##### 4. Evolução Contínua
+
+À medida que dados chegam em streaming:
+- **Protótipos se movem** — média μ atualiza incrementalmente
+- **Novos clusters surgem** — concept drift, novas classes de ataque
+- **Clusters podem fundir** — se protótipos ficarem muito próximos
+- **Clusters podem desaparecer** — com forgetting factor
+
+##### 5. Diferença Fundamental para Clustering Tradicional
+
+| Aspecto | K-means | DBSCAN | TEDA |
+|---------|---------|--------|------|
+| Número de clusters | Fixo (k) | Automático | **Dinâmico** |
+| Forma dos clusters | Esférica | Arbitrária | **Sem forma** |
+| Protótipo | Centróide | Core points | **Ponto de maior τ** |
+| Atribuição | Distância mínima | Densidade | **Tipicalidade máxima** |
+| Streaming | Não nativo | Não nativo | **Nativo** |
+| Parâmetros | k | eps, min_samples | **Nenhum obrigatório** |
+
+##### 6. Inversão de Lógica
+
+**Clustering tradicional (distância):**
+```
+"Quão LONGE está do centro?"
+→ Quanto MENOR a distância, melhor
+→ Fronteira = círculo/esfera de raio fixo
+```
+
+**TEDA (tipicalidade):**
+```
+"Quão REPRESENTATIVO é este ponto?"
+→ Quanto MAIOR a tipicalidade, melhor
+→ Fronteira = conjunto onde τ cai abaixo de threshold
+```
+
+Isso permite que clusters tenham **formas arbitrárias** — a "fronteira" não é geométrica, mas definida pela estrutura dos dados.
+
+##### 7. Exemplo Visual do Processo
+
+```
+Passo 1: Dados chegam
+    ● ● ●    ○ ○ ○ ○    ✗ (outlier)
+    grupo A     grupo B
+
+Passo 2: Calcular τ global de todos
+    → ● central tem maior τ → PROTÓTIPO A
+
+Passo 3: Definir zona de influência de A
+
+Passo 4: Fora da zona, quem tem τ > 1/k?
+    → ○ central sim (τ alto) → PROTÓTIPO B
+    → ✗ outlier não (τ << 1/k) → ignorado
+
+Passo 5: Novos pontos → atribuir ao cluster de maior τ_local
+
+Resultado: 2 clusters formados SEM especificar k=2!
+```
+
+##### 8. Conexão com MicroTEDAclus
+
+No MicroTEDAclus (Maia 2020), este conceito evolui para:
+- **Micro-clusters**: múltiplos protótipos por cluster (formas complexas)
+- **Mixture of typicalities**: combinação de τ de vários micro-clusters
+- **Merge/split automático**: critérios baseados em tipicalidade
+
+Esta seção é a **ponte conceitual** para entender o algoritmo completo.
+
+#### 7.2.7 Por que "Fora da Zona + τ > 1/k" para Novo Protótipo?
 
 **O Problema:** Como formar MÚLTIPLOS clusters sem definir k (número de clusters)?
 
@@ -974,7 +1078,7 @@ Passo 4: ○ com maior τ → protótipo de B
 
 **⚠️ ATENÇÃO:** O paper NÃO define como calcular a "zona de influência" — é deixado como escolha de design. Ver seção 8.3 para detalhes desta lacuna.
 
-#### 7.2.7 Por que Guardar Apenas {μ, X, Σπ} por Cluster?
+#### 7.2.8 Por que Guardar Apenas {μ, X, Σπ} por Cluster?
 
 **O Problema: Streaming com Milhões de Pontos**
 
@@ -1015,7 +1119,7 @@ onde σ² = X - ||μ||²
                     Calculável só com μ, X, k
 ```
 
-#### 7.2.8 O Significado de 1/k como Threshold
+#### 7.2.9 O Significado de 1/k como Threshold
 
 **O que 1/k representa?**
 
@@ -1066,7 +1170,7 @@ Threshold: 1/k = 0.25
 2. **Não requer cálculo adicional** — deriva direto de k
 3. **Interpretação clara** — "acima/abaixo da média esperada"
 
-#### 7.2.9 Conexão com MicroTEDAclus
+#### 7.2.10 Conexão com MicroTEDAclus
 
 | TEDA (Angelov 2014) | MicroTEDAclus (Maia 2020) |
 |---------------------|---------------------------|
