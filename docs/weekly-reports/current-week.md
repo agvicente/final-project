@@ -19,10 +19,11 @@
 
 | # | Entregável | Status | Arquivo |
 |---|------------|--------|---------|
-| 1 | Fichamento Angelov (2014) | 🟡 85% | `docs/paper-summaries/angelov-2014-teda.md` |
-| 2 | Ambiente Kafka rodando | ⏳ | Docker remoto |
-| 3 | Producer v0.1 (PCAP reader) | ⏳ | `src/producer/` |
-| 4 | Relatório Semanal | ⏳ | Este documento |
+| 1 | Fichamento Angelov (2014) | ✅ 95% | `docs/paper-summaries/angelov-2014-teda.md` |
+| 2 | Documento de Lacunas | ✅ | `docs/KNOWLEDGE_GAPS.md` |
+| 3 | Ambiente Kafka rodando | ⏳ | Docker remoto |
+| 4 | Producer v0.1 (PCAP reader) | ⏳ | `src/producer/` |
+| 5 | Relatório Semanal | 🟡 | Este documento |
 
 ---
 
@@ -32,6 +33,9 @@
 - [x] Ler paper completo: "Outside the box: an alternative data analytics framework" ✅
 - [x] Criar fichamento seguindo template ✅
 - [x] Extrair fórmulas e pseudocódigo ✅
+- [x] Derivação matemática completa (Huygens-Steiner) ✅
+- [x] Seções 4-5: Anomaly Detection e Data Clouds ✅
+- [x] Identificar limitações do paper ✅
 - [ ] Relacionar com MicroTEDAclus (Maia 2020)
 
 ### Dias 3-4 (~4h): Setup Ambiente Remoto
@@ -72,6 +76,34 @@
 - Relacionar TEDA com MicroTEDAclus (Maia 2020)
 - Iniciar setup Kafka
 
+### Session 2: 2026-01-05 (~2h)
+**Focus:** Aprofundamento matemático TEDA + Seções 4-5
+
+**Atividades:**
+- Explicação detalhada de ζ (normalized eccentricity) e similaridade com PDF
+- Derivação matemática completa da fórmula recursiva
+- Identificação do Teorema Huygens-Steiner como base da otimização O(n²) → O(n)
+- Leitura e resumo das Seções 4-5 (Anomaly Detection, Data Clouds)
+- Explicação do critério τ > 1/k para criar novos protótipos
+- Explicação da eficiência de memória (estatísticas suficientes)
+- Identificação de limitação: "zona de influência" não definida no paper
+- Criação de documento de lacunas de conhecimento
+
+**Arquivos criados/modificados:**
+- `docs/paper-summaries/angelov-2014-teda.md` (expandido 85% → 95%)
+- `docs/KNOWLEDGE_GAPS.md` (novo)
+- `docs/SESSION_CONTEXT.md` (atualizado)
+
+**Conceitos aprendidos:**
+- Huygens-Steiner / König-Huygens para variância recursiva
+- Data Clouds vs clusters tradicionais
+- Threshold 1/k como "fair share"
+- Estatísticas suficientes: {μ, X, k, Σπ}
+
+**Próxima sessão:**
+- Relacionar TEDA com MicroTEDAclus (Maia 2020)
+- Setup Kafka
+
 ---
 
 ## 📈 Learning Progress
@@ -84,6 +116,12 @@
 - [x] Aplicações demonstradas ✅
 - [x] Conceitos adicionais: frequentista, kernels, normalização ✅
 - [x] Métricas de distância ✅
+- [x] Derivação matemática (Huygens-Steiner) ✅
+- [x] Seção 4: Anomaly Detection ✅
+- [x] Seção 5: Data Clouds / Clustering ✅
+- [x] Critério τ > 1/k para novo protótipo ✅
+- [x] Eficiência de memória (estatísticas suficientes) ✅
+- [x] Limitações identificadas ✅
 
 ### Implementação
 - [ ] Kafka basics (topics, producers, consumers)
@@ -94,13 +132,31 @@
 
 ## 🧠 Insights & Decisions
 
-*(To be filled during the week)*
+### Insight 1: Teorema de Huygens-Steiner é a chave
+A fórmula recursiva do TEDA só é possível graças à identidade:
+```
+Σᵢ ||x_j - x_i||² = k·||x_j - μ||² + k·σ²
+```
+Isso transforma O(n²) comparações em O(n), viabilizando streaming.
+
+### Insight 2: Data Clouds ≠ Clusters tradicionais
+TEDA não assume forma, tamanho ou número de clusters. Cada "nuvem" é definida apenas por suas estatísticas suficientes {μ, X, k, Σπ}.
+
+### Insight 3: Threshold 1/k como "fair share"
+O valor 1/k representa a tipicalidade esperada se todos os pontos fossem igualmente típicos. Usar τ > 1/k como critério significa "mais típico que a média".
+
+### Insight 4: Limitação do paper - Zona de Influência
+O paper não define precisamente o que é "zona de influência" de um protótipo. Isso é uma escolha de design que afeta significativamente o comportamento do algoritmo.
+
+### Decision: Criar documento de lacunas
+Identificar e rastrear lacunas de conhecimento matemático para estudo paralelo. Prioridade: Álgebra Linear > Estatística > Identidades matemáticas.
 
 ---
 
 ## 🚧 Blockers & Challenges
 
-*(To be filled during the week)*
+- **Nenhum blocker crítico** - Foco teórico está fluindo bem
+- **Pendente:** Acesso à máquina remota para setup Kafka
 
 ---
 
@@ -112,10 +168,18 @@
 - Plano de leituras estruturado
 
 ### Progresso Semana 2
-*(To be filled)*
+- **Fichamento Angelov (2014):** 95% completo
+  - Todas as fórmulas extraídas e explicadas
+  - Derivação matemática documentada (Huygens-Steiner)
+  - Seções 4-5 (Anomaly Detection, Data Clouds) resumidas
+  - Limitações identificadas (zona de influência não definida)
+- **Novo documento:** `KNOWLEDGE_GAPS.md` para estudo paralelo
+- **Próximo:** Relacionar com MicroTEDAclus (Maia 2020)
 
 ### Questions
-*(To be filled)*
+1. **Zona de influência:** Como o MicroTEDAclus define isso? É um hiperparâmetro?
+2. **Métricas de avaliação:** Qual métrica usar para clustering evolutivo em streaming?
+3. **Setup Kafka:** Confirmar acesso à máquina remota para próxima sessão
 
 ---
 
@@ -129,6 +193,7 @@
 
 ---
 
-**Week 2 Started.**
+**Week 2 Progress: ~60%**
 
 *Iniciado em: 2025-12-23*
+*Última atualização: 2026-01-13*

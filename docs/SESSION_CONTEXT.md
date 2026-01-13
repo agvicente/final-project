@@ -1,13 +1,13 @@
 # SESSION CONTEXT - IoT IDS Research Project
-**Last Updated:** 2026-01-03 (Session: Fichamento Angelov 2014 - 85% completo)
+**Last Updated:** 2026-01-05 (Session: Fichamento Angelov 2014 - 95% completo)
 
 ---
 
 ## 🎯 CURRENT STATUS
 
 **Phase:** Fase 2A - Teoria + Design + Setup
-**Week:** Semana 2 de 24 (~40% complete)
-**Current Task:** Finalizar fichamento Angelov (2014), relacionar com MicroTEDAclus
+**Week:** Semana 2 de 24 (~60% complete)
+**Current Task:** Leitura MicroTEDAclus (Maia 2020), Setup Kafka
 
 ---
 
@@ -49,18 +49,23 @@
 - ✅ Plano de leituras: 8 principais + 12 auxiliares em 4 áreas
 - ✅ Relatório semanal finalizado
 
-### Fase 2A, Semana 2: Leitura Angelov + Setup (40% COMPLETE)
-- ✅ Fichamento Angelov (2014) - 85% completo
+### Fase 2A, Semana 2: Leitura Angelov + Setup (60% COMPLETE)
+- ✅ Fichamento Angelov (2014) - 95% completo
   - Conceitos: frequentista, belief/possibility theory, first principles
   - Métricas de distância: Euclidean, Manhattan, Mahalanobis, Cosine
   - Normalização e por que ξ = π normalizado
   - Fórmulas: π, ξ, τ com exemplos numéricos
+  - Derivação matemática completa (Huygens-Steiner)
+  - Seções 4-5: Anomaly Detection e Data Clouds
+  - Limitações identificadas (zona de influência)
+- ✅ Documento de lacunas de conhecimento criado
 - ⏳ Relacionar TEDA com MicroTEDAclus (Maia 2020)
 - ⏳ Setup ambiente Kafka remoto
 - ⏳ Producer v0.1
 
 **Key Files Created:**
-- `docs/paper-summaries/angelov-2014-teda.md` - Fichamento detalhado (~85%)
+- `docs/paper-summaries/angelov-2014-teda.md` - Fichamento detalhado (~95%)
+- `docs/KNOWLEDGE_GAPS.md` - Lacunas de conhecimento para estudo
 
 ---
 
@@ -76,6 +81,10 @@
 - [x] Extrair fórmulas e pseudocódigo ✅
 - [x] Documentar conceitos: frequentista, kernels, normalização ✅
 - [x] Documentar métricas de distância ✅
+- [x] Derivação matemática completa (Huygens-Steiner) ✅
+- [x] Seções 4-5: Anomaly Detection e Data Clouds ✅
+- [x] Identificar limitações do paper ✅
+- [x] Criar documento de lacunas de conhecimento ✅
 
 **Remaining:**
 - [ ] Relacionar TEDA com MicroTEDAclus (Maia 2020)
@@ -84,7 +93,8 @@
 - [ ] Atualizar relatório semanal
 
 **Deliverables Created:**
-1. `docs/paper-summaries/angelov-2014-teda.md` ✅ (85% completo)
+1. `docs/paper-summaries/angelov-2014-teda.md` ✅ (95% completo)
+2. `docs/KNOWLEDGE_GAPS.md` ✅ (novo)
 
 ---
 
@@ -177,14 +187,14 @@
 
 | Área | Papers Principais | Status |
 |------|------------------|--------|
-| **ML (Clustering)** | Angelov (2014), Maia (2020) | 1 parcial |
+| **ML (Clustering)** | Angelov (2014), Maia (2020) | 1 completo ✅ |
 | **Cibersegurança** | CICIoT2023, Survey IDS IoT | 1 parcial |
 | **IoT** | Survey IoT Security, Edge IDS | 0 |
 | **Arquitetura** | Streaming paper, Kafka Guide | 0 |
 
 ### Next Readings
-1. **S2 (próxima):** Angelov (2014) - TEDA Framework original
-2. **S3:** Maia (2020) - Releitura completa + Survey Drift
+1. **S2 (atual):** Angelov (2014) - TEDA Framework original ✅ COMPLETO
+2. **S3:** Maia (2020) - MicroTEDAclus, releitura completa + Survey Drift
 
 **Full plan:** `docs/reading-plan.md`
 
@@ -196,6 +206,11 @@
 - [x] K-means, DBSCAN fundamentals ✅
 - [x] TEDA: eccentricidade, tipicalidade ✅
 - [x] Concept drift types ✅
+- [x] TEDA: fórmula recursiva e derivação matemática ✅
+- [x] TEDA: Huygens-Steiner para O(n) ✅
+- [x] TEDA: Data Clouds vs clusters tradicionais ✅
+- [x] TEDA: critério τ > 1/k para novo protótipo ✅
+- [x] TEDA: eficiência de memória (estatísticas suficientes) ✅
 - [ ] Métricas de avaliação para clustering (pesquisar)
 - [ ] Validação estatística para streaming
 
@@ -213,6 +228,9 @@
 
 ## 📁 KEY DOCUMENTS
 
+### Paper Summaries (Fichamentos)
+- `docs/paper-summaries/angelov-2014-teda.md` - TEDA Framework original (95% completo)
+
 ### Summaries (Fundamentação)
 - `docs/summaries/clustering-evolutivo-concepts.md` - TEDA/MicroTEDAclus
 - `docs/summaries/concept-drift-fundamentals.md` - 4 tipos de drift
@@ -221,6 +239,9 @@
 ### Plans (Planejamento)
 - `docs/plans/2025-12-17-architecture-design.md` - Arquitetura MVP
 - `docs/reading-plan.md` - Plano de leituras 4 áreas
+
+### Study Aids (Estudo)
+- `docs/KNOWLEDGE_GAPS.md` - Lacunas de conhecimento para reforçar
 
 ### Reports (Acompanhamento)
 - `docs/weekly-reports/current-week.md` - Relatório semanal atual
