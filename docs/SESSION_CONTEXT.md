@@ -1,13 +1,13 @@
 # SESSION CONTEXT - IoT IDS Research Project
-**Last Updated:** 2026-01-05 (Session: Fichamento Angelov 2014 - 95% completo)
+**Last Updated:** 2026-01-14 (Session: Fichamento MicroTEDAclus completo)
 
 ---
 
 ## 🎯 CURRENT STATUS
 
 **Phase:** Fase 2A - Teoria + Design + Setup
-**Week:** Semana 2 de 24 (~60% complete)
-**Current Task:** Leitura MicroTEDAclus (Maia 2020), Setup Kafka
+**Week:** Semana 2 de 24 (~80% complete)
+**Current Task:** Setup Kafka, Producer v0.1
 
 ---
 
@@ -49,8 +49,8 @@
 - ✅ Plano de leituras: 8 principais + 12 auxiliares em 4 áreas
 - ✅ Relatório semanal finalizado
 
-### Fase 2A, Semana 2: Leitura Angelov + Setup (60% COMPLETE)
-- ✅ Fichamento Angelov (2014) - 95% completo
+### Fase 2A, Semana 2: Leitura Angelov + Setup (80% COMPLETE)
+- ✅ Fichamento Angelov (2014) - 100% completo
   - Conceitos: frequentista, belief/possibility theory, first principles
   - Métricas de distância: Euclidean, Manhattan, Mahalanobis, Cosine
   - Normalização e por que ξ = π normalizado
@@ -58,13 +58,20 @@
   - Derivação matemática completa (Huygens-Steiner)
   - Seções 4-5: Anomaly Detection e Data Clouds
   - Limitações identificadas (zona de influência)
+  - Como tipicalidade forma clusters
+- ✅ Fichamento MicroTEDAclus (Maia 2020) - 100% completo
+  - Arquitetura micro-clusters + macro-clusters
+  - Threshold dinâmico m(k) = 3/(1 + e^{-0.007(k-100)})
+  - Mixture of typicalities: T_j = Σ w_l × t_l(x)
+  - Comparação com DenStream, CluStream, StreamKM++
+  - Pseudocódigo completo dos algoritmos
 - ✅ Documento de lacunas de conhecimento criado
-- ⏳ Relacionar TEDA com MicroTEDAclus (Maia 2020)
 - ⏳ Setup ambiente Kafka remoto
 - ⏳ Producer v0.1
 
 **Key Files Created:**
-- `docs/paper-summaries/angelov-2014-teda.md` - Fichamento detalhado (~95%)
+- `docs/paper-summaries/angelov-2014-teda.md` - Fichamento TEDA (100%)
+- `docs/paper-summaries/maia-2020-microtedaclus.md` - Fichamento MicroTEDAclus (100%)
 - `docs/KNOWLEDGE_GAPS.md` - Lacunas de conhecimento para estudo
 
 ---
@@ -85,16 +92,19 @@
 - [x] Seções 4-5: Anomaly Detection e Data Clouds ✅
 - [x] Identificar limitações do paper ✅
 - [x] Criar documento de lacunas de conhecimento ✅
+- [x] Ler paper MicroTEDAclus (Maia 2020) ✅
+- [x] Fichamento MicroTEDAclus completo ✅
+- [x] Relacionar TEDA com MicroTEDAclus ✅
 
 **Remaining:**
-- [ ] Relacionar TEDA com MicroTEDAclus (Maia 2020)
 - [ ] Setup Kafka ambiente remoto
 - [ ] Producer v0.1 (PCAP reader)
 - [ ] Atualizar relatório semanal
 
 **Deliverables Created:**
-1. `docs/paper-summaries/angelov-2014-teda.md` ✅ (95% completo)
-2. `docs/KNOWLEDGE_GAPS.md` ✅ (novo)
+1. `docs/paper-summaries/angelov-2014-teda.md` ✅ (100%)
+2. `docs/paper-summaries/maia-2020-microtedaclus.md` ✅ (100%)
+3. `docs/KNOWLEDGE_GAPS.md` ✅
 
 ---
 
@@ -187,14 +197,15 @@
 
 | Área | Papers Principais | Status |
 |------|------------------|--------|
-| **ML (Clustering)** | Angelov (2014), Maia (2020) | 1 completo ✅ |
+| **ML (Clustering)** | Angelov (2014), Maia (2020) | 2 completos ✅✅ |
 | **Cibersegurança** | CICIoT2023, Survey IDS IoT | 1 parcial |
 | **IoT** | Survey IoT Security, Edge IDS | 0 |
 | **Arquitetura** | Streaming paper, Kafka Guide | 0 |
 
 ### Next Readings
-1. **S2 (atual):** Angelov (2014) - TEDA Framework original ✅ COMPLETO
-2. **S3:** Maia (2020) - MicroTEDAclus, releitura completa + Survey Drift
+1. **S2:** Angelov (2014) - TEDA Framework original ✅ COMPLETO
+2. **S2:** Maia (2020) - MicroTEDAclus ✅ COMPLETO
+3. **S3:** Survey Concept Drift + Kafka Guide
 
 **Full plan:** `docs/reading-plan.md`
 
@@ -211,6 +222,10 @@
 - [x] TEDA: Data Clouds vs clusters tradicionais ✅
 - [x] TEDA: critério τ > 1/k para novo protótipo ✅
 - [x] TEDA: eficiência de memória (estatísticas suficientes) ✅
+- [x] MicroTEDAclus: arquitetura micro + macro clusters ✅
+- [x] MicroTEDAclus: threshold dinâmico m(k) ✅
+- [x] MicroTEDAclus: mixture of typicalities ✅
+- [x] MicroTEDAclus: critério de interseção dist < 2(σ_i + σ_j) ✅
 - [ ] Métricas de avaliação para clustering (pesquisar)
 - [ ] Validação estatística para streaming
 
@@ -229,7 +244,8 @@
 ## 📁 KEY DOCUMENTS
 
 ### Paper Summaries (Fichamentos)
-- `docs/paper-summaries/angelov-2014-teda.md` - TEDA Framework original (95% completo)
+- `docs/paper-summaries/angelov-2014-teda.md` - TEDA Framework original (100%)
+- `docs/paper-summaries/maia-2020-microtedaclus.md` - MicroTEDAclus (100%)
 
 ### Summaries (Fundamentação)
 - `docs/summaries/clustering-evolutivo-concepts.md` - TEDA/MicroTEDAclus
