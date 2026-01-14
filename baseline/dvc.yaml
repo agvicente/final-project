@@ -1,0 +1,189 @@
+stages:
+  check_quality:
+    cmd: python3 dvc_run_quality_check.py
+    deps:
+    - dvc_run_quality_check.py
+    - check_dataset_quality.py
+    outs:
+    - ../data/metrics/quality_check.json
+  sampling:
+    cmd: python3 dvc_sampling.py
+    deps:
+    - ../data/raw/CSV/MERGED_CSV
+    - dvc_sampling.py
+    outs:
+    - ../data/processed/sampled.csv
+  eda:
+    cmd: python3 src/eda/dvc_eda.py
+    deps:
+    - ../data/processed/sampled.csv
+    - src/eda/dvc_eda.py
+    outs:
+    - src/eda/results/
+  preprocess:
+    cmd: python3 dvc_preprocessing.py
+    deps:
+    - ../data/processed/sampled.csv
+    - dvc_preprocessing.py
+    - configs/preprocessing.yaml
+    outs:
+    - ../data/processed/train_normalized.csv
+    - ../data/processed/test_normalized.csv
+    - ../data/processed/scaler.pkl
+    - ../data/processed/X_train.npy
+    - ../data/processed/X_test.npy
+    - ../data/processed/y_train.npy
+    - ../data/processed/y_test.npy
+    - ../data/processed/preprocessing_metadata.json
+    - ../data/processed/binary/train_binary.csv
+    - ../data/processed/binary/test_binary.csv
+    - ../data/processed/binary/X_train_binary.npy
+    - ../data/processed/binary/X_test_binary.npy
+    - ../data/processed/binary/y_train_binary.npy
+    - ../data/processed/binary/y_test_binary.npy
+    - ../data/processed/binary/scaler.pkl
+    - ../data/processed/binary/binary_metadata.json
+
+  # === EXPERIMENTOS INDIVIDUAIS ===
+  # Ordenados do MENOS complexo para o MAIS complexo computacionalmente
+  # Os estágios se adaptam automaticamente ao TEST_MODE do algorithm_comparison.py
+  
+  # 1. MAIS RÁPIDO - O(n)
+  exp_logistic_regression:
+    cmd: python3 experiments/run_single_algorithm.py logistic_regression
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - experiments/individual_analysis.py
+    - ../data/processed/binary/X_train_binary.npy
+    - ../data/processed/binary/X_test_binary.npy
+    - ../data/processed/binary/y_train_binary.npy
+    - ../data/processed/binary/y_test_binary.npy
+    - ../data/processed/binary/binary_metadata.json
+    
+  # 2. RÁPIDO - O(n log n)
+  exp_random_forest:
+    cmd: python3 experiments/run_single_algorithm.py random_forest
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - experiments/individual_analysis.py
+    - ../data/processed/binary/X_train_binary.npy
+    - ../data/processed/binary/X_test_binary.npy
+    - ../data/processed/binary/y_train_binary.npy
+    - ../data/processed/binary/y_test_binary.npy
+    - ../data/processed/binary/binary_metadata.json
+    
+  # 3. MODERADO - O(n log n)
+  exp_gradient_boosting:
+    cmd: python3 experiments/run_single_algorithm.py gradient_boosting
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - experiments/individual_analysis.py
+    - ../data/processed/binary/X_train_binary.npy
+    - ../data/processed/binary/X_test_binary.npy
+    - ../data/processed/binary/y_train_binary.npy
+    - ../data/processed/binary/y_test_binary.npy
+    - ../data/processed/binary/binary_metadata.json
+    
+  # 4. RÁPIDO PARA ANOMALIAS - O(n log n)
+  exp_isolation_forest:
+    cmd: python3 experiments/run_single_algorithm.py isolation_forest
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - experiments/individual_analysis.py
+    - ../data/processed/binary/X_train_binary.npy
+    - ../data/processed/binary/X_test_binary.npy
+    - ../data/processed/binary/y_train_binary.npy
+    - ../data/processed/binary/y_test_binary.npy
+    - ../data/processed/binary/binary_metadata.json
+
+  # 5. MODERADO PARA ANOMALIAS - O(n²)
+  exp_elliptic_envelope:
+    cmd: python3 experiments/run_single_algorithm.py elliptic_envelope
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - experiments/individual_analysis.py
+    - ../data/processed/binary/X_train_binary.npy
+    - ../data/processed/binary/X_test_binary.npy
+    - ../data/processed/binary/y_train_binary.npy
+    - ../data/processed/binary/y_test_binary.npy
+    - ../data/processed/binary/binary_metadata.json
+
+  # 6. PESADO PARA ANOMALIAS - Otimizado com Ball Tree
+  exp_local_outlier_factor:
+    cmd: python3 experiments/run_single_algorithm.py local_outlier_factor
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - experiments/individual_analysis.py
+    - ../data/processed/binary/X_train_binary.npy
+    - ../data/processed/binary/X_test_binary.npy
+    - ../data/processed/binary/y_train_binary.npy
+    - ../data/processed/binary/y_test_binary.npy
+    - ../data/processed/binary/binary_metadata.json
+
+  # 7. PESADO - LinearSVC otimizado para datasets grandes
+  exp_linear_svc:
+    cmd: python3 experiments/run_single_algorithm.py linear_svc
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - experiments/individual_analysis.py
+    - ../data/processed/binary/X_train_binary.npy
+    - ../data/processed/binary/X_test_binary.npy
+    - ../data/processed/binary/y_train_binary.npy
+    - ../data/processed/binary/y_test_binary.npy
+    - ../data/processed/binary/binary_metadata.json
+    
+  # 8. RÁPIDO - SVM via gradiente estocástico
+  exp_sgd_classifier:
+    cmd: python3 experiments/run_single_algorithm.py sgd_classifier
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - experiments/individual_analysis.py
+    - ../data/processed/binary/X_train_binary.npy
+    - ../data/processed/binary/X_test_binary.npy
+    - ../data/processed/binary/y_train_binary.npy
+    - ../data/processed/binary/y_test_binary.npy
+    - ../data/processed/binary/binary_metadata.json
+    
+  # 9. OTIMIZADO - OneClassSVM via gradiente estocástico
+  exp_sgd_one_class_svm:
+    cmd: python3 experiments/run_single_algorithm.py sgd_one_class_svm
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - experiments/individual_analysis.py
+    - ../data/processed/binary/X_train_binary.npy
+    - ../data/processed/binary/X_test_binary.npy
+    - ../data/processed/binary/y_train_binary.npy
+    - ../data/processed/binary/y_test_binary.npy
+    - ../data/processed/binary/binary_metadata.json
+    
+  # 10. REDES NEURAIS - Otimizado para CPU sem GPU
+  exp_mlp:
+    cmd: python3 experiments/run_single_algorithm.py mlp
+    deps:
+    - experiments/run_single_algorithm.py
+    - experiments/algorithm_comparison.py
+    - experiments/individual_analysis.py
+    - ../data/processed/binary/X_train_binary.npy
+    - ../data/processed/binary/X_test_binary.npy
+    - ../data/processed/binary/y_train_binary.npy
+    - ../data/processed/binary/y_test_binary.npy
+    - ../data/processed/binary/binary_metadata.json
+
+  # === CONSOLIDAÇÃO DE RESULTADOS ===
+  # Consolida os resultados de todos os algoritmos
+  consolidate_results:
+    cmd: python3 experiments/consolidate_results.py
+    deps:
+    - experiments/consolidate_results.py
+    # Não declaramos experiments/results/ como dependência pois as pastas
+    # são criadas dinamicamente com timestamp
+    # Cada consolidação cria pasta com timestamp em experiments/results/test|full/

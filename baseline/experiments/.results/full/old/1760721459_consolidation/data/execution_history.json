@@ -1,0 +1,62 @@
+[
+  {
+    "timestamp": 1760721459,
+    "algorithm": "EllipticEnvelope",
+    "folder": "1760721459_ellipticenvelope",
+    "mode": "COMPLETO"
+  },
+  {
+    "timestamp": 1760721459,
+    "algorithm": "MLPClassifier",
+    "folder": "1760721459_mlpclassifier",
+    "mode": "COMPLETO"
+  },
+  {
+    "timestamp": 1760721459,
+    "algorithm": "GradientBoostingClassifier",
+    "folder": "1760721459_gradientboostingclassifier",
+    "mode": "COMPLETO"
+  },
+  {
+    "timestamp": 1760721459,
+    "algorithm": "LocalOutlierFactor",
+    "folder": "1760721459_localoutlierfactor",
+    "mode": "COMPLETO"
+  },
+  {
+    "timestamp": 1760721459,
+    "algorithm": "SGDClassifier",
+    "folder": "1760721459_sgdclassifier",
+    "mode": "COMPLETO"
+  },
+  {
+    "timestamp": 1760721459,
+    "algorithm": "LinearSVC",
+    "folder": "1760721459_linearsvc",
+    "mode": "COMPLETO"
+  },
+  {
+    "timestamp": 1760721459,
+    "algorithm": "RandomForest",
+    "folder": "1760721459_randomforest",
+    "mode": "COMPLETO"
+  },
+  {
+    "timestamp": 1760721459,
+    "algorithm": "IsolationForest",
+    "folder": "1760721459_isolationforest",
+    "mode": "COMPLETO"
+  },
+  {
+    "timestamp": 1760721459,
+    "algorithm": "LogisticRegression",
+    "folder": "1760721459_logisticregression",
+    "mode": "COMPLETO"
+  },
+  {
+    "timestamp": 1760721459,
+    "algorithm": "SGDOneClassSVM",
+    "folder": "1760721459_sgdoneclasssvm",
+    "mode": "COMPLETO"
+  }
+]

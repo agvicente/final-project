@@ -1,0 +1,16 @@
+{
+  "algorithm": "EllipticEnvelope",
+  "total_experiments": 30,
+  "configurations": 10,
+  "runs_per_config": 3,
+  "execution_time": 2535.3186666965485,
+  "best_accuracy": 0.9828905953250954,
+  "mean_accuracy": 0.9799275196527695,
+  "best_f1": 0.9912167420698385,
+  "mean_f1": 0.989643266125643,
+  "test_mode": false,
+  "results_path": "experiments/results/full/1760364824_ellipticenvelope",
+  "timestamp": 1760450885.3145592,
+  "best_balanced_accuracy": 0.9829196182167245,
+  "mean_balanced_accuracy": 0.9318046616888004
+}

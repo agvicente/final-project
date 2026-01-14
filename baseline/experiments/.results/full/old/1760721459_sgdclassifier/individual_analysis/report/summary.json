@@ -1,0 +1,26 @@
+{
+  "algorithm": "SGDClassifier",
+  "mode": "COMPLETO",
+  "executions": 20,
+  "best_performance": {
+    "f1_score": 0.9934229586347385,
+    "accuracy": 0.9871410134809447,
+    "precision": 0.9924893105761449,
+    "recall": 0.9943583649379375,
+    "training_time": 24.24523115158081
+  },
+  "average_performance": {
+    "f1_score": 0.9928883960830197,
+    "accuracy": 0.9860981783287537,
+    "precision": 0.9921216710462817,
+    "recall": 0.9936614336644473,
+    "training_time": 27.472957968711853
+  },
+  "stability": {
+    "f1_std": 0.000686296700754965,
+    "accuracy_std": 0.0013395926130871205,
+    "stability_score": 0.000686296700754965
+  },
+  "efficiency": 0.06429589157696303,
+  "generated_at": "2025-10-18T03:23:56.727347"
+}

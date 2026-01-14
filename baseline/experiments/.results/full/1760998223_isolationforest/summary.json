@@ -1,0 +1,16 @@
+{
+  "algorithm": "IsolationForest",
+  "total_experiments": 75,
+  "configurations": 15,
+  "runs_per_config": 5,
+  "execution_time": 1198.4164299964905,
+  "best_accuracy": 0.9804782858831029,
+  "mean_accuracy": 0.8836926252783077,
+  "best_balanced_accuracy": 0.8856788517384575,
+  "mean_balanced_accuracy": 0.8536521278318545,
+  "best_f1": 0.9899781454352012,
+  "mean_f1": 0.9335130795753507,
+  "test_mode": false,
+  "results_path": "experiments/results/full/1760998223_isolationforest",
+  "timestamp": 1761144728.9055452
+}

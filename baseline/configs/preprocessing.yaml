@@ -1,0 +1,5 @@
+input_file: data/processed/sampled.csv
+output_dir: data/processed
+random_state: 42
+stratify: true
+test_size: 0.2

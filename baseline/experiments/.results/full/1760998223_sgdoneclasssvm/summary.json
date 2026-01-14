@@ -1,0 +1,16 @@
+{
+  "algorithm": "SGDOneClassSVM",
+  "total_experiments": 75,
+  "configurations": 15,
+  "runs_per_config": 5,
+  "execution_time": 128.2917549610138,
+  "best_accuracy": 0.9827317738471004,
+  "mean_accuracy": 0.9808157722685116,
+  "best_balanced_accuracy": 0.9869144426181642,
+  "mean_balanced_accuracy": 0.9559587249285376,
+  "best_f1": 0.991113813824455,
+  "mean_f1": 0.9900965086217919,
+  "test_mode": false,
+  "results_path": "experiments/results/full/1760998223_sgdoneclasssvm",
+  "timestamp": 1761175551.1179872
+}

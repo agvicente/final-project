@@ -1,0 +1,902 @@
+[
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.01,
+      "random_state": 42
+    },
+    "accuracy": 0.9761123611978028,
+    "balanced_accuracy": 0.9829196182167245,
+    "precision": 0.9997564854677751,
+    "recall": 0.9757788378982323,
+    "f1_score": 0.9876221498371336,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 197.4415946006775,
+    "prediction_time": 1.08189058303833,
+    "total_time": 197.44324660301208,
+    "memory_usage_mb": 153.28125,
+    "confusion_matrix": {
+      "tn": 20818,
+      "fp": 209,
+      "fn": 21299,
+      "tp": 858056
+    },
+    "success": true,
+    "error": null,
+    "run_id": 0,
+    "param_id": 0,
+    "config_index": 0,
+    "run_index": 0,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.01,
+      "random_state": 42
+    },
+    "accuracy": 0.9761123611978028,
+    "balanced_accuracy": 0.9829196182167245,
+    "precision": 0.9997564854677751,
+    "recall": 0.9757788378982323,
+    "f1_score": 0.9876221498371336,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 188.08326482772827,
+    "prediction_time": 1.0375173091888428,
+    "total_time": 188.08551406860352,
+    "memory_usage_mb": 0.67578125,
+    "confusion_matrix": {
+      "tn": 20818,
+      "fp": 209,
+      "fn": 21299,
+      "tp": 858056
+    },
+    "success": true,
+    "error": null,
+    "run_id": 1,
+    "param_id": 0,
+    "config_index": 0,
+    "run_index": 1,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.01,
+      "random_state": 42
+    },
+    "accuracy": 0.9761123611978028,
+    "balanced_accuracy": 0.9829196182167245,
+    "precision": 0.9997564854677751,
+    "recall": 0.9757788378982323,
+    "f1_score": 0.9876221498371336,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 169.22130227088928,
+    "prediction_time": 1.0709123611450195,
+    "total_time": 169.22364020347595,
+    "memory_usage_mb": -20.28125,
+    "confusion_matrix": {
+      "tn": 20818,
+      "fp": 209,
+      "fn": 21299,
+      "tp": 858056
+    },
+    "success": true,
+    "error": null,
+    "run_id": 2,
+    "param_id": 0,
+    "config_index": 0,
+    "run_index": 2,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.03,
+      "random_state": 42
+    },
+    "accuracy": 0.9764777616611616,
+    "balanced_accuracy": 0.9729173424892852,
+    "precision": 0.9992460487368989,
+    "recall": 0.9766522053095735,
+    "f1_score": 0.9878199498857563,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 140.29997086524963,
+    "prediction_time": 1.0476317405700684,
+    "total_time": 140.30220699310303,
+    "memory_usage_mb": -12.9140625,
+    "confusion_matrix": {
+      "tn": 20379,
+      "fp": 648,
+      "fn": 20531,
+      "tp": 858824
+    },
+    "success": true,
+    "error": null,
+    "run_id": 0,
+    "param_id": 1,
+    "config_index": 1,
+    "run_index": 0,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.03,
+      "random_state": 42
+    },
+    "accuracy": 0.9764777616611616,
+    "balanced_accuracy": 0.9729173424892852,
+    "precision": 0.9992460487368989,
+    "recall": 0.9766522053095735,
+    "f1_score": 0.9878199498857563,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 166.60470008850098,
+    "prediction_time": 1.0711679458618164,
+    "total_time": 166.60684323310852,
+    "memory_usage_mb": -20.50390625,
+    "confusion_matrix": {
+      "tn": 20379,
+      "fp": 648,
+      "fn": 20531,
+      "tp": 858824
+    },
+    "success": true,
+    "error": null,
+    "run_id": 1,
+    "param_id": 1,
+    "config_index": 1,
+    "run_index": 1,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.03,
+      "random_state": 42
+    },
+    "accuracy": 0.9764777616611616,
+    "balanced_accuracy": 0.9729173424892852,
+    "precision": 0.9992460487368989,
+    "recall": 0.9766522053095735,
+    "f1_score": 0.9878199498857563,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 175.9150459766388,
+    "prediction_time": 1.079787254333496,
+    "total_time": 175.91729545593262,
+    "memory_usage_mb": -27.25390625,
+    "confusion_matrix": {
+      "tn": 20379,
+      "fp": 648,
+      "fn": 20531,
+      "tp": 858824
+    },
+    "success": true,
+    "error": null,
+    "run_id": 2,
+    "param_id": 1,
+    "config_index": 1,
+    "run_index": 2,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.05,
+      "random_state": 42
+    },
+    "accuracy": 0.9777505547645333,
+    "balanced_accuracy": 0.9625440391149829,
+    "precision": 0.998696562546427,
+    "recall": 0.9784956018900217,
+    "f1_score": 0.9884928856704174,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 149.69754672050476,
+    "prediction_time": 1.1790175437927246,
+    "total_time": 149.7011013031006,
+    "memory_usage_mb": -27.30078125,
+    "confusion_matrix": {
+      "tn": 19904,
+      "fp": 1123,
+      "fn": 18910,
+      "tp": 860445
+    },
+    "success": true,
+    "error": null,
+    "run_id": 0,
+    "param_id": 2,
+    "config_index": 2,
+    "run_index": 0,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.05,
+      "random_state": 42
+    },
+    "accuracy": 0.9777505547645333,
+    "balanced_accuracy": 0.9625440391149829,
+    "precision": 0.998696562546427,
+    "recall": 0.9784956018900217,
+    "f1_score": 0.9884928856704174,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 184.40823793411255,
+    "prediction_time": 1.0253405570983887,
+    "total_time": 184.410719871521,
+    "memory_usage_mb": -34.078125,
+    "confusion_matrix": {
+      "tn": 19904,
+      "fp": 1123,
+      "fn": 18910,
+      "tp": 860445
+    },
+    "success": true,
+    "error": null,
+    "run_id": 1,
+    "param_id": 2,
+    "config_index": 2,
+    "run_index": 1,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.05,
+      "random_state": 42
+    },
+    "accuracy": 0.9777505547645333,
+    "balanced_accuracy": 0.9625440391149829,
+    "precision": 0.998696562546427,
+    "recall": 0.9784956018900217,
+    "f1_score": 0.9884928856704174,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 169.0420126914978,
+    "prediction_time": 1.0630087852478027,
+    "total_time": 169.04423260688782,
+    "memory_usage_mb": -39.0625,
+    "confusion_matrix": {
+      "tn": 19904,
+      "fp": 1123,
+      "fn": 18910,
+      "tp": 860445
+    },
+    "success": true,
+    "error": null,
+    "run_id": 2,
+    "param_id": 2,
+    "config_index": 2,
+    "run_index": 2,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.08,
+      "random_state": 42
+    },
+    "accuracy": 0.979548680448965,
+    "balanced_accuracy": 0.9491670231927378,
+    "precision": 0.9979882441269801,
+    "recall": 0.9810372375206827,
+    "f1_score": 0.9894401453399351,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 191.5892310142517,
+    "prediction_time": 0.9600849151611328,
+    "total_time": 191.5915241241455,
+    "memory_usage_mb": -32.12890625,
+    "confusion_matrix": {
+      "tn": 19288,
+      "fp": 1739,
+      "fn": 16675,
+      "tp": 862680
+    },
+    "success": true,
+    "error": null,
+    "run_id": 0,
+    "param_id": 3,
+    "config_index": 3,
+    "run_index": 0,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.08,
+      "random_state": 42
+    },
+    "accuracy": 0.979548680448965,
+    "balanced_accuracy": 0.9491670231927378,
+    "precision": 0.9979882441269801,
+    "recall": 0.9810372375206827,
+    "f1_score": 0.9894401453399351,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 138.3537790775299,
+    "prediction_time": 1.13737154006958,
+    "total_time": 138.35589599609375,
+    "memory_usage_mb": -27.19140625,
+    "confusion_matrix": {
+      "tn": 19288,
+      "fp": 1739,
+      "fn": 16675,
+      "tp": 862680
+    },
+    "success": true,
+    "error": null,
+    "run_id": 1,
+    "param_id": 3,
+    "config_index": 3,
+    "run_index": 1,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.08,
+      "random_state": 42
+    },
+    "accuracy": 0.979548680448965,
+    "balanced_accuracy": 0.9491670231927378,
+    "precision": 0.9979882441269801,
+    "recall": 0.9810372375206827,
+    "f1_score": 0.9894401453399351,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 139.8263623714447,
+    "prediction_time": 1.0117290019989014,
+    "total_time": 139.82866668701172,
+    "memory_usage_mb": -43.90234375,
+    "confusion_matrix": {
+      "tn": 19288,
+      "fp": 1739,
+      "fn": 16675,
+      "tp": 862680
+    },
+    "success": true,
+    "error": null,
+    "run_id": 2,
+    "param_id": 3,
+    "config_index": 3,
+    "run_index": 2,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.1,
+      "random_state": 42
+    },
+    "accuracy": 0.9801950727580071,
+    "balanced_accuracy": 0.9399584927691296,
+    "precision": 0.9975168134826633,
+    "recall": 0.9821664742908154,
+    "f1_score": 0.9897821311063971,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 159.46100664138794,
+    "prediction_time": 1.011885404586792,
+    "total_time": 159.46325516700745,
+    "memory_usage_mb": -39.0,
+    "confusion_matrix": {
+      "tn": 18877,
+      "fp": 2150,
+      "fn": 15682,
+      "tp": 863673
+    },
+    "success": true,
+    "error": null,
+    "run_id": 0,
+    "param_id": 4,
+    "config_index": 4,
+    "run_index": 0,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.1,
+      "random_state": 42
+    },
+    "accuracy": 0.9801950727580071,
+    "balanced_accuracy": 0.9399584927691296,
+    "precision": 0.9975168134826633,
+    "recall": 0.9821664742908154,
+    "f1_score": 0.9897821311063971,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 76.73503851890564,
+    "prediction_time": 0.977292537689209,
+    "total_time": 76.73731279373169,
+    "memory_usage_mb": -41.8359375,
+    "confusion_matrix": {
+      "tn": 18877,
+      "fp": 2150,
+      "fn": 15682,
+      "tp": 863673
+    },
+    "success": true,
+    "error": null,
+    "run_id": 1,
+    "param_id": 4,
+    "config_index": 4,
+    "run_index": 1,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.1,
+      "random_state": 42
+    },
+    "accuracy": 0.9801950727580071,
+    "balanced_accuracy": 0.9399584927691296,
+    "precision": 0.9975168134826633,
+    "recall": 0.9821664742908154,
+    "f1_score": 0.9897821311063971,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 14.778095722198486,
+    "prediction_time": 0.9941749572753906,
+    "total_time": 14.7803795337677,
+    "memory_usage_mb": -37.00390625,
+    "confusion_matrix": {
+      "tn": 18877,
+      "fp": 2150,
+      "fn": 15682,
+      "tp": 863673
+    },
+    "success": true,
+    "error": null,
+    "run_id": 2,
+    "param_id": 4,
+    "config_index": 4,
+    "run_index": 2,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.12,
+      "random_state": 42
+    },
+    "accuracy": 0.9807081883022983,
+    "balanced_accuracy": 0.9306817305165103,
+    "precision": 0.997046500604885,
+    "recall": 0.983159247402926,
+    "f1_score": 0.9900541781040756,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 14.808414697647095,
+    "prediction_time": 0.9387314319610596,
+    "total_time": 14.810643196105957,
+    "memory_usage_mb": -37.03515625,
+    "confusion_matrix": {
+      "tn": 18466,
+      "fp": 2561,
+      "fn": 14809,
+      "tp": 864546
+    },
+    "success": true,
+    "error": null,
+    "run_id": 0,
+    "param_id": 5,
+    "config_index": 5,
+    "run_index": 0,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.12,
+      "random_state": 42
+    },
+    "accuracy": 0.9807081883022983,
+    "balanced_accuracy": 0.9306817305165103,
+    "precision": 0.997046500604885,
+    "recall": 0.983159247402926,
+    "f1_score": 0.9900541781040756,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 13.890262365341187,
+    "prediction_time": 0.9422295093536377,
+    "total_time": 13.892347812652588,
+    "memory_usage_mb": -27.25390625,
+    "confusion_matrix": {
+      "tn": 18466,
+      "fp": 2561,
+      "fn": 14809,
+      "tp": 864546
+    },
+    "success": true,
+    "error": null,
+    "run_id": 1,
+    "param_id": 5,
+    "config_index": 5,
+    "run_index": 1,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.12,
+      "random_state": 42
+    },
+    "accuracy": 0.9807081883022983,
+    "balanced_accuracy": 0.9306817305165103,
+    "precision": 0.997046500604885,
+    "recall": 0.983159247402926,
+    "f1_score": 0.9900541781040756,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 13.90781283378601,
+    "prediction_time": 0.9363036155700684,
+    "total_time": 13.90996265411377,
+    "memory_usage_mb": -48.62890625,
+    "confusion_matrix": {
+      "tn": 18466,
+      "fp": 2561,
+      "fn": 14809,
+      "tp": 864546
+    },
+    "success": true,
+    "error": null,
+    "run_id": 2,
+    "param_id": 5,
+    "config_index": 5,
+    "run_index": 2,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.15,
+      "random_state": 42
+    },
+    "accuracy": 0.9815767085525922,
+    "balanced_accuracy": 0.9167127458254254,
+    "precision": 0.9963388718156412,
+    "recall": 0.9847547350046341,
+    "f1_score": 0.9905129351907879,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 13.877268075942993,
+    "prediction_time": 0.9193346500396729,
+    "total_time": 13.87929630279541,
+    "memory_usage_mb": -36.8828125,
+    "confusion_matrix": {
+      "tn": 17845,
+      "fp": 3182,
+      "fn": 13406,
+      "tp": 865949
+    },
+    "success": true,
+    "error": null,
+    "run_id": 0,
+    "param_id": 6,
+    "config_index": 6,
+    "run_index": 0,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.15,
+      "random_state": 42
+    },
+    "accuracy": 0.9815767085525922,
+    "balanced_accuracy": 0.9167127458254254,
+    "precision": 0.9963388718156412,
+    "recall": 0.9847547350046341,
+    "f1_score": 0.9905129351907879,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 13.96640419960022,
+    "prediction_time": 0.9238760471343994,
+    "total_time": 13.968494653701782,
+    "memory_usage_mb": -41.00390625,
+    "confusion_matrix": {
+      "tn": 17845,
+      "fp": 3182,
+      "fn": 13406,
+      "tp": 865949
+    },
+    "success": true,
+    "error": null,
+    "run_id": 1,
+    "param_id": 6,
+    "config_index": 6,
+    "run_index": 1,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.15,
+      "random_state": 42
+    },
+    "accuracy": 0.9815767085525922,
+    "balanced_accuracy": 0.9167127458254254,
+    "precision": 0.9963388718156412,
+    "recall": 0.9847547350046341,
+    "f1_score": 0.9905129351907879,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 14.115058898925781,
+    "prediction_time": 0.8945856094360352,
+    "total_time": 14.117100715637207,
+    "memory_usage_mb": 16.73046875,
+    "confusion_matrix": {
+      "tn": 17845,
+      "fp": 3182,
+      "fn": 13406,
+      "tp": 865949
+    },
+    "success": true,
+    "error": null,
+    "run_id": 2,
+    "param_id": 6,
+    "config_index": 6,
+    "run_index": 2,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.18,
+      "random_state": 42
+    },
+    "accuracy": 0.9819798707659638,
+    "balanced_accuracy": 0.9022502044561034,
+    "precision": 0.9956199081719606,
+    "recall": 0.9858862461690671,
+    "f1_score": 0.9907291700593047,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 14.154643297195435,
+    "prediction_time": 0.9080479145050049,
+    "total_time": 14.156877040863037,
+    "memory_usage_mb": -57.734375,
+    "confusion_matrix": {
+      "tn": 17213,
+      "fp": 3814,
+      "fn": 12411,
+      "tp": 866944
+    },
+    "success": true,
+    "error": null,
+    "run_id": 0,
+    "param_id": 7,
+    "config_index": 7,
+    "run_index": 0,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.18,
+      "random_state": 42
+    },
+    "accuracy": 0.9819798707659638,
+    "balanced_accuracy": 0.9022502044561034,
+    "precision": 0.9956199081719606,
+    "recall": 0.9858862461690671,
+    "f1_score": 0.9907291700593047,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 13.917734861373901,
+    "prediction_time": 0.9173214435577393,
+    "total_time": 13.919842004776001,
+    "memory_usage_mb": -41.00390625,
+    "confusion_matrix": {
+      "tn": 17213,
+      "fp": 3814,
+      "fn": 12411,
+      "tp": 866944
+    },
+    "success": true,
+    "error": null,
+    "run_id": 1,
+    "param_id": 7,
+    "config_index": 7,
+    "run_index": 1,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.18,
+      "random_state": 42
+    },
+    "accuracy": 0.9819798707659638,
+    "balanced_accuracy": 0.9022502044561034,
+    "precision": 0.9956199081719606,
+    "recall": 0.9858862461690671,
+    "f1_score": 0.9907291700593047,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 14.97399377822876,
+    "prediction_time": 0.9572649002075195,
+    "total_time": 14.975938558578491,
+    "memory_usage_mb": -41.06640625,
+    "confusion_matrix": {
+      "tn": 17213,
+      "fp": 3814,
+      "fn": 12411,
+      "tp": 866944
+    },
+    "success": true,
+    "error": null,
+    "run_id": 2,
+    "param_id": 7,
+    "config_index": 7,
+    "run_index": 2,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.2,
+      "random_state": 42
+    },
+    "accuracy": 0.9820354027512767,
+    "balanced_accuracy": 0.8926695485336535,
+    "precision": 0.9951493513347315,
+    "recall": 0.9864139056467525,
+    "f1_score": 0.9907623739927847,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 14.316230535507202,
+    "prediction_time": 0.9829196929931641,
+    "total_time": 14.318342208862305,
+    "memory_usage_mb": -43.87890625,
+    "confusion_matrix": {
+      "tn": 16799,
+      "fp": 4228,
+      "fn": 11947,
+      "tp": 867408
+    },
+    "success": true,
+    "error": null,
+    "run_id": 0,
+    "param_id": 8,
+    "config_index": 8,
+    "run_index": 0,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.2,
+      "random_state": 42
+    },
+    "accuracy": 0.9820354027512767,
+    "balanced_accuracy": 0.8926695485336535,
+    "precision": 0.9951493513347315,
+    "recall": 0.9864139056467525,
+    "f1_score": 0.9907623739927847,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 14.607991456985474,
+    "prediction_time": 0.9463202953338623,
+    "total_time": 14.610070705413818,
+    "memory_usage_mb": -45.84375,
+    "confusion_matrix": {
+      "tn": 16799,
+      "fp": 4228,
+      "fn": 11947,
+      "tp": 867408
+    },
+    "success": true,
+    "error": null,
+    "run_id": 1,
+    "param_id": 8,
+    "config_index": 8,
+    "run_index": 1,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.2,
+      "random_state": 42
+    },
+    "accuracy": 0.9820354027512767,
+    "balanced_accuracy": 0.8926695485336535,
+    "precision": 0.9951493513347315,
+    "recall": 0.9864139056467525,
+    "f1_score": 0.9907623739927847,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 14.831905364990234,
+    "prediction_time": 1.026092290878296,
+    "total_time": 14.83393383026123,
+    "memory_usage_mb": -43.8515625,
+    "confusion_matrix": {
+      "tn": 16799,
+      "fp": 4228,
+      "fn": 11947,
+      "tp": 867408
+    },
+    "success": true,
+    "error": null,
+    "run_id": 2,
+    "param_id": 8,
+    "config_index": 8,
+    "run_index": 2,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.25,
+      "random_state": 42
+    },
+    "accuracy": 0.9828905953250954,
+    "balanced_accuracy": 0.8682258717734519,
+    "precision": 0.9939397404379395,
+    "recall": 0.9885086227973913,
+    "f1_score": 0.9912167420698385,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 14.553876638412476,
+    "prediction_time": 0.9464778900146484,
+    "total_time": 14.555905103683472,
+    "memory_usage_mb": -41.00390625,
+    "confusion_matrix": {
+      "tn": 15727,
+      "fp": 5300,
+      "fn": 10105,
+      "tp": 869250
+    },
+    "success": true,
+    "error": null,
+    "run_id": 0,
+    "param_id": 9,
+    "config_index": 9,
+    "run_index": 0,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.25,
+      "random_state": 42
+    },
+    "accuracy": 0.9828905953250954,
+    "balanced_accuracy": 0.8682258717734519,
+    "precision": 0.9939397404379395,
+    "recall": 0.9885086227973913,
+    "f1_score": 0.9912167420698385,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 14.422764778137207,
+    "prediction_time": 1.0042235851287842,
+    "total_time": 14.425073385238647,
+    "memory_usage_mb": -41.00390625,
+    "confusion_matrix": {
+      "tn": 15727,
+      "fp": 5300,
+      "fn": 10105,
+      "tp": 869250
+    },
+    "success": true,
+    "error": null,
+    "run_id": 1,
+    "param_id": 9,
+    "config_index": 9,
+    "run_index": 1,
+    "test_mode": false
+  },
+  {
+    "algorithm": "EllipticEnvelope",
+    "params": {
+      "contamination": 0.25,
+      "random_state": 42
+    },
+    "accuracy": 0.9828905953250954,
+    "balanced_accuracy": 0.8682258717734519,
+    "precision": 0.9939397404379395,
+    "recall": 0.9885086227973913,
+    "f1_score": 0.9912167420698385,
+    "roc_auc": 0.006739712889877158,
+    "training_time": 14.293011665344238,
+    "prediction_time": 0.9712846279144287,
+    "total_time": 14.298032522201538,
+    "memory_usage_mb": 13.50390625,
+    "confusion_matrix": {
+      "tn": 15727,
+      "fp": 5300,
+      "fn": 10105,
+      "tp": 869250
+    },
+    "success": true,
+    "error": null,
+    "run_id": 2,
+    "param_id": 9,
+    "config_index": 9,
+    "run_index": 2,
+    "test_mode": false
+  }
+]

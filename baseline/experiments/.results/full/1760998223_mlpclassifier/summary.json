@@ -1,0 +1,16 @@
+{
+  "algorithm": "MLPClassifier",
+  "total_experiments": 40,
+  "configurations": 8,
+  "runs_per_config": 5,
+  "execution_time": 48115.02571296692,
+  "best_accuracy": 0.9913181294161811,
+  "mean_accuracy": 0.9909062209151227,
+  "best_balanced_accuracy": 0.9159030794910783,
+  "mean_balanced_accuracy": 0.9072901119129657,
+  "best_f1": 0.9955549894489996,
+  "mean_f1": 0.9953427952154474,
+  "test_mode": false,
+  "results_path": "experiments/results/full/1760998223_mlpclassifier",
+  "timestamp": 1761223687.2897496
+}

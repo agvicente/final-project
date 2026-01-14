@@ -1,0 +1,16 @@
+{
+  "algorithm": "LogisticRegression",
+  "total_experiments": 30,
+  "configurations": 10,
+  "runs_per_config": 3,
+  "execution_time": 978.2627518177032,
+  "best_accuracy": 0.9872232008192079,
+  "mean_accuracy": 0.9871300181478525,
+  "best_f1": 0.993460901831675,
+  "mean_f1": 0.9934137901016278,
+  "test_mode": false,
+  "results_path": "experiments/results/full/1760364824_logisticregression",
+  "timestamp": 1760367628.8898504,
+  "best_balanced_accuracy": 0.8535236279899385,
+  "mean_balanced_accuracy": 0.8507347799631424
+}

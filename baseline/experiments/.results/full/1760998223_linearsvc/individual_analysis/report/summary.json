@@ -1,0 +1,26 @@
+{
+  "algorithm": "LinearSVC",
+  "mode": "COMPLETO",
+  "executions": 90,
+  "best_performance": {
+    "f1_score": 0.9934000208007611,
+    "accuracy": 0.9871021410912257,
+    "precision": 0.9929254393339665,
+    "recall": 0.9938750561491092,
+    "training_time": 265.5739481449127
+  },
+  "average_performance": {
+    "f1_score": 0.9933594137967506,
+    "accuracy": 0.9870219899257576,
+    "precision": 0.992825799830743,
+    "recall": 0.9938936303692291,
+    "training_time": 162.644531305631
+  },
+  "stability": {
+    "f1_std": 0.00010309984567756424,
+    "accuracy_std": 0.00020303868464345128,
+    "stability_score": 0.00010549783705105154
+  },
+  "efficiency": 0.007267679027815267,
+  "generated_at": "2025-10-22T22:34:51.399333"
+}

@@ -2,7 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Repository Scope**: This guide is specifically for the `iot-ids-research` research repository within the `final-project` directory. For workspace-level organization, see the parent directory's README.md.
+**Repository Scope**: This guide covers the entire `final-project` research repository, organized by phases:
+- `baseline/` - Phase 1: ML baseline experiments
+- `streaming/` - Phase 2: Kafka + TEDA streaming
+- `data/` - Shared data (PCAPs, CSVs, processed)
 
 ## Project Overview
 
@@ -14,17 +17,17 @@ This is a Master's dissertation research project at UFMG (Electrical Engineering
 
 ### DVC Pipeline Execution
 
-The project uses DVC for reproducible ML pipelines. All stages are defined in `iot-ids-research/dvc.yaml`.
+The project uses DVC for reproducible ML pipelines. All stages are defined in `baseline/dvc.yaml`.
 
 **Full pipeline execution** (run all stages sequentially):
 ```bash
-cd iot-ids-research
+cd baseline
 dvc repro
 ```
 
 **Run specific stage**:
 ```bash
-cd iot-ids-research
+cd baseline
 dvc repro <stage_name>
 ```
 
@@ -51,7 +54,7 @@ dvc repro <stage_name>
 
 **Single algorithm experiment** (direct execution):
 ```bash
-cd iot-ids-research
+cd baseline
 python3 experiments/run_single_algorithm.py <algorithm_name>
 ```
 
@@ -59,7 +62,7 @@ Algorithm names: `logistic_regression`, `random_forest`, `gradient_boosting`, `i
 
 **Consolidate results after experiments**:
 ```bash
-cd iot-ids-research
+cd baseline
 python3 experiments/consolidate_results.py
 ```
 
@@ -88,7 +91,7 @@ docker-compose build --no-cache
 
 **Create virtual environment** (alternative to Docker):
 ```bash
-cd iot-ids-research
+cd baseline
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
@@ -114,13 +117,13 @@ pip install -r requirements.txt
 
 To view experiments from command line:
 ```bash
-cd iot-ids-research
+cd baseline
 mlflow ui --backend-store-uri sqlite:///mlflow.db
 ```
 
 ### Test Mode vs. Full Mode
 
-Experiments support two execution modes controlled by `TEST_MODE` in `iot-ids-research/experiments/algorithm_comparison.py`:
+Experiments support two execution modes controlled by `TEST_MODE` in `baseline/experiments/algorithm_comparison.py`:
 
 - `TEST_MODE = True`: Uses 1000 samples, 1 run per config (fast prototyping)
 - `TEST_MODE = False`: Full dataset, 5 runs per config (production experiments)

@@ -1,0 +1,26 @@
+{
+  "algorithm": "SGDOneClassSVM",
+  "mode": "COMPLETO",
+  "executions": 30,
+  "best_performance": {
+    "f1_score": 0.99047179317381,
+    "accuracy": 0.9815267297658105,
+    "precision": 0.9979325964095743,
+    "recall": 0.9831217198969698,
+    "training_time": 0.20520559946695963
+  },
+  "average_performance": {
+    "f1_score": 0.9897119232948669,
+    "accuracy": 0.980090672625619,
+    "precision": 0.9989913002407101,
+    "recall": 0.9806062398007632,
+    "training_time": 0.20148650010426838
+  },
+  "stability": {
+    "f1_std": 0.0006152661451701249,
+    "accuracy_std": 0.0011658096653133336,
+    "stability_score": 0.0006376467282816508
+  },
+  "efficiency": 4.914684581507798,
+  "generated_at": "2025-10-14T17:54:07.966613"
+}

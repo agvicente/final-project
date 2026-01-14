@@ -1,0 +1,26 @@
+{
+  "algorithm": "GradientBoostingClassifier",
+  "mode": "COMPLETO",
+  "executions": 30,
+  "best_performance": {
+    "f1_score": 0.996466298451894,
+    "accuracy": 0.993099595505019,
+    "precision": 0.9967480525864246,
+    "recall": 0.9961847035611329,
+    "training_time": 6776.254198074341
+  },
+  "average_performance": {
+    "f1_score": 0.995944770501053,
+    "accuracy": 0.9920802503826153,
+    "precision": 0.996128136660222,
+    "recall": 0.9957615525015495,
+    "training_time": 2091.986638824145
+  },
+  "stability": {
+    "f1_std": 0.0004564971617371645,
+    "accuracy_std": 0.0008930180275783085,
+    "stability_score": 0.0004731024515757225
+  },
+  "efficiency": 0.0013576593496351917,
+  "generated_at": "2025-10-14T13:20:18.288719"
+}

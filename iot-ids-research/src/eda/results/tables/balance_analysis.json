@@ -1,8 +1,0 @@
-{
-  "total_samples": 4501906,
-  "majority_class": "DDOS-ICMP_FLOOD",
-  "majority_count": 689325,
-  "minority_class": "UPLOADING_ATTACK",
-  "minority_count": 121,
-  "inbalance_ratio": 5696.900826446281
-}

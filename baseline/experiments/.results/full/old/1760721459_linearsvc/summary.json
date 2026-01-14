@@ -1,0 +1,16 @@
+{
+  "algorithm": "LinearSVC",
+  "total_experiments": 18,
+  "configurations": 18,
+  "runs_per_config": 1,
+  "execution_time": 2710.1473112106323,
+  "best_accuracy": 0.9871021410912257,
+  "mean_accuracy": 0.9870219899257573,
+  "best_balanced_accuracy": 0.8488660009903296,
+  "mean_balanced_accuracy": 0.8467708509481566,
+  "best_f1": 0.9934000208007611,
+  "mean_f1": 0.9933594137967509,
+  "test_mode": false,
+  "results_path": "experiments/results/full/1760721459_linearsvc",
+  "timestamp": 1760757222.8626137
+}

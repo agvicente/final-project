@@ -1,0 +1,16 @@
+{
+  "algorithm": "LocalOutlierFactor",
+  "total_experiments": 8,
+  "configurations": 8,
+  "runs_per_config": 1,
+  "execution_time": 2167.8055777549744,
+  "best_accuracy": 0.9823752585013916,
+  "mean_accuracy": 0.980672647831698,
+  "best_balanced_accuracy": 0.9414633322048408,
+  "mean_balanced_accuracy": 0.9261085037237042,
+  "best_f1": 0.9909383742064868,
+  "mean_f1": 0.9900369644804701,
+  "test_mode": false,
+  "results_path": "experiments/results/full/1760721459_localoutlierfactor",
+  "timestamp": 1760754489.2833178
+}

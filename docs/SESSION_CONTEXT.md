@@ -279,7 +279,9 @@
 - Processamento/Kafka rodará na máquina remota
 
 **Active Repositories:**
-- `final-project/iot-ids-research/` - Main research code
+- `final-project/baseline/` - Phase 1: ML baseline experiments
+- `final-project/streaming/` - Phase 2: Kafka + TEDA streaming
+- `final-project/data/` - Shared data (PCAPs, CSVs)
 - `artigo1/` - Baseline comparison paper
 - `dissertation/` - Master's dissertation (PT + EN)
 
