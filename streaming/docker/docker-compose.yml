@@ -1,0 +1,95 @@
+# Docker Compose - Kafka para IoT IDS Streaming (Fase 2)
+#
+# Uso:
+#   cd streaming/docker
+#   docker-compose up -d
+#
+# Funciona em Mac (local) e Ubuntu (remoto)
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: iot-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: iot-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Listeners para acesso interno (docker) e externo (host)
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      # Configs para streaming de alto volume
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_LOG_RETENTION_HOURS: 24
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+  # UI para debug (opcional, útil para desenvolvimento)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: iot-kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: iot-ids-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    profiles:
+      - ui  # Só sobe se usar: docker-compose --profile ui up -d
+
+  # Inicializador de tópicos (roda uma vez e sai)
+  init-topics:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: iot-init-topics
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      echo '=== Criando topicos para IoT IDS ===' &&
+      kafka-topics --create --if-not-exists --topic packets --bootstrap-server kafka:29092 --partitions 3 --replication-factor 1 --config retention.ms=86400000 &&
+      kafka-topics --create --if-not-exists --topic flows --bootstrap-server kafka:29092 --partitions 3 --replication-factor 1 --config retention.ms=86400000 &&
+      echo '=== Topicos criados ===' &&
+      kafka-topics --list --bootstrap-server kafka:29092
+
+volumes:
+  zookeeper_data:
+  zookeeper_log:
+  kafka_data:
+
+networks:
+  default:
+    name: iot-ids-network

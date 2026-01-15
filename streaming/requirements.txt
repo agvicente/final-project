@@ -1,0 +1,14 @@
+# Streaming module dependencies - IoT IDS Phase 2
+
+# Kafka
+kafka-python>=2.0.2
+
+# PCAP parsing
+dpkt>=1.9.8
+
+# Data processing
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Future: Feature extraction from flows
+# nfstream>=6.5.3  # Comentado por ora - requer libpcap
