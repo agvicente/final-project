@@ -1,13 +1,13 @@
 # SESSION CONTEXT - IoT IDS Research Project
-**Last Updated:** 2026-01-19 (Session: Consumer v0.1 + Pipeline E2E completo)
+**Last Updated:** 2026-01-19 (Session: Início Semana 3 - TEDA v0.1)
 
 ---
 
 ## 🎯 CURRENT STATUS
 
 **Phase:** Fase 2A - Teoria + Design + Setup
-**Week:** Semana 2 de 24 (100% complete)
-**Current Task:** Semana 2 finalizada, pronto para Semana 3
+**Week:** Semana 3 de 24 (5% complete)
+**Current Task:** Implementar TEDA v0.1 (básico) para detecção de anomalias em streaming
 
 ---
 
@@ -93,36 +93,28 @@
 
 ## 🔄 IN PROGRESS
 
-### Current Week: Fase 2A, Semana 2 (100% COMPLETE)
-**Goal:** Fichamento Angelov (2014) + Setup Kafka + Producer v0.1
-**Started:** 2025-12-23
-**Completed:** 2026-01-19
+### Current Week: Fase 2A, Semana 3 (TEDA v0.1 Básico)
+**Goal:** Implementar TEDA v0.1 (básico) para detecção de anomalias em streaming
+**Started:** 2026-01-19
 
-**All Tasks Completed:**
-- [x] Ler paper Angelov (2014) completo ✅
-- [x] Criar fichamento estruturado ✅
-- [x] Extrair fórmulas e pseudocódigo ✅
-- [x] Documentar conceitos: frequentista, kernels, normalização ✅
-- [x] Documentar métricas de distância ✅
-- [x] Derivação matemática completa (Huygens-Steiner) ✅
-- [x] Seções 4-5: Anomaly Detection e Data Clouds ✅
-- [x] Identificar limitações do paper ✅
-- [x] Criar documento de lacunas de conhecimento ✅
-- [x] Ler paper MicroTEDAclus (Maia 2020) ✅
-- [x] Fichamento MicroTEDAclus completo ✅
-- [x] Relacionar TEDA com MicroTEDAclus ✅
-- [x] Setup Kafka local (Docker Compose) ✅
-- [x] Producer v0.1 (PCAP reader com Scapy) ✅
-- [x] Consumer v0.1 (Flow aggregation) ✅
-- [x] Teste end-to-end completo ✅
-- [x] Documentação arquitetura Kafka ✅
+**Tasks:**
+- [ ] Criar estrutura `streaming/src/detector/`
+- [ ] Implementar classe TEDADetector
+  - [ ] Atualização recursiva de μ (média)
+  - [ ] Atualização recursiva de σ² (variância)
+  - [ ] Cálculo de eccentricity: ξ = 1/k + ||x-μ||²/(k×σ²)
+  - [ ] Cálculo de typicality: τ = 1 - ξ
+  - [ ] Threshold para anomalia (Chebyshev)
+- [ ] Testes unitários básicos
+- [ ] Integração com Consumer (flows → TEDA)
+- [ ] Teste E2E: PCAP → detecção de anomalias
+- [ ] Atualizar documentação de arquitetura
 
-**Deliverables Created:**
-1. `docs/paper-summaries/angelov-2014-teda.md` ✅ (100%)
-2. `docs/paper-summaries/maia-2020-microtedaclus.md` ✅ (100%)
-3. `docs/KNOWLEDGE_GAPS.md` ✅
-4. `docs/architecture/STREAMING_ARCHITECTURE.md` ✅
-5. Streaming pipeline v0.1 (Producer + Consumer) ✅
+**Deliverables Planned:**
+1. `streaming/src/detector/teda.py` - TEDADetector class
+2. `streaming/src/detector/streaming_detector.py` - Integração
+3. Testes E2E com dados do CICIoT2023
+4. Documentação atualizada
 
 ---
 

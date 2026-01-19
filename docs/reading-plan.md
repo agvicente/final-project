@@ -35,8 +35,8 @@
 
 | # | Referência | Foco | Status |
 |---|------------|------|--------|
-| **ML-P1** | Angelov, P. (2014). "Outside the box: an alternative data analytics framework." *Journal of Automation Mobile Robotics and Intelligent Systems*, 8(2), pp.29-35. | Framework TEDA original: eccentricidade, tipicalidade | ❌ Não lido |
-| **ML-P2** | Maia, J. et al. (2020). "Evolving clustering algorithm based on mixture of typicalities." *Future Generation Computer Systems*, 106, pp.672-684. | MicroTEDAclus: micro-clusters, concept drift | 📖 Parcial |
+| **ML-P1** | Angelov, P. (2014). "Outside the box: an alternative data analytics framework." *Journal of Automation Mobile Robotics and Intelligent Systems*, 8(2), pp.29-35. | Framework TEDA original: eccentricidade, tipicalidade | ✅ Completo |
+| **ML-P2** | Maia, J. et al. (2020). "Evolving clustering algorithm based on mixture of typicalities." *Future Generation Computer Systems*, 106, pp.672-684. | MicroTEDAclus: micro-clusters, concept drift | ✅ Completo |
 
 **Links:**
 - ML-P1: [DOI: 10.14313/JAMRIS_2-2014/16](https://doi.org/10.14313/JAMRIS_2-2014/16)
@@ -240,16 +240,20 @@ Para cada artigo principal, criar fichamento em `docs/paper-summaries/`:
 
 | Área | Principais | Lidos | Auxiliares | Lidos |
 |------|------------|-------|------------|-------|
-| ML | 2 | 0.5 | 3 | 0 |
+| ML | 2 | **2** ✅ | 3 | 0 |
 | Cyber | 2 | 0.5 | 3 | 0 |
 | IoT | 2 | 0 | 3 | 0 |
 | Arq | 2 | 0 | 3 | 0 |
-| **Total** | **8** | **1** | **12** | **0** |
+| **Total** | **8** | **2.5** | **12** | **0** |
 
 ### Próxima Leitura
-- **Artigo:** ML-P1: Angelov (2014) - TEDA Framework
-- **Prazo:** Semana de 2025-12-23
-- **Entregável:** `docs/paper-summaries/angelov-2014-teda.md`
+- **Artigo:** ML-A1: Survey Concept Drift (Wiley 2024)
+- **Prazo:** Semana 3 (2026-01-19)
+- **Entregável:** Notas sobre tipos de drift e métodos de detecção
+
+### Leituras Completas
+- ✅ ML-P1: Angelov (2014) - `docs/paper-summaries/angelov-2014-teda.md`
+- ✅ ML-P2: Maia (2020) - `docs/paper-summaries/maia-2020-microtedaclus.md`
 
 ---
 
@@ -270,4 +274,4 @@ Para cada artigo principal, criar fichamento em `docs/paper-summaries/`:
 
 **Este documento é atualizado semanalmente conforme progresso das leituras.**
 
-*Última atualização: 2025-12-17*
+*Última atualização: 2026-01-19*
