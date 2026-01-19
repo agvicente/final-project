@@ -7,20 +7,63 @@
 # Funciona em Mac (local) e Ubuntu (remoto)
 
 services:
+  # ============================================================
+  # ZOOKEEPER - Coordenador do cluster Kafka
+  # ============================================================
+  # O que faz:
+  #   - Registra quais brokers Kafka estão ativos
+  #   - Elege líder quando um broker cai
+  #   - Armazena metadados de tópicos e partições
+  #   - Mantém configurações do cluster
+  #
+  # Por que precisamos:
+  #   - Kafka < 3.x REQUER Zookeeper para funcionar
+  #   - Kafka 3.x+ pode usar KRaft (sem Zookeeper), mas é mais novo
+  # ============================================================
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: iot-zookeeper
+    image: confluentinc/cp-zookeeper:7.5.0  # Imagem oficial da Confluent
+    container_name: iot-zookeeper            # Nome fixo para facilitar comandos
+
     environment:
+      # ZOOKEEPER_CLIENT_PORT: Porta onde Zookeeper escuta conexões
+      # - Kafka conecta nesta porta para se registrar
+      # - Padrão da indústria: 2181
       ZOOKEEPER_CLIENT_PORT: 2181
+
+      # ZOOKEEPER_TICK_TIME: Unidade básica de tempo em milissegundos
+      # - Usado para heartbeats e timeouts
+      # - 2000ms = 2 segundos
+      # - Timeout de sessão = tickTime * 2 a 20 (4s a 40s)
       ZOOKEEPER_TICK_TIME: 2000
+
     ports:
+      # "PORTA_HOST:PORTA_CONTAINER"
+      # - 2181:2181 = acesso externo na mesma porta
+      # - Permite que apps fora do Docker conectem
       - "2181:2181"
+
     healthcheck:
+      # Verifica se Zookeeper está respondendo
+      # test: comando a executar
+      #   - "CMD" = executa comando no container
+      #   - "nc -z" = netcat, testa se porta está aberta (sem enviar dados)
+      #   - "localhost 2181" = testa porta 2181 localmente
       test: ["CMD", "nc", "-z", "localhost", "2181"]
+
+      # interval: a cada quanto tempo verificar (10 segundos)
       interval: 10s
+
+      # timeout: quanto tempo esperar resposta (5 segundos)
       timeout: 5s
+
+      # retries: quantas falhas até considerar "unhealthy" (5 tentativas)
+      # - Total: 5 x 10s = 50 segundos para declarar morto
       retries: 5
+
     volumes:
+      # Volumes persistem dados mesmo após docker-compose down
+      # - zookeeper_data: dados do cluster (registros de brokers)
+      # - zookeeper_log: logs de transações
       - zookeeper_data:/var/lib/zookeeper/data
       - zookeeper_log:/var/lib/zookeeper/log
 
