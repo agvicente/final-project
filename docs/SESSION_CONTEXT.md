@@ -1,13 +1,13 @@
 # SESSION CONTEXT - IoT IDS Research Project
-**Last Updated:** 2026-01-14 (Session: Fichamento MicroTEDAclus completo)
+**Last Updated:** 2026-01-19 (Session: Consumer v0.1 + Pipeline E2E completo)
 
 ---
 
 ## 🎯 CURRENT STATUS
 
 **Phase:** Fase 2A - Teoria + Design + Setup
-**Week:** Semana 2 de 24 (~80% complete)
-**Current Task:** Setup Kafka, Producer v0.1
+**Week:** Semana 2 de 24 (100% complete)
+**Current Task:** Semana 2 finalizada, pronto para Semana 3
 
 ---
 
@@ -49,7 +49,7 @@
 - ✅ Plano de leituras: 8 principais + 12 auxiliares em 4 áreas
 - ✅ Relatório semanal finalizado
 
-### Fase 2A, Semana 2: Leitura Angelov + Setup (80% COMPLETE)
+### Fase 2A, Semana 2: Leitura Angelov + Setup (100% COMPLETE)
 - ✅ Fichamento Angelov (2014) - 100% completo
   - Conceitos: frequentista, belief/possibility theory, first principles
   - Métricas de distância: Euclidean, Manhattan, Mahalanobis, Cosine
@@ -62,27 +62,43 @@
 - ✅ Fichamento MicroTEDAclus (Maia 2020) - 100% completo
   - Arquitetura micro-clusters + macro-clusters
   - Threshold dinâmico m(k) = 3/(1 + e^{-0.007(k-100)})
-  - Mixture of typicalities: T_j = Σ w_l × t_l(x)
+  - Mixture of typicalities: T_j = w_l × t_l(x)
   - Comparação com DenStream, CluStream, StreamKM++
   - Pseudocódigo completo dos algoritmos
 - ✅ Documento de lacunas de conhecimento criado
-- ⏳ Setup ambiente Kafka remoto
-- ⏳ Producer v0.1
+- ✅ Setup Kafka local (Docker Compose)
+  - Zookeeper, Kafka, Kafka-UI rodando
+  - 3 partições por tópico (packets, flows)
+- ✅ Producer v0.1 completo
+  - Lê PCAPs com Scapy
+  - Serializa pacotes para JSON
+  - Publica no tópico 'packets' (2909 pkt/s)
+- ✅ Consumer v0.1 completo
+  - Agrega pacotes em flows pela 5-tuple
+  - Extrai 27 features por flow
+  - Publica flows no tópico 'flows'
+- ✅ Pipeline end-to-end testado e funcionando
+- ✅ Documentação arquitetura Kafka (partições, offsets, consumer groups)
 
 **Key Files Created:**
 - `docs/paper-summaries/angelov-2014-teda.md` - Fichamento TEDA (100%)
 - `docs/paper-summaries/maia-2020-microtedaclus.md` - Fichamento MicroTEDAclus (100%)
 - `docs/KNOWLEDGE_GAPS.md` - Lacunas de conhecimento para estudo
+- `docs/architecture/STREAMING_ARCHITECTURE.md` - Arquitetura completa Kafka
+- `streaming/src/producer/` - Producer v0.1 (config.py, pcap_producer.py)
+- `streaming/src/consumer/` - Consumer v0.1 (config.py, flow_consumer.py)
+- `streaming/docker/docker-compose.yml` - Kafka infrastructure
 
 ---
 
 ## 🔄 IN PROGRESS
 
-### Current Week: Fase 2A, Semana 2 (Leitura Angelov + Setup)
+### Current Week: Fase 2A, Semana 2 (100% COMPLETE)
 **Goal:** Fichamento Angelov (2014) + Setup Kafka + Producer v0.1
 **Started:** 2025-12-23
+**Completed:** 2026-01-19
 
-**Completed:**
+**All Tasks Completed:**
 - [x] Ler paper Angelov (2014) completo ✅
 - [x] Criar fichamento estruturado ✅
 - [x] Extrair fórmulas e pseudocódigo ✅
@@ -95,16 +111,18 @@
 - [x] Ler paper MicroTEDAclus (Maia 2020) ✅
 - [x] Fichamento MicroTEDAclus completo ✅
 - [x] Relacionar TEDA com MicroTEDAclus ✅
-
-**Remaining:**
-- [ ] Setup Kafka ambiente remoto
-- [ ] Producer v0.1 (PCAP reader)
-- [ ] Atualizar relatório semanal
+- [x] Setup Kafka local (Docker Compose) ✅
+- [x] Producer v0.1 (PCAP reader com Scapy) ✅
+- [x] Consumer v0.1 (Flow aggregation) ✅
+- [x] Teste end-to-end completo ✅
+- [x] Documentação arquitetura Kafka ✅
 
 **Deliverables Created:**
 1. `docs/paper-summaries/angelov-2014-teda.md` ✅ (100%)
 2. `docs/paper-summaries/maia-2020-microtedaclus.md` ✅ (100%)
 3. `docs/KNOWLEDGE_GAPS.md` ✅
+4. `docs/architecture/STREAMING_ARCHITECTURE.md` ✅
+5. Streaming pipeline v0.1 (Producer + Consumer) ✅
 
 ---
 
@@ -116,9 +134,9 @@
 | Semana | Foco Principal | Leituras | Entregáveis |
 |--------|---------------|----------|-------------|
 | **S1** ✅ | K-means, DBSCAN, TEDA, Design | - | Resumos, Arquitetura |
-| **S2** | Setup remoto, Producer v0.1 | Angelov (2014) | Ambiente Kafka rodando |
-| **S3** | Consumer 1 (windowing) | Maia (2020) | Features extraídas |
-| **S4** | TEDA v0.1 | Survey Drift | Pipeline básico E2E |
+| **S2** ✅ | Setup Kafka, Producer+Consumer v0.1 | Angelov (2014), Maia (2020) | Pipeline E2E funcionando |
+| **S3** | TEDA v0.1 (básico) | Survey Drift | Classificação streaming |
+| **S4** | TEDA v0.2 (micro-clusters) | Kafka Guide | MicroTEDAclus v0.1 |
 
 ### Fase 2B: Implementação TEDA + Kafka (Semanas 5-10)
 **Goal:** MVP funcional com experimentos básicos
@@ -205,7 +223,8 @@
 ### Next Readings
 1. **S2:** Angelov (2014) - TEDA Framework original ✅ COMPLETO
 2. **S2:** Maia (2020) - MicroTEDAclus ✅ COMPLETO
-3. **S3:** Survey Concept Drift + Kafka Guide
+3. **S3:** Survey Concept Drift (prioridade para implementar TEDA)
+4. **S4:** Kafka Guide (implementação avançada)
 
 **Full plan:** `docs/reading-plan.md`
 
@@ -236,8 +255,14 @@
 
 **Streaming/Infrastructure:**
 - [x] Kafka 2-topic architecture designed ✅
-- [ ] Kafka implementation
-- [ ] Performance benchmarking
+- [x] Kafka implementation (Docker Compose) ✅
+- [x] Kafka partições: paralelismo, distribuição por key ✅
+- [x] Kafka offsets: committed, current, latest, lag ✅
+- [x] Consumer Groups: identificação, rebalancing, auto_offset_reset ✅
+- [x] Hot partitions: problema com DDoS, soluções ✅
+- [x] Producer v0.1: PCAP → packets topic (2909 pkt/s) ✅
+- [x] Consumer v0.1: packets → flows topic (27 features) ✅
+- [ ] Performance benchmarking full dataset
 
 ---
 
@@ -246,6 +271,12 @@
 ### Paper Summaries (Fichamentos)
 - `docs/paper-summaries/angelov-2014-teda.md` - TEDA Framework original (100%)
 - `docs/paper-summaries/maia-2020-microtedaclus.md` - MicroTEDAclus (100%)
+
+### Architecture (Arquitetura)
+- `docs/architecture/STREAMING_ARCHITECTURE.md` - Kafka pipeline completo
+  - Partições, offsets, consumer groups
+  - Hot partitions e soluções
+  - Producer e Consumer configs
 
 ### Summaries (Fundamentação)
 - `docs/summaries/clustering-evolutivo-concepts.md` - TEDA/MicroTEDAclus
@@ -269,18 +300,24 @@
 **Primary Tools:**
 - Claude Code with custom skills and hooks
 - Python 3.12 + scikit-learn, pandas, numpy
-- NFStream (feature extraction from PCAPs)
-- Apache Kafka (Docker)
+- Scapy (packet parsing from PCAPs)
+- Apache Kafka (Docker Compose - Zookeeper + Kafka + Kafka-UI)
 - DVC for pipeline orchestration
 - MLflow for experiment tracking (a validar)
 
+**Streaming Infrastructure (Local - Docker):**
+- Zookeeper: localhost:2181
+- Kafka: localhost:9092
+- Kafka-UI: localhost:8080
+- Tópicos: packets (raw), flows (aggregated)
+
 **Remote Resources:**
 - PCAPs CICIoT2023 (~548GB) via SSH
-- Processamento/Kafka rodará na máquina remota
+- Processamento full dataset rodará na máquina remota
 
 **Active Repositories:**
-- `final-project/baseline/` - Phase 1: ML baseline experiments
-- `final-project/streaming/` - Phase 2: Kafka + TEDA streaming
+- `final-project/iot-ids-research/` - Phase 1: ML baseline experiments
+- `final-project/streaming/` - Phase 2: Kafka + TEDA streaming (v0.1 funcionando)
 - `final-project/data/` - Shared data (PCAPs, CSVs)
 - `artigo1/` - Baseline comparison paper
 - `dissertation/` - Master's dissertation (PT + EN)

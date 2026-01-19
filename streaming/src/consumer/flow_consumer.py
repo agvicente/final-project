@@ -241,6 +241,7 @@ class FlowData:
         """Retorna a 5-tuple que identifica este flow."""
         return (self.src_ip, self.dst_ip, self.src_port, self.dst_port, self.protocol)
 
+    # TODO: Implementar a extracao de features do flow
     def to_features(self) -> Dict[str, Any]:
         """
         Extrai features do flow para ML.
