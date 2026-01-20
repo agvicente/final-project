@@ -1,5 +1,5 @@
 # SESSION CONTEXT - IoT IDS Research Project
-**Last Updated:** 2026-01-19 (Session: Início Semana 3 - TEDA v0.1)
+**Last Updated:** 2026-01-20 (Session: TEDA v0.1 + StreamingDetector completos)
 
 ---
 
@@ -85,6 +85,7 @@
 - `docs/paper-summaries/maia-2020-microtedaclus.md` - Fichamento MicroTEDAclus (100%)
 - `docs/KNOWLEDGE_GAPS.md` - Lacunas de conhecimento para estudo
 - `docs/architecture/STREAMING_ARCHITECTURE.md` - Arquitetura completa Kafka
+- `docs/ARCHITECTURE.md` - **Arquitetura do sistema (ATUALIZAR a cada evolução)**
 - `streaming/src/producer/` - Producer v0.1 (config.py, pcap_producer.py)
 - `streaming/src/consumer/` - Consumer v0.1 (config.py, flow_consumer.py)
 - `streaming/docker/docker-compose.yml` - Kafka infrastructure
@@ -98,23 +99,26 @@
 **Started:** 2026-01-19
 
 **Tasks:**
-- [ ] Criar estrutura `streaming/src/detector/`
-- [ ] Implementar classe TEDADetector
-  - [ ] Atualização recursiva de μ (média)
-  - [ ] Atualização recursiva de σ² (variância)
-  - [ ] Cálculo de eccentricity: ξ = 1/k + ||x-μ||²/(k×σ²)
-  - [ ] Cálculo de typicality: τ = 1 - ξ
-  - [ ] Threshold para anomalia (Chebyshev)
+- [x] Criar estrutura `streaming/src/detector/`
+- [x] Implementar classe TEDADetector
+  - [x] Atualização recursiva de μ (média)
+  - [x] Atualização recursiva de σ² (variância)
+  - [x] Cálculo de eccentricity: ξ = 1/k + ||x-μ||²/(k×σ²)
+  - [x] Cálculo de typicality: τ = 1 - ξ
+  - [x] Threshold para anomalia (Chebyshev)
 - [ ] Testes unitários básicos
-- [ ] Integração com Consumer (flows → TEDA)
-- [ ] Teste E2E: PCAP → detecção de anomalias
-- [ ] Atualizar documentação de arquitetura
+- [x] Integração com Consumer (flows → TEDA)
+- [x] Teste E2E: PCAP → detecção de anomalias
+- [x] Atualizar documentação de arquitetura
 
-**Deliverables Planned:**
-1. `streaming/src/detector/teda.py` - TEDADetector class
-2. `streaming/src/detector/streaming_detector.py` - Integração
-3. Testes E2E com dados do CICIoT2023
-4. Documentação atualizada
+**Deliverables:**
+1. ✅ `streaming/src/detector/teda.py` - TEDADetector class (commit 7cdef2b)
+2. ✅ `streaming/src/detector/streaming_detector.py` - StreamingDetector (commit 8a132b3)
+3. ✅ Testes E2E: 127 flows, 2 anomalias detectadas (1.57%), 36.4 flows/s
+4. ✅ `docs/ARCHITECTURE.md` - Diagrama completo do sistema
+
+**Remaining:**
+- [ ] Testes unitários para TEDADetector
 
 ---
 

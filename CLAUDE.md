@@ -309,8 +309,17 @@ experiments/results/<mode>/consolidation/<timestamp>_consolidation/final_report.
 
 ### Documentação Evolutiva
 - **docs/SESSION_CONTEXT.md** - "Cérebro" do projeto (SEMPRE LEIA ESTE ARQUIVO)
+- **docs/ARCHITECTURE.md** - Arquitetura do sistema streaming (ATUALIZAR quando houver mudanças)
 - **docs/weekly-reports/current-week.md** - Relatório semanal vivo
 - **docs/progress/** - Logs de cada sessão
+
+### Regras de Atualização de Arquitetura
+**IMPORTANTE:** Sempre que modificar a arquitetura do sistema streaming, DEVE atualizar `docs/ARCHITECTURE.md`:
+1. Adicionar entrada no changelog com versão e data
+2. Atualizar diagramas ASCII se houver novos componentes
+3. Atualizar tabelas de componentes, tópicos Kafka, ou schemas
+4. Marcar itens do roadmap como implementados
+5. Atualizar estatísticas de código (LOC, classes)
 
 ### Guias
 - **QUICK_START_GUIDE.md** - Como usar o sistema
