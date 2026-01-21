@@ -81,13 +81,26 @@
 - ✅ Documentação arquitetura Kafka (partições, offsets, consumer groups)
 
 **Key Files Created:**
-- `docs/paper-summaries/angelov-2014-teda.md` - Fichamento TEDA (100%)
-- `docs/paper-summaries/maia-2020-microtedaclus.md` - Fichamento MicroTEDAclus (100%)
-- `docs/KNOWLEDGE_GAPS.md` - Lacunas de conhecimento para estudo
-- `docs/architecture/STREAMING_ARCHITECTURE.md` - Arquitetura completa Kafka
-- `docs/ARCHITECTURE.md` - **Arquitetura do sistema (ATUALIZAR a cada evolução)**
-- `streaming/src/producer/` - Producer v0.1 (config.py, pcap_producer.py)
-- `streaming/src/consumer/` - Consumer v0.1 (config.py, flow_consumer.py)
+
+*Arquitetura (docs/architecture/):*
+- `TARGET.md` - Visão de alto nível (onde queremos chegar)
+- `CURRENT.md` - Estado atual da implementação (ATUALIZAR a cada evolução)
+- `KAFKA_REFERENCE.md` - Referência educacional sobre Kafka
+
+*Teoria (docs/theory/):*
+- `teda-framework.md` - Fundamentação teórica TEDA/MicroTEDAclus
+- `concept-drift.md` - Teoria de concept drift
+- `pcap-justification.md` - Por que processar PCAPs
+
+*Fichamentos (docs/paper-summaries/):*
+- `angelov-2014-teda.md` - Fichamento TEDA (100%)
+- `maia-2020-microtedaclus.md` - Fichamento MicroTEDAclus (100%)
+
+*Outros:*
+- `docs/KNOWLEDGE_GAPS.md` - Lacunas de conhecimento
+- `streaming/src/producer/` - Producer v0.1
+- `streaming/src/consumer/` - Consumer v0.1
+- `streaming/src/detector/` - TEDADetector + StreamingDetector
 - `streaming/docker/docker-compose.yml` - Kafka infrastructure
 
 ---

@@ -1,8 +1,10 @@
-# Requisitos de Processamento PCAP para Streaming IoT IDS
+# Justificativa PCAP - Por que Processar PCAPs
 
 **Criado:** 2025-12-17
-**Status:** Documento de referência para arquitetura
-**Contexto:** Fase 2/3 do mestrado - IoT IDS com Streaming Real-time
+**Última Atualização:** 2026-01-20
+**Capítulo da Dissertação:** 4 - Metodologia
+
+> **Propósito:** Documento de JUSTIFICATIVA METODOLÓGICA para a dissertação. Explica por que os arquivos PCAP do CICIoT2023 devem ser processados diretamente (em vez dos CSVs) para manter a ordem temporal e permitir simulação realista de streaming.
 
 ---
 

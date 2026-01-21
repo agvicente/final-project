@@ -308,13 +308,24 @@ experiments/results/<mode>/consolidation/<timestamp>_consolidation/final_report.
 - **Session start/end** - Carrega e salva contexto automaticamente
 
 ### Documentação Evolutiva
-- **docs/SESSION_CONTEXT.md** - "Cérebro" do projeto (SEMPRE LEIA ESTE ARQUIVO)
-- **docs/ARCHITECTURE.md** - Arquitetura do sistema streaming (ATUALIZAR quando houver mudanças)
+
+**Arquitetura (docs/architecture/):**
+- `TARGET.md` - Visão de alto nível (onde queremos chegar)
+- `CURRENT.md` - Estado atual implementado (ATUALIZAR a cada mudança)
+- `KAFKA_REFERENCE.md` - Referência educacional sobre Kafka
+
+**Teoria (docs/theory/):**
+- `teda-framework.md` - Fundamentação teórica TEDA/MicroTEDAclus
+- `concept-drift.md` - Teoria de concept drift
+- `pcap-justification.md` - Por que processar PCAPs
+
+**Outros:**
+- **docs/SESSION_CONTEXT.md** - "Cérebro" do projeto (SEMPRE LEIA)
 - **docs/weekly-reports/current-week.md** - Relatório semanal vivo
-- **docs/progress/** - Logs de cada sessão
+- **docs/paper-summaries/** - Fichamentos de papers
 
 ### Regras de Atualização de Arquitetura
-**IMPORTANTE:** Sempre que modificar a arquitetura do sistema streaming, DEVE atualizar `docs/ARCHITECTURE.md`:
+**IMPORTANTE:** Sempre que modificar a arquitetura do sistema streaming, DEVE atualizar `docs/architecture/CURRENT.md`:
 1. Adicionar entrada no changelog com versão e data
 2. Atualizar diagramas ASCII se houver novos componentes
 3. Atualizar tabelas de componentes, tópicos Kafka, ou schemas

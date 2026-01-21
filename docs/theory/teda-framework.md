@@ -1,8 +1,11 @@
-# Resumo: Clustering Evolutivo - Conceitos Fundamentais
+# TEDA Framework - Fundamentação Teórica
 
 **Criado:** 2025-12-09
-**Baseado em:** Maia et al. (2020) - "Evolving Clustering Algorithm Based on Mixture of Typicalities"
-**Contexto:** Fase 2 do mestrado - IoT IDS com Clustering Evolutivo
+**Última Atualização:** 2026-01-20
+**Baseado em:** Angelov (2014), Maia et al. (2020)
+**Capítulo da Dissertação:** 2 - Fundamentação Teórica
+
+> **Propósito:** Documento de FUNDAMENTAÇÃO TEÓRICA para a dissertação. Explica os conceitos de TEDA, eccentricidade, tipicalidade, micro-clusters e MicroTEDAclus.
 
 ---
 

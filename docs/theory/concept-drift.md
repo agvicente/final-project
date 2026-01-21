@@ -1,8 +1,10 @@
-# Concept Drift: Fundamentos para Estudo Aprofundado
+# Concept Drift - Fundamentação Teórica
 
 **Criado:** 2025-12-09
-**Status:** Visão geral - requer estudo aprofundado da literatura
-**Contexto:** Fase 2 do mestrado - IoT IDS com Clustering Evolutivo
+**Última Atualização:** 2026-01-20
+**Capítulo da Dissertação:** 2 - Fundamentação Teórica
+
+> **Propósito:** Documento de FUNDAMENTAÇÃO TEÓRICA para a dissertação. Explica os tipos de concept drift e como sistemas adaptativos lidam com mudanças na distribuição dos dados.
 
 ---
 

@@ -1,17 +1,20 @@
-# Streaming Architecture - IoT IDS
+# Kafka Reference - Conceitos e Padrões
 
 **Criado em:** 2025-01-16
-**Status:** Documento de Planejamento
-**Autor:** Augusto (com assistência de Claude)
+**Última Atualização:** 2026-01-20
+**Tipo:** Documento de Referência (Educacional)
+
+> **Propósito:** Este documento é uma REFERÊNCIA EDUCACIONAL sobre conceitos de Kafka e arquitetura distribuída. Para a arquitetura implementada, veja [CURRENT.md](./CURRENT.md). Para a visão de alto nível, veja [TARGET.md](./TARGET.md).
 
 ---
 
-## 1. Visao Geral
+## 1. Visão Geral
 
-Este documento descreve a arquitetura de streaming para o sistema de deteccao de intrusao em IoT, incluindo:
-- Evolucao da arquitetura monolitica para distribuida
-- Metodologia para simulacao de trafego realista usando PCAPs
-- Pesquisa bibliografica para implementacao futura
+Este documento contém:
+- Conceitos detalhados de Kafka (consumer groups, offsets, particionamento)
+- Visão futura de arquitetura distribuída
+- Metodologia para simulação de tráfego com PCAPs
+- Pesquisa bibliográfica sobre traffic replay
 
 ---
 

@@ -1,8 +1,10 @@
-# Arquitetura do Sistema - IoT IDS Streaming
+# Arquitetura Atual - IoT IDS Streaming
 
 **Criado:** 2026-01-20
 **Última Atualização:** 2026-01-20
 **Versão:** 0.1.0
+
+> **Propósito:** Este documento descreve O QUE ESTÁ IMPLEMENTADO AGORA. Para a visão de alto nível (onde queremos chegar), veja [TARGET.md](./TARGET.md).
 
 > **IMPORTANTE PARA CLAUDE:** Este arquivo DEVE ser atualizado sempre que houver mudanças na arquitetura do sistema (novos componentes, novos tópicos Kafka, novas classes, etc.). Adicione uma entrada no changelog e atualize os diagramas correspondentes.
 
