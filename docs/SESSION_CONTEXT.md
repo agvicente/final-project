@@ -1,13 +1,13 @@
 # SESSION CONTEXT - IoT IDS Research Project
-**Last Updated:** 2026-01-20 (Session: TEDA v0.1 + StreamingDetector completos)
+**Last Updated:** 2026-01-21 (Session: Semana 3 COMPLETA - TEDA v0.1 + testes)
 
 ---
 
 ## 🎯 CURRENT STATUS
 
 **Phase:** Fase 2A - Teoria + Design + Setup
-**Week:** Semana 3 de 24 (5% complete)
-**Current Task:** Implementar TEDA v0.1 (básico) para detecção de anomalias em streaming
+**Week:** Semana 3 de 24 (12.5% complete) ✅ COMPLETE
+**Current Task:** Preparar início da Semana 4 (TEDA v0.2 com micro-clusters)
 
 ---
 
@@ -107,11 +107,11 @@
 
 ## 🔄 IN PROGRESS
 
-### Current Week: Fase 2A, Semana 3 (TEDA v0.1 Básico)
+### Completed: Fase 2A, Semana 3 (TEDA v0.1 Básico) ✅ 100%
 **Goal:** Implementar TEDA v0.1 (básico) para detecção de anomalias em streaming
-**Started:** 2026-01-19
+**Period:** 2026-01-19 to 2026-01-21
 
-**Tasks:**
+**Tasks Completed:**
 - [x] Criar estrutura `streaming/src/detector/`
 - [x] Implementar classe TEDADetector
   - [x] Atualização recursiva de μ (média)
@@ -119,19 +119,19 @@
   - [x] Cálculo de eccentricity: ξ = 1/k + ||x-μ||²/(k×σ²)
   - [x] Cálculo de typicality: τ = 1 - ξ
   - [x] Threshold para anomalia (Chebyshev)
-- [ ] Testes unitários básicos
+- [x] Testes unitários básicos (33 testes, 100% passando)
 - [x] Integração com Consumer (flows → TEDA)
 - [x] Teste E2E: PCAP → detecção de anomalias
 - [x] Atualizar documentação de arquitetura
+- [x] Reorganização completa da documentação
 
 **Deliverables:**
 1. ✅ `streaming/src/detector/teda.py` - TEDADetector class (commit 7cdef2b)
 2. ✅ `streaming/src/detector/streaming_detector.py` - StreamingDetector (commit 8a132b3)
-3. ✅ Testes E2E: 127 flows, 2 anomalias detectadas (1.57%), 36.4 flows/s
-4. ✅ `docs/ARCHITECTURE.md` - Diagrama completo do sistema
-
-**Remaining:**
-- [ ] Testes unitários para TEDADetector
+3. ✅ `streaming/tests/test_teda.py` - 33 unit tests (100% passing)
+4. ✅ Testes E2E: 127 flows, 2 anomalias detectadas (1.57%), 36.4 flows/s
+5. ✅ `docs/architecture/CURRENT.md` - Diagrama completo do sistema
+6. ✅ Documentação reorganizada (architecture/, theory/, paper-summaries/)
 
 ---
 
@@ -144,7 +144,7 @@
 |--------|---------------|----------|-------------|
 | **S1** ✅ | K-means, DBSCAN, TEDA, Design | - | Resumos, Arquitetura |
 | **S2** ✅ | Setup Kafka, Producer+Consumer v0.1 | Angelov (2014), Maia (2020) | Pipeline E2E funcionando |
-| **S3** | TEDA v0.1 (básico) | Survey Drift | Classificação streaming |
+| **S3** ✅ | TEDA v0.1 (básico) | Survey Drift | TEDADetector + 33 testes |
 | **S4** | TEDA v0.2 (micro-clusters) | Kafka Guide | MicroTEDAclus v0.1 |
 
 ### Fase 2B: Implementação TEDA + Kafka (Semanas 5-10)
