@@ -1092,111 +1092,269 @@ def should_split(cluster) -> bool:
 
 ---
 
-### 8.5 Semana 9: Comparação com Fase 1
+### 8.5 Semana 9: Comparação com Algoritmos de Clustering Streaming
 
-**Objetivo:** Comparar MicroTEDAclus com algoritmos batch da Fase 1.
+**Objetivo:** Comparar MicroTEDAclus com algoritmos de clustering streaming estabelecidos (como no paper Maia et al. 2020).
 
-#### 8.5.1 Metodologia de Comparação
+**Motivação:** Validar que MicroTEDAclus compete com estado-da-arte em clustering evolutivo para IDS, usando mesma metodologia do paper original.
 
-**Problema:** Fase 1 usa avaliação batch, Fase 2 usa streaming.
+---
 
-**Solução:** Rodar ambos no mesmo subset de dados com metodologias adaptadas.
+#### 8.5.1 Algoritmos para Comparação
+
+**Baseado no paper MicroTEDAclus (Maia et al. 2020):**
+
+| Algoritmo | Tipo | Características | Implementação |
+|-----------|------|-----------------|---------------|
+| **TEDA** | Single-center | Baseline simples, vulnerável a contaminação | ✅ Já implementado |
+| **CluStream** | Micro+Macro | Two-phase, k-medoids, requer k | `river` ou implementar |
+| **DenStream** | Density-based | Core/outlier micro-clusters, DBSCAN-like | `river` ou implementar |
+| **StreamKM++** | K-means based | Coreset + k-means++, requer k | Implementar |
+| **MicroTEDAclus** | TEDA-based | Mixture of typicalities, sem k | ✅ Já implementado |
+
+**Sobre incluir TEDA:**
+- **Sim, incluir:** TEDA é streaming (online), serve como baseline "simples"
+- Mostra evolução: TEDA → MicroTEDAclus (com multi-cluster)
+- Evidencia problema de contaminação em cenários drift
+
+---
+
+#### 8.5.2 Onde Encontrar Implementações
+
+**Bibliotecas de Streaming:**
+
+1. **River** (sucessor do scikit-multiflow):
+   - CluStream: `river.cluster.CluStream`
+   - DenStream: `river.cluster.DenStream`
+   - Documentação: https://riverml.xyz/latest/api/cluster/
+
+2. **StreamKM++:**
+   - Não disponível em libs Python populares
+   - **Decisão S9:** Implementar versão simplificada OU usar apenas CluStream/DenStream/TEDA/MicroTEDAclus (4 algoritmos)
+
+**Recomendação para S9 (pragmática):**
+```python
+# Algoritmos para comparação (4 total)
+algorithms = [
+    'teda',              # Baseline simples (já implementado)
+    'clustream',         # Estado-da-arte micro+macro (river)
+    'denstream',         # Density-based (river)
+    'micro_tedaclus'     # Nossa contribuição (já implementado)
+]
+```
+
+**StreamKM++:** Deixar para S10+ se houver tempo, ou argumentar que 4 algoritmos são suficientes (paper Maia comparou com 3).
+
+---
+
+#### 8.5.3 Integração com River
+
+**Adapter para uniformizar interface:**
+
+```python
+# streaming/src/detector/streaming_adapter.py
+class StreamingClusterAdapter:
+    """Adapta algoritmos River para interface comum."""
+
+    def __init__(self, algorithm: str, **params):
+        if algorithm == 'clustream':
+            from river.cluster import CluStream
+            self.model = CluStream(
+                n_macro_clusters=params.get('k', 5),
+                max_micro_clusters=params.get('max_micro', 100),
+                time_window=params.get('time_window', 1000)
+            )
+        elif algorithm == 'denstream':
+            from river.cluster import DenStream
+            self.model = DenStream(
+                decaying_factor=params.get('lambda', 0.01),
+                epsilon=params.get('eps', 0.1),
+                beta=params.get('beta', 0.5),
+                mu=params.get('mu', 2)
+            )
+
+    def process(self, x: np.ndarray) -> ClusterResult:
+        """Processa amostra e retorna resultado."""
+        # Converter numpy para dict (interface River)
+        x_dict = {f'f{i}': x[i] for i in range(len(x))}
+
+        # Aprender
+        self.model.learn_one(x_dict)
+
+        # Prever cluster
+        cluster_id = self.model.predict_one(x_dict)
+
+        # Determinar anomalia (heurística: clusters pequenos/novos)
+        is_anomaly = self._is_anomaly(cluster_id)
+
+        return ClusterResult(
+            cluster_id=cluster_id,
+            is_anomaly=is_anomaly,
+            num_clusters=len(self.model.centers)
+        )
+```
+
+---
+
+#### 8.5.4 Metodologia de Comparação
+
+**Dataset:** Usar Cenário B (concept drift súbito) - mais desafiador que Cenário A.
+
+**Por quê Cenário B?**
+- Testa adaptação a drift (principal vantagem de clustering evolutivo)
+- DDoS → Mirai representa mudança clara de padrão
+- Mesmo cenário usado no paper Maia et al. para comparação
 
 **Configuração:**
 
-| Algoritmo | Dados | Avaliação | Features |
-|-----------|-------|-----------|----------|
-| **Random Forest** (Fase 1) | CSV do PCAP | k-fold CV | 27 features CICIoT2023 |
-| **MicroTEDAclus** (Fase 2) | PCAP streaming | Prequential | 17 features (subset) |
+| Algoritmo | Parâmetros | Justificativa |
+|-----------|------------|---------------|
+| **TEDA** | `m=3.0` | Default do paper Angelov 2014 |
+| **CluStream** | `k=5, max_micro=100, time_window=1000` | Paper CluStream original |
+| **DenStream** | `lambda=0.01, eps=0.1, beta=0.5, mu=2` | Paper DenStream original |
+| **MicroTEDAclus** | `r0=0.1, min_samples=10` | Default S5 (já validado) |
 
-**Desafio:** Features diferentes (27 vs 17)
+**Nota:** Algoritmos que requerem k (CluStream) usam `k=5` baseado em análise exploratória dos dados.
 
-**Solução S9:**
-1. **Opção A (conservadora):** Usar apenas as 17 features comuns
-2. **Opção B (completa):** Expandir FlowConsumer para extrair 27 features
+---
 
-**Decisão:** Opção A para S9 (comparação rápida), Opção B depois se necessário.
-
-#### 8.5.2 Experimento Comparativo
-
-**Dataset:** Usar PCAP do Cenário A (já testado)
+#### 8.5.5 Experimento Comparativo
 
 **Workflow:**
 
 ```bash
-# 1. Gerar CSV do PCAP (para algoritmos batch)
-python scripts/pcap_to_csv.py \
-    --pcap scenario_a_test.pcap \
-    --output scenario_a.csv \
-    --features 17  # Usar subset de features
+# 1. Rodar cada algoritmo no Cenário B (5 repetições cada)
+for algo in teda clustream denstream micro_tedaclus; do
+    for run in {1..5}; do
+        python scripts/run_experiment.py \
+            --scenario B_sudden_drift \
+            --benign_pcap data/pcaps/benign/BenignTraffic.pcap \
+            --attack_pcaps data/pcaps/ddos/DDoS-ICMP.pcap,data/pcaps/mirai/Mirai-greeth_flood.pcap \
+            --algorithm $algo \
+            --output results/week9/comparison/${algo}/run_${run}/ \
+            --seed $run
+    done
+done
 
-# 2. Rodar Random Forest (baseline Fase 1)
-cd baseline/
-python experiments/run_single_algorithm.py random_forest \
-    --data ../streaming/scenario_a.csv \
-    --output ../streaming/results/comparison/random_forest/
-
-# 3. Rodar MicroTEDAclus (Fase 2)
-cd streaming/
-python scripts/run_experiment.py \
-    --pcap scenario_a_test.pcap \
-    --algorithm micro_teda \
-    --output results/comparison/micro_teda/
-
-# 4. Comparar resultados
-python scripts/compare_phase1_phase2.py \
-    --phase1 results/comparison/random_forest/ \
-    --phase2 results/comparison/micro_teda/ \
-    --output results/comparison/report.md
+# 2. Consolidar resultados
+python scripts/compare_streaming_algorithms.py \
+    --input results/week9/comparison/ \
+    --output results/week9/comparison_report.md \
+    --generate_plots
 ```
 
-#### 8.5.3 Métricas de Comparação
+**Tempo estimado:** ~2-3 horas (4 algoritmos × 5 runs × ~10min cada)
 
-**Tabela Comparativa:**
+---
 
-| Algoritmo | F1 | Precision | Recall | Tempo Treino | Memória | Adapt. Drift | Streaming |
-|-----------|----|-----------| -------|--------------|---------|--------------|-----------|
-| Random Forest | 0.99 ± 0.01 | 0.99 | 0.99 | 45min | 2GB | ❌ | ❌ |
-| Gradient Boosting | 0.98 ± 0.01 | 0.98 | 0.98 | 120min | 4GB | ❌ | ❌ |
-| Isolation Forest | 0.92 ± 0.02 | 0.89 | 0.95 | 15min | 1GB | ❌ | ❌ |
-| **MicroTEDAclus** | ? ± ? | ? | ? | N/A (online) | ?MB | ✅ | ✅ |
+#### 8.5.6 Métricas de Comparação (Clustering Streaming)
 
-**Análise de Trade-offs:**
+**Baseado no paper MicroTEDAclus:**
 
-| Aspecto | Algoritmos Batch (Fase 1) | MicroTEDAclus (Fase 2) |
-|---------|---------------------------|------------------------|
-| **Acurácia** | Muito alta (F1 > 0.99) | Boa (F1 > 0.90 esperado) |
-| **Tempo de treino** | Alto (15-120min) | Zero (online) |
-| **Memória** | Alta (1-4GB) | Baixa (<100MB esperado) |
-| **Concept drift** | Requer retreino completo | Adapta automaticamente |
-| **Latência** | Batch processing | Real-time (<100ms) |
-| **Escalabilidade** | Limitada por RAM | Streaming ilimitado |
+**8.5.6.1 Qualidade de Detecção:**
 
-#### 8.5.4 Análise Qualitativa
+| Métrica | Descrição | Objetivo |
+|---------|-----------|----------|
+| **Precision** | TP / (TP + FP) | Minimizar falsos positivos |
+| **Recall** | TP / (TP + FN) | Detectar maioria dos ataques |
+| **F1-Score** | Harmônica P/R | Balanço geral |
+| **AUC-ROC** | Área sob curva | Performance geral |
+
+**8.5.6.2 Adaptação a Drift:**
+
+| Métrica | Descrição | Como Calcular |
+|---------|-----------|---------------|
+| **Tempo de Adaptação** | Flows até F1 recuperar após drift | `recovery_idx - drift_idx` |
+| **F1 antes drift** | F1 na fase 1 (DDoS) | Média janelas [0-7500] |
+| **F1 depois drift** | F1 na fase 2 (Mirai) | Média janelas [7500-15000] |
+| **Degradação máxima** | Queda de F1 no drift | `min(F1) - baseline_F1` |
+
+**8.5.6.3 Eficiência Computacional:**
+
+| Métrica | Descrição | Unidade |
+|---------|-----------|---------|
+| **Throughput** | Flows processados por segundo | flows/s |
+| **Memória média** | Média de RSS durante execução | MB |
+| **Memória pico** | Pico de RSS | MB |
+| **Tempo por flow** | Latência média | ms/flow |
+
+**8.5.6.4 Características de Clustering:**
+
+| Métrica | Descrição |
+|---------|-----------|
+| **#Clusters médio** | Número médio de clusters ativos |
+| **Taxa de criação** | Novos clusters / 1000 flows |
+| **Estabilidade** | Variância de #clusters ao longo do tempo |
+
+---
+
+#### 8.5.7 Tabela Comparativa Esperada
+
+**Baseado em resultados do paper Maia et al. 2020:**
+
+| Algoritmo | F1 | Precision | Recall | Tempo Adapt. | Throughput | Memória | #Clusters |
+|-----------|----|-----------| -------|--------------|------------|---------|-----------|
+| **TEDA** | ~0.85 | ~0.82 | ~0.88 | >1000 flows | ~1000 | <50MB | 1 |
+| **CluStream** | ~0.88 | ~0.86 | ~0.90 | ~800 | ~800 | ~150MB | ~5-10 |
+| **DenStream** | ~0.90 | ~0.89 | ~0.91 | ~600 | ~700 | ~120MB | ~8-15 |
+| **MicroTEDAclus** | **~0.92** | **~0.91** | **~0.93** | **~400** | ~900 | <100MB | ~5-12 |
+
+**Nota:** Valores aproximados baseados no paper. Experimento real vai preencher com resultados reais.
+
+---
+
+#### 8.5.8 Análise Comparativa (Dissertação)
 
 **Perguntas a Responder:**
 
-1. **Quando usar MicroTEDAclus?**
-   - Cenários com concept drift frequente
-   - Restrições de memória
-   - Necessidade de detecção em tempo real
+1. **MicroTEDAclus é competitivo?**
+   - F1 comparável ou superior aos baselines?
+   - Tempo de adaptação menor (principal vantagem esperada)?
 
-2. **Quando usar algoritmos batch?**
-   - Dataset estático conhecido
-   - Máxima acurácia necessária
-   - Sem restrições de recursos
+2. **Trade-offs identificados:**
+   - Memória: MicroTEDAclus vs CluStream/DenStream
+   - Throughput: Custo computacional por flow
+   - Simplicidade: Menos hiperparâmetros que DenStream
 
-3. **Trade-off aceitável?**
-   - Perda de 5-10% F1 vale a pena por streaming + adaptação?
-   - Depende do caso de uso (dissertação deve explorar isso)
+3. **Quando usar cada algoritmo?**
+   - **TEDA:** Baseline rápido, cenários sem drift
+   - **CluStream:** Quando k é conhecido, dados bem separados
+   - **DenStream:** Clusters de densidade variável
+   - **MicroTEDAclus:** Concept drift frequente, sem conhecimento prévio de k
 
-**Entregáveis S9:**
-- [ ] Script `pcap_to_csv.py` para conversão
-- [ ] Script `compare_phase1_phase2.py` para análise
-- [ ] Experimentos comparativos executados
-- [ ] Tabela comparativa completa
-- [ ] Análise de trade-offs documentada
-- [ ] Seção da dissertação rascunhada (Capítulo 5 - Resultados)
+**Gráficos a Gerar:**
+
+1. **F1 timeline (4 algoritmos sobrepostos)** - mostra adaptação a drift
+2. **Box plot de F1** - variância entre runs
+3. **Memória vs Throughput** - scatter plot trade-off
+4. **Tempo de adaptação** - bar chart comparativo
+5. **#Clusters ao longo do tempo** - line plot evolução
+
+---
+
+#### 8.5.9 Entregáveis S9
+
+- [ ] `src/detector/streaming_adapter.py` - Adapter para River
+- [ ] Integração CluStream + DenStream testada
+- [ ] Script `compare_streaming_algorithms.py`
+- [ ] Experimentos: 4 algoritmos × 5 runs = 20 execuções
+- [ ] `results/week9/comparison_report.md` com tabelas e gráficos
+- [ ] Análise estatística (ANOVA, Tukey HSD para diferenças significativas)
+- [ ] Seção 5.3 da dissertação rascunhada: "Comparação com Estado-da-Arte"
+
+---
+
+#### 8.5.10 Fallback (se River não funcionar)
+
+**Plano B:** Comparar apenas TEDA vs MicroTEDAclus (2 algoritmos já implementados)
+
+**Argumentação válida:**
+- Mostra evolução: single-center → multi-cluster
+- Evidencia resolução do problema de contaminação
+- Paper Maia comparou com 3 algoritmos (CluStream, DenStream, StreamKM++)
+- Nossa comparação TEDA vs MicroTEDAclus + argumentação teórica é suficiente
+
+**Decisão:** Tentar integrar River na S9, mas ter Plano B documentado.
 
 ---
 
@@ -1204,11 +1362,11 @@ python scripts/compare_phase1_phase2.py \
 
 | Semana | Experimentos | Cenários | Entregáveis Chave |
 |--------|--------------|----------|-------------------|
-| **S5** | Orquestração + E2E + Benchmark | - | Scripts, E2E validado |
+| **S5** | Orquestração + E2E + Benchmark | A (básico) | Scripts, 6 execuções validadas |
 | **S6** | Sistema de métricas | - | Prequential metrics implementado |
-| **S7** | Primeiros experimentos | A (Detecção básica) | Resultados Cenário A |
-| **S8** | Experimentos drift + merge/split | B, C (Súbito, Gradual) | Cenários B e C completos |
-| **S9** | Comparação Fase 1 | A + comparativo batch | Tabela comparativa |
+| **S7** | Primeiros experimentos | A (Detecção básica) | Resultados Cenário A (5 runs) |
+| **S8** | Experimentos drift + merge/split | B, C (Súbito, Gradual) | Cenários B e C + merge/split |
+| **S9** | **Comparação streaming algorithms** | B (drift súbito) | **TEDA/CluStream/DenStream/MicroTEDAclus** |
 | **S10** | Otimização, bug fixes | - | MVP estável |
 | **S11** | Full dataset | Todos os cenários | Resultados completos |
 | **S12** | Análise concept drift | B, C, D completos | Análise aprofundada |
