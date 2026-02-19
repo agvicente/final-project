@@ -368,144 +368,313 @@ Este capítulo detalha COMO executar cada semana da Fase 2B, incluindo decisões
 
 **Objetivo:** Automatizar execução de experimentos e validar MicroTEDAclus end-to-end.
 
-#### 8.1.1 Script de Orquestração
+**Definição de "pronto" para Semana 5:**
+Rodar com 1 comando:
+- Stream curto e controlado (benign warm-up + ataque)
+- Comparar TEDA vs MicroTEDAclus no mesmo stream
+- Gerar outputs replicáveis (métricas, alertas, clusters, throughput/memória)
+- Sanity check de sucesso (detectar DDoS com baixa latência, FPR aceitável no benign)
 
-**Decisão:** Python (melhor integração com logs e métricas)
+Isso é o **MVP do Cenário A (Detecção básica)**.
+
+---
+
+#### 8.1.1 PCAPs Selecionados (Decisão Concreta)
+
+**Escolha para primeiro E2E:**
+- **Benign:** `BenignTraffic*.pcap` (tráfego normal do dataset)
+- **Ataque:** `DDoS-ICMP_Flood*.pcap` (ataque volumétrico com separação clara)
+
+**Justificativa:**
+- DDoS e Benign são classes com muitos exemplos e separáveis
+- Paper CICIoT2023 mostra que DDoS é muito detectável
+- Começar pelo "ataque mais detectável" valida infraestrutura
+- Classes Web/Bruteforce são mais confusas (deixar para depois)
+
+**Duração / Quantidade (Decisão Concreta):**
+
+| Fase | Limite | Justificativa |
+|------|--------|---------------|
+| **Warm-up benign** | 5.000 flows | Estabelecer baseline sem sobrecarregar |
+| **Teste ataque** | 10.000 flows | Suficiente para MTTD + estatísticas |
+
+**Por que em flows, não minutos?**
+- Em replay acelerado, minutos são arbitrários
+- Em IDS streaming, o que importa é número de decisões (flows) e MTTD em flows
+
+**Paths concretos (exemplo):**
+```bash
+BENIGN_PCAP=data/pcaps/benign/BenignTraffic*.pcap
+ATTACK_PCAP=data/pcaps/ddos/DDoS-ICMP_Flood*.pcap
+MAX_FLOWS_WARMUP=5000
+MAX_FLOWS_TEST=10000
+```
+
+---
+
+#### 8.1.2 Parâmetros Concretos do MicroTEDAclus
+
+**Default (para rodar agora):**
+```yaml
+algorithm: micro_teda        # Default no sistema
+r0: 0.1                      # Variância mínima
+min_samples: 10              # Amostras antes de detectar
+window_size: 1000            # Sliding window para métricas prequential
+```
+
+**Micro-grid Mínimo (Semana 5 - 6 execuções):**
+
+Rodar 3 configs × 2 algoritmos:
+
+**Configs MicroTEDAclus:**
+1. `r0=0.05, min_samples=10` (mais sensível)
+2. `r0=0.10, min_samples=10` (default)
+3. `r0=0.20, min_samples=10` (mais permissivo)
+
+**Algoritmos:**
+- TEDA (single-center) para comparação/debug
+- MicroTEDAclus (produção)
+
+**Por que esse grid?**
+- `r0` controla sensibilidade inicial: maior = mais permissivo (menos alertas)
+- Manter `min_samples` fixo evita explodir combinações
+- Já produz trade-off FP vs TP
+
+**Saída esperada:** Gráficos de F1/Recall vs r0, FPR vs r0, MTTD vs r0
+
+---
+
+#### 8.1.3 Script de Orquestração (Estrutura Pronta)
+
+**Decisão:** Python como driver (bash só como wrapper)
+
+**Motivo:** Compor cenários, logar metadata, medir throughput/memória, salvar JSON/CSV
 
 **Arquivo:** `streaming/scripts/run_experiment.py`
 
-**Funcionalidade:**
+**Interface CLI:**
 ```python
-# Assinatura do script
-def run_experiment(
-    pcap_path: str,           # PCAP para processar
-    algorithm: str,           # 'teda' ou 'micro_teda'
-    output_dir: str,          # Diretório de saída
-    r0: float = 0.1,          # MicroTEDAclus: variância mínima
-    min_samples: int = 10,    # Amostras antes de detectar
-    m: float = 3.0,           # TEDA básico: threshold
-    max_flows: int = None,    # Limitar processamento
-    kafka_auto_start: bool = True  # Subir Kafka automaticamente
-) -> ExperimentResult
+# Entradas
+--scenario: A_basic                    # Semana 5 só isso
+--benign_pcap: path                    # Path do PCAP benign
+--attack_pcap: path                    # Path do PCAP ataque
+--attack_start: after_warmup           # Padrão
+--max_flows_warmup: 5000               # Flows de warm-up
+--max_flows_test: 10000                # Flows de teste
+--replay_speed: 10                     # 10x acelerado
+--algorithm: teda|micro_teda           # Algoritmo
+--r0: float                            # MicroTEDAclus: variância mínima
+--min_samples: int                     # Amostras antes de detectar
+--window_size: 1000                    # Sliding window métricas
+--seed: int                            # Reprodutibilidade
+--output_dir: path                     # Diretório de saída
 ```
 
-**Fluxo:**
-1. Verificar se Kafka está rodando
-   - Se não: `docker-compose up -d` (se `kafka_auto_start=True`)
-   - Esperar readiness (polling em `localhost:9092`)
-2. Criar tópicos se não existirem (`packets`, `flows`, `alerts`)
-3. Iniciar componentes em ordem:
-   - Producer: `PCAPProducer(pcap_path).process()`
-   - Consumer: `FlowConsumer()` em thread separada
-   - Detector: `StreamingDetector(algorithm, params)` em thread separada
-4. Monitorar progresso:
-   - Producer: pacotes/s publicados
-   - Consumer: flows/s gerados
-   - Detector: alertas/s detectados
-5. Coletar métricas finais:
-   - Throughput (flows/s)
-   - Latência (tempo médio por flow)
-   - Memória (pico de uso)
-   - Alertas detectados (total, por tipo)
-6. Salvar resultados:
-   - `output_dir/experiment_config.json` - Parâmetros usados
-   - `output_dir/metrics.json` - Métricas coletadas
-   - `output_dir/alerts.jsonl` - Alertas gerados (JSON Lines)
-   - `output_dir/experiment.log` - Logs completos
-7. Parar componentes gracefully (SIGTERM)
-8. Parar Kafka (se `kafka_auto_start=True`)
+**Fluxo de Execução:**
+1. Subir Kafka + consumers (se ainda não rodando)
+2. Processar benign PCAP até warm-up completar (5000 flows)
+3. Processar attack PCAP (ou mix benign+attack se tiver mixer)
+4. Coletar do tópico `alerts` e `flows` (opcional) e salvar
+5. Escrever métricas por janela
+6. Parar componentes gracefully
 
-**Métricas Coletadas:**
+**Artefatos Obrigatórios (5 arquivos):**
 
-| Categoria | Métrica | Como Coletar |
-|-----------|---------|--------------|
-| **Throughput** | Flows/s | `len(flows) / elapsed_time` |
-| **Latência** | Tempo médio por flow | `elapsed_time / len(flows)` |
-| **Memória** | Pico de RAM (MB) | `psutil.Process().memory_info().rss` |
-| **Detecção** | Total de alertas | `len(alerts)` |
-| **Detecção** | Taxa de anomalias (%) | `len(alerts) / len(flows) * 100` |
-| **Clustering** | Número de clusters (final) | `detector.get_statistics()['num_clusters']` |
+| Arquivo | Conteúdo | Formato |
+|---------|----------|---------|
+| `run_meta.json` | Git commit, parâmetros, paths PCAP, tempos, volumes | JSON |
+| `alerts.jsonl` | Um alerta por linha (AlertSchema do CURRENT.md) | JSON Lines |
+| `metrics_windowed.csv` | Por janela: TP/FP/FN/TN, P/R/F1, FPR, MTTD, #clusters | CSV |
+| `clusters_state.jsonl` | Snapshot a cada 5000 flows: #clusters, sizes, variâncias | JSON Lines |
+| `system_usage.csv` | A cada 1s: RSS memory (MB), CPU%, flows/s | CSV |
 
-#### 8.1.2 Teste E2E
-
-**PCAP Selecionado:** `DDoS-ICMP_Flood.pcap` (ataque volumétrico simples)
-
-**Justificativa:**
-- Ataque claro e volumétrico (fácil de detectar)
-- Arquivo menor (~2GB, processa em 5-10min)
-- Padrão diferente de tráfego benign
-
-**Configuração do Teste:**
-```bash
-python scripts/run_experiment.py \
-    --pcap data/pcaps/DDoS-ICMP_Flood.pcap \
-    --algorithm micro_teda \
-    --r0 0.1 \
-    --min-samples 10 \
-    --output results/e2e_test_001/ \
-    --max-flows 10000  # Limitar para teste rápido
+**Exemplo de `run_meta.json`:**
+```json
+{
+  "git_commit": "abc1234",
+  "scenario": "A_basic",
+  "algorithm": "micro_teda",
+  "params": {"r0": 0.1, "min_samples": 10, "window_size": 1000},
+  "pcaps": {
+    "benign": "data/pcaps/benign/BenignTraffic.pcap",
+    "attack": "data/pcaps/ddos/DDoS-ICMP_Flood.pcap"
+  },
+  "execution": {
+    "start_time": "2026-02-20T10:00:00Z",
+    "end_time": "2026-02-20T10:15:00Z",
+    "duration_seconds": 900
+  },
+  "volumes": {
+    "total_packets": 125000,
+    "total_flows": 15000,
+    "warmup_flows": 5000,
+    "test_flows": 10000
+  }
+}
 ```
 
-**Critérios de Sucesso:**
-- [ ] Pipeline completo executa sem erros
-- [ ] Throughput > 100 flows/s (baseline aceitável)
-- [ ] Alertas detectados > 0 (pelo menos 1 anomalia)
-- [ ] Taxa de anomalias entre 1-10% (razoável para DDoS)
-- [ ] Memória < 500MB (eficiência)
-- [ ] Logs mostram progressão normal
+---
 
-**Validação Manual:**
-- Inspecionar `alerts.jsonl` - verificar se IPs de ataque estão nos alertas
-- Conferir timestamps - verificar ordem temporal
-- Verificar cluster distribution - múltiplos clusters criados?
+#### 8.1.4 Métricas Específicas (Mínimo para E2E)
 
-#### 8.1.3 Benchmark: TEDA vs MicroTEDAclus
+**8.1.4.1 Detecção (mínimo):**
 
-**Objetivo:** Comparar os dois algoritmos no mesmo PCAP.
+| Métrica | Descrição | Uso |
+|---------|-----------|-----|
+| **Recall (attack)** | Quantos flows de ataque viraram alertas | TP / (TP + FN) |
+| **FPR (benign)** | Quantos flows benign viraram alertas | FP / (FP + TN) |
+| **F1 (binário)** | Balanço Precision/Recall | 2PR / (P+R) |
+| **AUC-ROC** | Se tiver score (eccentricity/typicality) | Área sob curva |
 
-**Experimentos:**
-```bash
-# Experimento 1: TEDA básico
-python scripts/run_experiment.py \
-    --pcap data/pcaps/DDoS-ICMP_Flood.pcap \
-    --algorithm teda \
-    --output results/benchmark/teda/ \
-    --max-flows 10000
+**8.1.4.2 Streaming (mínimo):**
 
-# Experimento 2: MicroTEDAclus
-python scripts/run_experiment.py \
-    --pcap data/pcaps/DDoS-ICMP_Flood.pcap \
-    --algorithm micro_teda \
-    --output results/benchmark/micro_teda/ \
-    --max-flows 10000
-```
+| Métrica | Descrição | Como Calcular |
+|---------|-----------|---------------|
+| **MTTD (flows)** | Flows desde 1º flow ataque até 1º alerta | `first_alert_idx - first_attack_idx` |
+| **Throughput (flows/s)** | Vazão de processamento | `total_flows / elapsed_time` |
+| **Memória RSS (MB)** | Pico de uso de RAM | `psutil.Process().memory_info().rss / 1e6` |
 
-**Métricas de Comparação:**
+**MTTD refinado:** Usar "k alertas em sequência" (ex.: 3) para reduzir ruído de FP isolados.
 
-| Métrica | TEDA Básico | MicroTEDAclus | Esperado |
-|---------|-------------|---------------|----------|
-| Throughput (flows/s) | ? | ? | Similar (±10%) |
-| Memória (MB) | ? | ? | MicroTEDA usa mais (múltiplos clusters) |
-| Alertas detectados | ? | ? | MicroTEDA detecta mais (resistente a contaminação) |
-| Falsos positivos | ? | ? | TEDA tem mais (contaminação) |
-| Clusters criados | 1 | ? | MicroTEDA cria múltiplos |
+**8.1.4.3 Clustering (mínimo):**
 
-**Script de Análise:**
+| Métrica | Descrição |
+|---------|-----------|
+| **#microclusters** | Total de clusters ativos ao longo do tempo |
+| **Taxa de criação** | Clusters criados por 1000 flows |
+| **Variância média** | Compacidade dos clusters |
+
+**Nota:** Cluster purity fica para Semana 6 (precisa mapear label por cluster).
+
+---
+
+#### 8.1.5 Critérios de Sucesso (Objetivos para Pass/Fail)
+
+**Sucesso Mínimo (pass/fail):**
+
+✅ **Pipeline:**
+- [ ] Completa o stream sem crashes
+- [ ] Gera os 5 artefatos obrigatórios
+
+✅ **Durante warm-up benign:**
+- [ ] FPR <= 5% (não é alarme maluco)
+
+✅ **Durante ataque DDoS:**
+- [ ] Recall >= 80% (detecta maioria)
+- [ ] MTTD <= 500 flows (latência razoável)
+
+**Sucesso "Bom":**
+- [ ] FPR <= 1% (poucos falsos positivos)
+- [ ] Recall >= 95% (detecta quase todos)
+- [ ] MTTD <= 100 flows (rápido)
+
+**Justificativa:** DDoS costuma ser evidente, então alvos agressivos são razoáveis para validar.
+
+---
+
+#### 8.1.6 Como Medir Throughput e Memória (Procedimento Exato)
+
+**No driver Python (`run_experiment.py`):**
+
 ```python
-# scripts/compare_experiments.py
-def compare_experiments(exp1_dir, exp2_dir):
-    """Compara dois experimentos e gera relatório."""
-    # Ler metrics.json de ambos
-    # Calcular diferenças percentuais
-    # Gerar gráficos de comparação
-    # Salvar relatório em markdown
+import time
+import psutil
+
+process = psutil.Process()
+start_time = time.time()
+flows_processed = 0
+
+# Loop principal
+while processing:
+    # A cada 1 segundo
+    if time.time() - last_measure >= 1.0:
+        elapsed = time.time() - start_time
+        flows_per_sec = (flows_processed - prev_flows) / 1.0
+
+        # Métricas de sistema
+        rss_mb = process.memory_info().rss / 1e6
+        cpu_percent = process.cpu_percent()
+
+        # Gravar em system_usage.csv
+        writer.writerow({
+            'timestamp': time.time(),
+            'elapsed_sec': elapsed,
+            'flows_processed': flows_processed,
+            'flows_per_sec': flows_per_sec,
+            'rss_mb': rss_mb,
+            'cpu_percent': cpu_percent
+        })
+
+        prev_flows = flows_processed
+        last_measure = time.time()
 ```
 
-**Entregáveis S5:**
+**Por que isso importa:**
+- Arquitetura Kafka-based tem custo de serialization + network + consumers
+- Vira argumento de "viabilidade online" (central para streaming IDS)
+
+---
+
+#### 8.1.7 Checklist Executável (Procedimento Passo a Passo)
+
+**Pré-requisitos:**
+- [ ] Kafka up (`docker-compose up -d`)
+- [ ] Dataset montado localmente (paths válidos)
+- [ ] Tópicos criados: `packets`, `flows`, `alerts`
+
+**Passos:**
+
+**1. Sanity check (2 minutos):**
+```bash
+# Rodar PCAP benign curto sem ataque
+python scripts/run_experiment.py \
+    --benign_pcap data/pcaps/benign/BenignTraffic.pcap \
+    --attack_pcap none \
+    --max_flows_warmup 2000 \
+    --output results/week5/sanity/
+```
+
+Verificar:
+- [ ] `flows` tem eventos
+- [ ] `alerts` tem poucos ou nenhum alerta (< 5%)
+
+**2. Cenário A completo (warm-up + ataque):**
+```bash
+# 6 execuções: 3 configs × 2 algoritmos
+for algo in teda micro_teda; do
+    for r0 in 0.05 0.10 0.20; do
+        python scripts/run_experiment.py \
+            --scenario A_basic \
+            --benign_pcap data/pcaps/benign/BenignTraffic.pcap \
+            --attack_pcap data/pcaps/ddos/DDoS-ICMP_Flood.pcap \
+            --max_flows_warmup 5000 \
+            --max_flows_test 10000 \
+            --algorithm $algo \
+            --r0 $r0 \
+            --min_samples 10 \
+            --output results/week5/scenarioA/${algo}_r0${r0}/
+    done
+done
+```
+
+**3. Análise:**
+```bash
+# Consolidar resultados
+python scripts/compare_experiments.py \
+    --input results/week5/scenarioA/ \
+    --output results/week5/scenarioA/comparison_report.md
+```
+
+**Saídas esperadas:**
+- [ ] Diretório `results/week5/scenarioA/<run_id>/` contém os 5 artefatos
+- [ ] Gráfico simples (notebook): F1 por janela, #clusters por janela, MTTD por execução
+
+**Entregáveis Finais S5:**
 - [ ] `scripts/run_experiment.py` - Script de orquestração funcionando
 - [ ] `scripts/compare_experiments.py` - Script de comparação
-- [ ] `results/e2e_test_001/` - Resultado do teste E2E
-- [ ] `results/benchmark/` - Resultados TEDA vs MicroTEDAclus
+- [ ] `results/week5/sanity/` - Sanity check OK
+- [ ] `results/week5/scenarioA/` - 6 execuções completas
+- [ ] `results/week5/scenarioA/comparison_report.md` - Relatório consolidado
 - [ ] `docs/weekly-reports/semana5-report.md` - Relatório semanal
 
 ---
