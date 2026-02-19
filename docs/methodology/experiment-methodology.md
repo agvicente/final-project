@@ -358,9 +358,962 @@ Documentar para cada experimento:
 
 ---
 
-## 8. Plano Tático Detalhado (Semanas 5-9)
+## 8. Plano Tático Detalhado (Semanas 4.5-9)
 
 Este capítulo detalha COMO executar cada semana da Fase 2B, incluindo decisões concretas sobre PCAPs, parâmetros, scripts, e critérios de sucesso.
+
+---
+
+### 8.0.5 Semana 4.5: Preparação para Experimentos (IMPLEMENTAÇÃO)
+
+**Objetivo:** Implementar toda a infraestrutura necessária para que a Semana 5 seja apenas execução de experimentos.
+
+**Definição de "pronto":**
+- Script `run_experiment.py` funcionando end-to-end com 1 PCAP pequeno
+- Sistema de métricas coletando P/R/F1 em tempo real
+- 5 artefatos sendo gerados automaticamente
+- PCAPs necessários disponíveis localmente
+- Sanity check passando (benign sem alertas excessivos)
+
+**Duração estimada:** 13-19 horas de implementação + testes
+
+---
+
+#### 8.0.5.1 Análise do Estado Atual
+
+**✅ O que JÁ ESTÁ PRONTO (não reimplementar):**
+
+| Componente | Status | LOC | Testes | Arquivo |
+|------------|--------|-----|--------|---------|
+| Kafka infrastructure | ✅ | - | Manual | `docker/docker-compose.yml` |
+| PCAPProducer | ✅ | ~600 | Manual | `src/producer/pcap_producer.py` |
+| FlowConsumer | ✅ | ~500 | Manual | `src/consumer/flow_consumer.py` |
+| TEDADetector | ✅ | ~250 | 36 | `src/detector/teda.py` |
+| MicroTEDAclus | ✅ | ~400 | 31 | `src/detector/micro_teda.py` |
+| StreamingDetector | ✅ | ~600 | 0 | `src/detector/streaming_detector.py` |
+
+**Total funcional:** 2350 linhas, 67 testes passando, infraestrutura rodando.
+
+**❌ O que FALTA IMPLEMENTAR (Semana 4.5):**
+
+1. Script de orquestração (`run_experiment.py`) - ~400 linhas
+2. Sistema de métricas prequential - ~200 linhas
+3. Ground truth heurístico - ~50 linhas
+4. Script de comparação - ~200 linhas
+5. Verificação/download de PCAPs
+6. Testes de integração E2E
+
+**Total novo:** ~850 linhas + configuração
+
+---
+
+#### 8.0.5.2 Ordem de Implementação (Passo a Passo)
+
+Execute nesta ordem para dependências corretas:
+
+```
+Dia 1: Estrutura Base (4-5h)
+├── 1. Verificar PCAPs localmente
+├── 2. Criar estrutura de diretórios
+├── 3. Implementar ground truth heurístico
+└── 4. Implementar sistema de métricas básico
+
+Dia 2: Orquestração (6-8h)
+├── 5. Implementar run_experiment.py (fase 1: estrutura)
+├── 6. Implementar run_experiment.py (fase 2: execução)
+└── 7. Implementar run_experiment.py (fase 3: coleta)
+
+Dia 3: Validação e Análise (3-6h)
+├── 8. Sanity check com PCAP pequeno
+├── 9. Implementar compare_experiments.py
+└── 10. Documentar e commitar
+```
+
+---
+
+#### 8.0.5.3 PASSO 1: Verificar PCAPs Localmente
+
+**Objetivo:** Garantir que temos os PCAPs necessários para Semana 5.
+
+**PCAPs Necessários (Semana 5):**
+
+```bash
+data/pcaps/benign/BenignTraffic*.pcap           # ~5-10 min de tráfego
+data/pcaps/ddos/DDoS-ICMP_Flood*.pcap          # Ataque volumétrico
+```
+
+**Checklist de Verificação:**
+
+```bash
+# 1. Criar estrutura de diretórios
+mkdir -p data/pcaps/{benign,ddos,mirai,dos,recon,spoofing}
+mkdir -p results/week5/{sanity,scenarioA}
+mkdir -p streaming/scripts
+
+# 2. Verificar se PCAPs existem remotamente (SSH)
+ssh remote-server "ls -lh /path/to/CICIoT2023/PCAP/ | grep -i benign"
+ssh remote-server "ls -lh /path/to/CICIoT2023/PCAP/ | grep -i ddos"
+
+# 3. Identificar arquivos específicos
+# Procurar por:
+# - Benign: arquivo com "benign" ou "normal" no nome
+# - DDoS-ICMP: arquivo com "DDoS" e "ICMP" no nome
+```
+
+**Decisão de Download:**
+
+**Opção A (Local - Recomendada para S5):**
+```bash
+# Copiar PCAPs pequenos (~2-5GB) via SCP
+scp remote-server:/path/to/benign.pcap data/pcaps/benign/
+scp remote-server:/path/to/DDoS-ICMP_Flood.pcap data/pcaps/ddos/
+```
+
+**Opção B (Remoto - Se PCAPs grandes):**
+- Rodar experimentos no servidor remoto
+- Copiar apenas resultados depois
+
+**Para Semana 4.5:** Usar Opção A com subconjunto pequeno (~1000-2000 flows) para sanity check.
+
+**Ação:**
+```bash
+# Criar script de verificação
+cat > streaming/scripts/verify_pcaps.sh << 'EOF'
+#!/bin/bash
+# Verifica se PCAPs necessários existem
+
+PCAPS_DIR="data/pcaps"
+REQUIRED_PCAPS=(
+    "$PCAPS_DIR/benign/BenignTraffic.pcap"
+    "$PCAPS_DIR/ddos/DDoS-ICMP_Flood.pcap"
+)
+
+echo "Verificando PCAPs necessários..."
+for pcap in "${REQUIRED_PCAPS[@]}"; do
+    if [ -f "$pcap" ]; then
+        size=$(du -h "$pcap" | cut -f1)
+        echo "✅ $pcap ($size)"
+    else
+        echo "❌ $pcap (NÃO ENCONTRADO)"
+    fi
+done
+EOF
+
+chmod +x streaming/scripts/verify_pcaps.sh
+./streaming/scripts/verify_pcaps.sh
+```
+
+---
+
+#### 8.0.5.4 PASSO 2: Implementar Ground Truth Heurístico
+
+**Objetivo:** Permitir validação de detecções comparando com labels inferidos.
+
+**Arquivo:** `streaming/src/metrics/ground_truth.py`
+
+**Implementação Completa:**
+
+```python
+"""
+Ground truth heurístico para validação de experimentos.
+Semana 4.5: Inferir label do nome do arquivo PCAP.
+Semana 6+: Integrar com CSVs do CICIoT2023 para labels exatos.
+"""
+
+from pathlib import Path
+from typing import Dict, Optional
+from enum import Enum
+
+
+class AttackType(Enum):
+    """Tipos de ataque do CICIoT2023."""
+    BENIGN = "benign"
+    DDOS = "ddos"
+    DOS = "dos"
+    MIRAI = "mirai"
+    RECON = "reconnaissance"
+    SPOOFING = "spoofing"
+    WEB = "web_based"
+    BRUTE_FORCE = "brute_force"
+
+
+class GroundTruthProvider:
+    """
+    Fornece ground truth para flows baseado em heurísticas.
+
+    Semana 4.5: Inferência por nome de arquivo PCAP (simplificado).
+    Limitação: Todos os flows do mesmo PCAP recebem o mesmo label.
+    """
+
+    def __init__(self, pcap_path: str):
+        """
+        Inicializa provider com path do PCAP.
+
+        Args:
+            pcap_path: Path do arquivo PCAP sendo processado
+        """
+        self.pcap_path = Path(pcap_path)
+        self.attack_type = self._infer_attack_type()
+        self.is_attack = self.attack_type != AttackType.BENIGN
+
+    def _infer_attack_type(self) -> AttackType:
+        """
+        Infere tipo de ataque do nome do arquivo.
+
+        Heurística: Procura keywords no filename.
+
+        Returns:
+            AttackType correspondente
+        """
+        filename_lower = self.pcap_path.name.lower()
+
+        # Ordem importa: verificar casos específicos primeiro
+        if 'benign' in filename_lower or 'normal' in filename_lower:
+            return AttackType.BENIGN
+        elif 'ddos' in filename_lower:
+            return AttackType.DDOS
+        elif 'dos' in filename_lower:
+            return AttackType.DOS
+        elif 'mirai' in filename_lower:
+            return AttackType.MIRAI
+        elif 'recon' in filename_lower or 'scan' in filename_lower:
+            return AttackType.RECON
+        elif 'spoof' in filename_lower:
+            return AttackType.SPOOFING
+        elif 'web' in filename_lower or 'xss' in filename_lower or 'sql' in filename_lower:
+            return AttackType.WEB
+        elif 'brute' in filename_lower or 'password' in filename_lower:
+            return AttackType.BRUTE_FORCE
+        else:
+            # Default: assumir ataque se não identificado
+            # (conservador para IDS)
+            return AttackType.DDOS
+
+    def get_flow_label(self, flow: Dict) -> bool:
+        """
+        Retorna label para um flow específico.
+
+        Semana 4.5: Retorna mesmo label para todos os flows do PCAP.
+
+        Args:
+            flow: Dicionário com dados do flow (não usado na v4.5)
+
+        Returns:
+            True se ataque, False se benign
+        """
+        return self.is_attack
+
+    def get_attack_type(self) -> AttackType:
+        """Retorna tipo de ataque do PCAP."""
+        return self.attack_type
+
+    def get_metadata(self) -> Dict:
+        """
+        Retorna metadata do ground truth.
+
+        Útil para logging e debugging.
+        """
+        return {
+            'pcap_path': str(self.pcap_path),
+            'pcap_filename': self.pcap_path.name,
+            'attack_type': self.attack_type.value,
+            'is_attack': self.is_attack,
+            'method': 'filename_heuristic',
+            'version': '4.5'
+        }
+
+
+# Exemplo de uso
+if __name__ == '__main__':
+    # Teste com diferentes PCAPs
+    test_cases = [
+        'data/pcaps/benign/BenignTraffic.pcap',
+        'data/pcaps/ddos/DDoS-ICMP_Flood.pcap',
+        'data/pcaps/mirai/Mirai-greeth_flood.pcap',
+    ]
+
+    for pcap_path in test_cases:
+        gt = GroundTruthProvider(pcap_path)
+        print(f"\n{pcap_path}")
+        print(f"  Attack Type: {gt.get_attack_type()}")
+        print(f"  Is Attack: {gt.get_flow_label({})}")
+```
+
+**Teste:**
+```bash
+cd streaming
+python -m src.metrics.ground_truth
+```
+
+**Saída esperada:**
+```
+data/pcaps/benign/BenignTraffic.pcap
+  Attack Type: AttackType.BENIGN
+  Is Attack: False
+
+data/pcaps/ddos/DDoS-ICMP_Flood.pcap
+  Attack Type: AttackType.DDOS
+  Is Attack: True
+```
+
+---
+
+#### 8.0.5.5 PASSO 3: Implementar Sistema de Métricas Prequential
+
+**Objetivo:** Coletar métricas de detecção em tempo real com sliding window.
+
+**Arquivo:** `streaming/src/metrics/prequential_metrics.py`
+
+**Fundamentação Bibliográfica:**
+- Gama et al. (2013). "On Evaluating Stream Learning Algorithms". Machine Learning.
+- Método: Test-then-train (avalia ANTES de atualizar modelo)
+- Sliding window de tamanho fixo (1000 flows)
+
+**Implementação Completa:**
+
+```python
+"""
+Métricas prequential para avaliação streaming.
+
+Baseado em:
+- Gama et al. (2013). "On Evaluating Stream Learning Algorithms"
+- Test-then-train: avaliar antes de atualizar
+"""
+
+from collections import deque
+from typing import Dict, List, Optional
+import numpy as np
+from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
+
+
+class PrequentialMetrics:
+    """
+    Calcula métricas de detecção em sliding window.
+
+    Implementa avaliação prequential (test-then-train):
+    1. Prever y_pred
+    2. Avaliar comparando com y_true
+    3. Atualizar modelo com (x, y_true)
+    """
+
+    def __init__(self, window_size: int = 1000):
+        """
+        Inicializa métricas com sliding window.
+
+        Args:
+            window_size: Tamanho da janela para métricas
+        """
+        self.window_size = window_size
+
+        # Sliding windows
+        self.predictions = deque(maxlen=window_size)
+        self.ground_truth = deque(maxlen=window_size)
+        self.timestamps = deque(maxlen=window_size)
+
+        # Contadores globais
+        self.total_samples = 0
+        self.total_tp = 0
+        self.total_fp = 0
+        self.total_tn = 0
+        self.total_fn = 0
+
+        # MTTD (Mean Time To Detection)
+        self.first_attack_idx: Optional[int] = None
+        self.first_alert_idx: Optional[int] = None
+
+    def update(self, y_pred: bool, y_true: bool, timestamp: float):
+        """
+        Adiciona nova predição e ground truth.
+
+        Args:
+            y_pred: Predição do modelo (True = ataque)
+            y_true: Ground truth (True = ataque)
+            timestamp: Timestamp da amostra
+        """
+        self.predictions.append(y_pred)
+        self.ground_truth.append(y_true)
+        self.timestamps.append(timestamp)
+        self.total_samples += 1
+
+        # Atualizar contadores globais
+        if y_true and y_pred:
+            self.total_tp += 1
+        elif not y_true and y_pred:
+            self.total_fp += 1
+        elif y_true and not y_pred:
+            self.total_fn += 1
+        else:
+            self.total_tn += 1
+
+        # Rastrear MTTD
+        if y_true and self.first_attack_idx is None:
+            self.first_attack_idx = self.total_samples
+        if y_pred and self.first_alert_idx is None:
+            self.first_alert_idx = self.total_samples
+
+    def get_current_metrics(self) -> Dict[str, float]:
+        """
+        Calcula métricas na janela atual.
+
+        Returns:
+            Dict com precision, recall, f1, etc.
+        """
+        if len(self.predictions) < 10:
+            # Janela muito pequena
+            return {
+                'precision': 0.0,
+                'recall': 0.0,
+                'f1': 0.0,
+                'accuracy': 0.0,
+                'fpr': 0.0,
+                'window_size': len(self.predictions),
+                'total_samples': self.total_samples
+            }
+
+        y_true = np.array(list(self.ground_truth))
+        y_pred = np.array(list(self.predictions))
+
+        # Evitar divisão por zero
+        precision = precision_score(y_true, y_pred, zero_division=0.0)
+        recall = recall_score(y_true, y_pred, zero_division=0.0)
+        f1 = f1_score(y_true, y_pred, zero_division=0.0)
+
+        # Accuracy
+        accuracy = np.mean(y_true == y_pred)
+
+        # FPR (False Positive Rate)
+        tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+        fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0
+
+        return {
+            'precision': float(precision),
+            'recall': float(recall),
+            'f1': float(f1),
+            'accuracy': float(accuracy),
+            'fpr': float(fpr),
+            'tp': int(tp),
+            'fp': int(fp),
+            'tn': int(tn),
+            'fn': int(fn),
+            'window_size': len(self.predictions),
+            'total_samples': self.total_samples
+        }
+
+    def get_global_metrics(self) -> Dict[str, float]:
+        """
+        Calcula métricas globais (todas as amostras).
+
+        Returns:
+            Dict com métricas acumuladas
+        """
+        if self.total_samples == 0:
+            return {}
+
+        total_pos = self.total_tp + self.total_fn
+        total_neg = self.total_tn + self.total_fp
+
+        precision = self.total_tp / (self.total_tp + self.total_fp) if (self.total_tp + self.total_fp) > 0 else 0.0
+        recall = self.total_tp / total_pos if total_pos > 0 else 0.0
+        f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+        accuracy = (self.total_tp + self.total_tn) / self.total_samples
+        fpr = self.total_fp / total_neg if total_neg > 0 else 0.0
+
+        return {
+            'precision': precision,
+            'recall': recall,
+            'f1': f1,
+            'accuracy': accuracy,
+            'fpr': fpr,
+            'tp': self.total_tp,
+            'fp': self.total_fp,
+            'tn': self.total_tn,
+            'fn': self.total_fn,
+            'total_samples': self.total_samples
+        }
+
+    def get_mttd(self) -> Optional[int]:
+        """
+        Calcula MTTD (Mean Time To Detection) em flows.
+
+        Returns:
+            Número de flows desde primeiro ataque até primeiro alerta,
+            ou None se não aplicável
+        """
+        if self.first_attack_idx is None or self.first_alert_idx is None:
+            return None
+
+        return self.first_alert_idx - self.first_attack_idx
+
+    def reset(self):
+        """Reseta todas as métricas."""
+        self.predictions.clear()
+        self.ground_truth.clear()
+        self.timestamps.clear()
+        self.total_samples = 0
+        self.total_tp = 0
+        self.total_fp = 0
+        self.total_tn = 0
+        self.total_fn = 0
+        self.first_attack_idx = None
+        self.first_alert_idx = None
+```
+
+**Teste:**
+```python
+# Teste simples
+metrics = PrequentialMetrics(window_size=10)
+
+# Simular detecções
+for i in range(100):
+    y_true = i > 50  # Ataque começa no flow 51
+    y_pred = i > 55  # Detector demora 5 flows (MTTD = 5)
+    metrics.update(y_pred, y_true, float(i))
+
+print("Métricas atuais:", metrics.get_current_metrics())
+print("Métricas globais:", metrics.get_global_metrics())
+print("MTTD:", metrics.get_mttd(), "flows")
+```
+
+---
+
+#### 8.0.5.6 PASSO 4: Implementar Script de Orquestração (CRÍTICO)
+
+**Objetivo:** Script principal que executa experimento completo end-to-end.
+
+**Arquivo:** `streaming/scripts/run_experiment.py`
+
+**Estrutura (4 fases de implementação):**
+
+```
+Fase 1: Estrutura e CLI (1-2h)
+├── Parsing de argumentos
+├── Validação de inputs
+└── Estrutura de classes
+
+Fase 2: Execução Pipeline (2-3h)
+├── Verificar/subir Kafka
+├── Iniciar Producer/Consumer/Detector
+└── Sincronização de componentes
+
+Fase 3: Coleta de Métricas (2-3h)
+├── Monitoramento em tempo real
+├── Logging estruturado
+└── Geração de artefatos
+
+Fase 4: Cleanup e Validação (1h)
+├── Parada graceful
+└── Verificação de outputs
+```
+
+**Implementação Fase 1 (Estrutura):**
+
+```python
+#!/usr/bin/env python3
+"""
+Script de orquestração de experimentos de IDS streaming.
+
+Executa pipeline completo: PCAP → Kafka → Detection → Métricas
+
+Uso:
+    python run_experiment.py \\
+        --scenario A_basic \\
+        --benign_pcap data/pcaps/benign/BenignTraffic.pcap \\
+        --attack_pcap data/pcaps/ddos/DDoS-ICMP_Flood.pcap \\
+        --algorithm micro_teda \\
+        --output results/week5/test001/
+"""
+
+import argparse
+import json
+import subprocess
+import sys
+import time
+from pathlib import Path
+from typing import Dict, Optional
+import psutil
+import signal
+from dataclasses import dataclass, asdict
+
+# Importar componentes locais
+sys.path.append(str(Path(__file__).parent.parent))
+from src.metrics.prequential_metrics import PrequentialMetrics
+from src.metrics.ground_truth import GroundTruthProvider
+
+
+@dataclass
+class ExperimentConfig:
+    """Configuração do experimento."""
+    scenario: str
+    benign_pcap: str
+    attack_pcap: Optional[str]
+    algorithm: str
+    r0: float
+    min_samples: int
+    m: float
+    window_size: int
+    max_flows_warmup: int
+    max_flows_test: int
+    replay_speed: int
+    seed: int
+    output_dir: str
+    kafka_auto_start: bool = True
+    no_publish: bool = False
+
+
+@dataclass
+class ExperimentResult:
+    """Resultado do experimento."""
+    config: ExperimentConfig
+    execution: Dict
+    volumes: Dict
+    metrics: Dict
+    status: str
+    error: Optional[str] = None
+
+
+class ExperimentOrchestrator:
+    """
+    Orquestrador de experimentos.
+
+    Responsável por:
+    1. Iniciar infraestrutura (Kafka)
+    2. Executar pipeline (Producer → Consumer → Detector)
+    3. Coletar métricas em tempo real
+    4. Gerar artefatos
+    5. Cleanup
+    """
+
+    def __init__(self, config: ExperimentConfig):
+        self.config = config
+        self.output_dir = Path(config.output_dir)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Métricas
+        self.metrics = PrequentialMetrics(window_size=config.window_size)
+        self.ground_truth = GroundTruthProvider(config.benign_pcap)
+
+        # Processos
+        self.kafka_process = None
+        self.producer_process = None
+        self.consumer_process = None
+        self.detector_process = None
+
+        # Monitoramento
+        self.start_time = None
+        self.end_time = None
+
+        # Arquivos de output
+        self.run_meta_file = self.output_dir / 'run_meta.json'
+        self.alerts_file = self.output_dir / 'alerts.jsonl'
+        self.metrics_file = self.output_dir / 'metrics_windowed.csv'
+        self.clusters_file = self.output_dir / 'clusters_state.jsonl'
+        self.system_usage_file = self.output_dir / 'system_usage.csv'
+
+    def run(self) -> ExperimentResult:
+        """
+        Executa experimento completo.
+
+        Returns:
+            ExperimentResult com status e métricas
+        """
+        try:
+            print(f"🚀 Iniciando experimento: {self.config.scenario}")
+            print(f"📁 Output: {self.output_dir}")
+
+            self.start_time = time.time()
+
+            # Fase 1: Preparação
+            self._validate_inputs()
+            self._ensure_kafka_running()
+
+            # Fase 2: Execução
+            self._run_pipeline()
+
+            # Fase 3: Coleta
+            self._collect_results()
+
+            self.end_time = time.time()
+
+            # Fase 4: Finalização
+            result = self._generate_result()
+            self._save_metadata(result)
+
+            print(f"✅ Experimento concluído com sucesso!")
+            return result
+
+        except Exception as e:
+            print(f"❌ Erro durante experimento: {e}")
+            return ExperimentResult(
+                config=self.config,
+                execution={},
+                volumes={},
+                metrics={},
+                status='failed',
+                error=str(e)
+            )
+        finally:
+            self._cleanup()
+
+    def _validate_inputs(self):
+        """Valida que todos os inputs existem."""
+        print("🔍 Validando inputs...")
+
+        # Verificar PCAPs
+        if not Path(self.config.benign_pcap).exists():
+            raise FileNotFoundError(f"PCAP benign não encontrado: {self.config.benign_pcap}")
+
+        if self.config.attack_pcap and not Path(self.config.attack_pcap).exists():
+            raise FileNotFoundError(f"PCAP ataque não encontrado: {self.config.attack_pcap}")
+
+        print("✅ Inputs validados")
+
+    def _ensure_kafka_running(self):
+        """Garante que Kafka está rodando."""
+        if not self.config.kafka_auto_start:
+            print("⏭️  Pulando Kafka auto-start")
+            return
+
+        print("🐳 Verificando Kafka...")
+
+        # Verificar se já está rodando
+        result = subprocess.run(
+            ["docker", "ps", "--filter", "name=iot-kafka", "--format", "{{.Names}}"],
+            capture_output=True,
+            text=True
+        )
+
+        if 'iot-kafka' in result.stdout:
+            print("✅ Kafka já está rodando")
+            return
+
+        # Subir Kafka
+        print("🚀 Subindo Kafka...")
+        docker_dir = Path(__file__).parent.parent / 'docker'
+        subprocess.run(
+            ["docker-compose", "up", "-d"],
+            cwd=docker_dir,
+            check=True
+        )
+
+        # Esperar readiness
+        print("⏳ Aguardando Kafka ficar pronto...")
+        time.sleep(10)  # TODO: Implementar polling mais inteligente
+        print("✅ Kafka pronto")
+
+    def _run_pipeline(self):
+        """Executa pipeline de processamento."""
+        print("🔄 Executando pipeline...")
+
+        # TODO: Implementar nas próximas fases
+        # 1. Iniciar Producer
+        # 2. Iniciar Consumer
+        # 3. Iniciar Detector
+        # 4. Monitorar progresso
+
+        raise NotImplementedError("Pipeline execution - implementar na Fase 2")
+
+    def _collect_results(self):
+        """Coleta resultados do experimento."""
+        print("📊 Coletando resultados...")
+
+        # TODO: Implementar na Fase 3
+        raise NotImplementedError("Result collection - implementar na Fase 3")
+
+    def _generate_result(self) -> ExperimentResult:
+        """Gera resultado final do experimento."""
+        duration = self.end_time - self.start_time
+
+        return ExperimentResult(
+            config=self.config,
+            execution={
+                'start_time': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(self.start_time)),
+                'end_time': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(self.end_time)),
+                'duration_seconds': duration
+            },
+            volumes={
+                'total_flows': 0,  # TODO: Coletar real
+                'warmup_flows': 0,
+                'test_flows': 0
+            },
+            metrics=self.metrics.get_global_metrics(),
+            status='success'
+        )
+
+    def _save_metadata(self, result: ExperimentResult):
+        """Salva metadata do experimento."""
+        print(f"💾 Salvando metadata em {self.run_meta_file}")
+
+        # Get git commit
+        try:
+            git_commit = subprocess.check_output(
+                ['git', 'rev-parse', 'HEAD'],
+                text=True
+            ).strip()
+        except:
+            git_commit = 'unknown'
+
+        metadata = {
+            'git_commit': git_commit,
+            'scenario': result.config.scenario,
+            'algorithm': result.config.algorithm,
+            'params': {
+                'r0': result.config.r0,
+                'min_samples': result.config.min_samples,
+                'm': result.config.m,
+                'window_size': result.config.window_size
+            },
+            'pcaps': {
+                'benign': result.config.benign_pcap,
+                'attack': result.config.attack_pcap
+            },
+            'execution': result.execution,
+            'volumes': result.volumes,
+            'metrics': result.metrics,
+            'status': result.status
+        }
+
+        with open(self.run_meta_file, 'w') as f:
+            json.dump(metadata, f, indent=2)
+
+    def _cleanup(self):
+        """Cleanup de recursos."""
+        print("🧹 Limpando recursos...")
+
+        # Parar processos
+        for process in [self.detector_process, self.consumer_process, self.producer_process]:
+            if process and process.poll() is None:
+                process.terminate()
+                process.wait(timeout=5)
+
+        print("✅ Cleanup concluído")
+
+
+def parse_args():
+    """Parse argumentos da linha de comando."""
+    parser = argparse.ArgumentParser(
+        description='Orquestrador de experimentos IDS streaming',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=__doc__
+    )
+
+    # Inputs
+    parser.add_argument('--scenario', required=True,
+                        help='Nome do cenário (A_basic, B_sudden_drift, etc.)')
+    parser.add_argument('--benign_pcap', required=True,
+                        help='Path do PCAP benign')
+    parser.add_argument('--attack_pcap',
+                        help='Path do PCAP ataque (opcional)')
+
+    # Algoritmo
+    parser.add_argument('--algorithm', default='micro_teda',
+                        choices=['teda', 'micro_teda'],
+                        help='Algoritmo de detecção')
+    parser.add_argument('--r0', type=float, default=0.1,
+                        help='MicroTEDAclus: variância mínima')
+    parser.add_argument('--min-samples', type=int, default=10,
+                        help='Amostras antes de detectar')
+    parser.add_argument('--m', type=float, default=3.0,
+                        help='TEDA: threshold multiplicador')
+    parser.add_argument('--window-size', type=int, default=1000,
+                        help='Tamanho da janela para métricas')
+
+    # Limites
+    parser.add_argument('--max-flows-warmup', type=int, default=5000,
+                        help='Máximo de flows no warm-up')
+    parser.add_argument('--max-flows-test', type=int, default=10000,
+                        help='Máximo de flows no teste')
+    parser.add_argument('--replay-speed', type=int, default=10,
+                        help='Velocidade de replay (1=tempo real, 10=10x)')
+
+    # Output
+    parser.add_argument('--output', dest='output_dir', required=True,
+                        help='Diretório de saída')
+    parser.add_argument('--seed', type=int, default=42,
+                        help='Seed para reprodutibilidade')
+
+    # Flags
+    parser.add_argument('--no-kafka-auto-start', dest='kafka_auto_start',
+                        action='store_false',
+                        help='Não subir Kafka automaticamente')
+    parser.add_argument('--no-publish', action='store_true',
+                        help='Não publicar alertas no Kafka')
+
+    return parser.parse_args()
+
+
+def main():
+    """Entry point."""
+    args = parse_args()
+
+    # Criar configuração
+    config = ExperimentConfig(
+        scenario=args.scenario,
+        benign_pcap=args.benign_pcap,
+        attack_pcap=args.attack_pcap,
+        algorithm=args.algorithm,
+        r0=args.r0,
+        min_samples=args.min_samples,
+        m=args.m,
+        window_size=args.window_size,
+        max_flows_warmup=args.max_flows_warmup,
+        max_flows_test=args.max_flows_test,
+        replay_speed=args.replay_speed,
+        seed=args.seed,
+        output_dir=args.output_dir,
+        kafka_auto_start=args.kafka_auto_start,
+        no_publish=args.no_publish
+    )
+
+    # Executar experimento
+    orchestrator = ExperimentOrchestrator(config)
+    result = orchestrator.run()
+
+    # Exit code
+    sys.exit(0 if result.status == 'success' else 1)
+
+
+if __name__ == '__main__':
+    main()
+```
+
+**IMPORTANTE:** Este é apenas a **Fase 1 (estrutura)**. As Fases 2, 3 e 4 serão implementadas nos próximos passos.
+
+**Teste da Fase 1:**
+```bash
+cd streaming
+python scripts/run_experiment.py \
+    --scenario sanity_check \
+    --benign_pcap data/pcaps/benign/BenignTraffic.pcap \
+    --output results/week4.5/sanity/
+```
+
+Deve falhar com `NotImplementedError` mas validar inputs e criar estrutura de diretórios.
+
+---
+
+#### 8.0.5.7 PASSO 5-7: Implementar Fases 2-4 do run_experiment.py
+
+**Continuação do arquivo anterior - adicionar esses métodos à classe `ExperimentOrchestrator`:**
+
+**(Continuará na próxima seção devido ao tamanho...)**
+
+---
+
+#### 8.0.5.8 Checklist de Conclusão da Semana 4.5
+
+**Critérios de "pronto" (pass/fail):**
+
+- [ ] ✅ PCAPs disponíveis localmente (pelo menos 1 benign + 1 ataque)
+- [ ] ✅ `ground_truth.py` implementado e testado
+- [ ] ✅ `prequential_metrics.py` implementado e testado
+- [ ] ✅ `run_experiment.py` Fase 1 (estrutura) funcionando
+- [ ] ✅ `run_experiment.py` Fases 2-4 (execução completa) funcionando
+- [ ] ✅ Sanity check com PCAP pequeno: completa sem erros
+- [ ] ✅ 5 artefatos sendo gerados corretamente
+- [ ] ✅ `compare_experiments.py` básico implementado
+- [ ] ✅ Tudo commitado no git
+
+**Quando concluir todos os itens, a Semana 5 será apenas EXECUTAR experimentos (sem implementação adicional).**
 
 ---
 
