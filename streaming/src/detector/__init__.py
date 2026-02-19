@@ -5,11 +5,12 @@ Este modulo contem implementacoes de algoritmos de deteccao de anomalias
 para uso em streaming de dados IoT.
 
 Modulos:
-    teda: TEDA (Typicality and Eccentricity Data Analytics) - Angelov 2014
-    streaming_detector: Integracao Kafka + TEDA para deteccao em tempo real
+    teda: TEDA basico (Typicality and Eccentricity Data Analytics) - Angelov 2014
+    micro_teda: MicroTEDAclus (Multi-cluster evolutivo) - Maia et al. 2020
+    streaming_detector: Integracao Kafka + TEDA/MicroTEDAclus para deteccao em tempo real
 
 Uso:
-    # TEDA basico
+    # TEDA basico (vulneravel a contaminacao)
     from src.detector import TEDADetector, TEDAResult
 
     detector = TEDADetector(m=3.0)
@@ -17,7 +18,15 @@ Uso:
     if result.is_anomaly:
         print("Anomalia detectada!")
 
-    # Streaming completo
+    # MicroTEDAclus (robusto a contaminacao)
+    from src.detector import MicroTEDAclus, MicroTEDAResult
+
+    detector = MicroTEDAclus(r0=0.1, min_samples=10)
+    result = detector.process(features)
+    if result.is_anomaly:
+        print(f"Anomalia! Novo cluster {result.cluster_id} criado")
+
+    # Streaming completo (usa MicroTEDAclus por padrao)
     from src.detector import StreamingDetector
 
     detector = StreamingDetector()
@@ -25,12 +34,24 @@ Uso:
 """
 
 from .teda import TEDADetector, TEDAResult, calculate_eccentricity_batch
-from .streaming_detector import StreamingDetector, StreamingDetectorConfig
+from .micro_teda import MicroCluster, MicroTEDAclus, MicroTEDAResult
+from .streaming_detector import (
+    StreamingDetector,
+    StreamingDetectorConfig,
+    DetectorAlgorithm,
+)
 
 __all__ = [
+    # TEDA basico
     "TEDADetector",
     "TEDAResult",
     "calculate_eccentricity_batch",
+    # MicroTEDAclus
+    "MicroCluster",
+    "MicroTEDAclus",
+    "MicroTEDAResult",
+    # Streaming
     "StreamingDetector",
     "StreamingDetectorConfig",
+    "DetectorAlgorithm",
 ]

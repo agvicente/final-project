@@ -1,10 +1,10 @@
 """
-Streaming Detector - Integra Consumer Kafka com TEDA para deteccao em tempo real.
+Streaming Detector - Integra Consumer Kafka com TEDA/MicroTEDAclus.
 
-Este modulo conecta o pipeline de streaming com o detector TEDA:
+Este modulo conecta o pipeline de streaming com detectores de anomalias:
     1. Consome flows do topico 'flows'
     2. Extrai features numericas de cada flow
-    3. Passa para o TEDADetector
+    3. Passa para TEDADetector ou MicroTEDAclus
     4. Publica alertas no topico 'alerts'
 
 Arquitetura:
@@ -14,13 +14,18 @@ Arquitetura:
     └─────────────┘     └─────────────┘     └─────────────┘
                               │
                               ▼
-                        ┌─────────────┐
-                        │    TEDA     │
-                        │  Detector   │
-                        └─────────────┘
+                   ┌─────────────────────┐
+                   │  TEDA / MicroTEDAclus│
+                   │     (selecionavel)   │
+                   └─────────────────────┘
+
+Algoritmos disponiveis:
+    - TEDA: Detector basico, single-center (vulneravel a contaminacao)
+    - MicroTEDAclus: Multi-cluster evolutivo (robusto a contaminacao)
 
 Uso:
     python -m src.detector.streaming_detector --verbose
+    python -m src.detector.streaming_detector --algorithm micro_teda
 """
 
 # ============================================================
@@ -32,15 +37,27 @@ import time
 import logging
 import signal
 import sys
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
 
 import numpy as np
 from kafka import KafkaConsumer, KafkaProducer
 from kafka.errors import KafkaError
 
 from .teda import TEDADetector, TEDAResult
+from .micro_teda import MicroTEDAclus, MicroTEDAResult
+
+
+# ============================================================
+# ENUMS
+# ============================================================
+
+class DetectorAlgorithm(Enum):
+    """Algoritmo de deteccao a usar."""
+    TEDA = "teda"
+    MICRO_TEDA = "micro_teda"
 
 # ============================================================
 # LOGGING
@@ -62,7 +79,7 @@ class StreamingDetectorConfig:
     """
     Configuracoes do StreamingDetector.
 
-    Agrupa configuracoes de Kafka e TEDA em um unico objeto.
+    Agrupa configuracoes de Kafka e detectores em um unico objeto.
     """
     # Kafka
     bootstrap_servers: str = "localhost:9092"
@@ -71,9 +88,16 @@ class StreamingDetectorConfig:
     group_id: str = "teda-detector"
     auto_offset_reset: str = "earliest"
 
-    # TEDA
+    # Algoritmo de deteccao
+    algorithm: DetectorAlgorithm = DetectorAlgorithm.MICRO_TEDA  # Default: robusto
+
+    # TEDA basico
     teda_m: float = 3.0  # Desvios padrao para threshold
     teda_min_samples: int = 10  # Minimo de amostras antes de detectar
+
+    # MicroTEDAclus
+    micro_teda_r0: float = 0.1  # Variancia minima (calibrar para escala dos dados)
+    micro_teda_min_samples: int = 10  # Minimo de amostras antes de detectar
 
     # Features a usar (None = todas numericas)
     feature_names: Optional[List[str]] = None
@@ -133,9 +157,9 @@ DEFAULT_FEATURES = [
 
 class StreamingDetector:
     """
-    Detector de anomalias em streaming usando TEDA.
+    Detector de anomalias em streaming usando TEDA ou MicroTEDAclus.
 
-    Consome flows do Kafka, aplica TEDA para detectar anomalias,
+    Consome flows do Kafka, aplica detector de anomalias,
     e publica alertas.
 
     Fluxo:
@@ -143,9 +167,13 @@ class StreamingDetector:
         2. Para cada flow recebido:
            a. Extrai features numericas
            b. Normaliza features (opcional)
-           c. Passa para TEDADetector.update()
+           c. Passa para detector (TEDA ou MicroTEDAclus)
            d. Se anomalia, publica alerta
         3. Mantem estatisticas de execucao
+
+    Algoritmos:
+        - TEDA: Detector basico single-center (vulneravel a contaminacao)
+        - MicroTEDAclus: Multi-cluster evolutivo (robusto a contaminacao)
 
     Uso:
         detector = StreamingDetector()
@@ -159,7 +187,7 @@ class StreamingDetector:
         Inicializa o StreamingDetector.
 
         Args:
-            config: Configuracoes (None = defaults)
+            config: Configuracoes (None = defaults, usa MicroTEDAclus)
         """
         self.config = config or StreamingDetectorConfig()
 
@@ -167,11 +195,20 @@ class StreamingDetector:
         self._consumer: Optional[KafkaConsumer] = None
         self._producer: Optional[KafkaProducer] = None
 
-        # TEDA detector
-        self._teda = TEDADetector(
-            m=self.config.teda_m,
-            min_samples=self.config.teda_min_samples,
-        )
+        # Detector de anomalias (TEDA ou MicroTEDAclus)
+        self._detector: Union[TEDADetector, MicroTEDAclus]
+        self._algorithm = self.config.algorithm
+
+        if self._algorithm == DetectorAlgorithm.TEDA:
+            self._detector = TEDADetector(
+                m=self.config.teda_m,
+                min_samples=self.config.teda_min_samples,
+            )
+        else:  # MicroTEDAclus (default)
+            self._detector = MicroTEDAclus(
+                r0=self.config.micro_teda_r0,
+                min_samples=self.config.micro_teda_min_samples,
+            )
 
         # Features a usar
         self._feature_names = self.config.feature_names or DEFAULT_FEATURES
@@ -250,19 +287,20 @@ class StreamingDetector:
     def _create_alert(
         self,
         flow: Dict[str, Any],
-        result: TEDAResult
+        result: Union[TEDAResult, MicroTEDAResult]
     ) -> Dict[str, Any]:
         """
         Cria mensagem de alerta para publicar no Kafka.
 
         Args:
             flow: Dados originais do flow
-            result: Resultado do TEDA
+            result: Resultado do detector (TEDAResult ou MicroTEDAResult)
 
         Returns:
             Dicionario com alerta formatado
         """
-        return {
+        # Base comum para ambos os tipos
+        alert = {
             # Identificacao do flow
             "flow_id": f"{flow.get('src_ip', '?')}:{flow.get('src_port', '?')}->"
                       f"{flow.get('dst_ip', '?')}:{flow.get('dst_port', '?')}",
@@ -277,26 +315,41 @@ class StreamingDetector:
             "total_bytes": flow.get("total_bytes"),
             "flow_duration": flow.get("flow_duration"),
 
-            # Resultado TEDA
-            # Converte para tipos Python nativos (numpy types nao sao JSON serializable)
+            # Resultado comum
             "eccentricity": float(result.eccentricity),
             "typicality": float(result.typicality),
-            "threshold": float(result.threshold),
             "is_anomaly": bool(result.is_anomaly),
 
             # Contexto
             "sample_number": result.sample_count,
             "detected_at": datetime.now().isoformat(),
 
-            # Severidade (baseada em quao acima do threshold)
+            # Algoritmo usado
+            "algorithm": self._algorithm.value,
+
+            # Severidade
             "severity": self._calculate_severity(result),
         }
 
-    def _calculate_severity(self, result: TEDAResult) -> str:
+        # Campos especificos do algoritmo
+        if isinstance(result, TEDAResult):
+            alert["threshold"] = float(result.threshold)
+            alert["normalized_eccentricity"] = float(result.normalized_eccentricity)
+        elif isinstance(result, MicroTEDAResult):
+            alert["cluster_id"] = result.cluster_id
+            alert["num_clusters"] = result.num_clusters
+            alert["new_cluster_created"] = result.new_cluster_created
+
+        return alert
+
+    def _calculate_severity(
+        self, result: Union[TEDAResult, MicroTEDAResult]
+    ) -> str:
         """
         Calcula severidade da anomalia baseada na eccentricity.
 
-        Quanto maior a eccentricity acima do threshold, mais severa.
+        Para TEDA: ratio de eccentricity sobre threshold
+        Para MicroTEDAclus: baseado na eccentricity absoluta (novo cluster criado)
 
         Returns:
             "low", "medium", "high", ou "critical"
@@ -304,8 +357,24 @@ class StreamingDetector:
         if not result.is_anomaly:
             return "normal"
 
-        # Ratio de eccentricity sobre threshold
-        ratio = result.normalized_eccentricity / result.threshold
+        if isinstance(result, TEDAResult):
+            # TEDA: ratio sobre threshold
+            ratio = result.normalized_eccentricity / result.threshold
+        elif isinstance(result, MicroTEDAResult):
+            # MicroTEDAclus: usa eccentricity direta
+            # Anomalias sao novos clusters, entao eccentricity=1.0 sempre
+            # Severidade baseada em quantos clusters ja existem (padroes anteriores)
+            # Mais clusters = mais padroes conhecidos = anomalia mais significativa
+            if result.num_clusters <= 2:
+                ratio = 1.2  # Poucos clusters, pode ser ruido
+            elif result.num_clusters <= 5:
+                ratio = 1.8
+            elif result.num_clusters <= 10:
+                ratio = 2.5
+            else:
+                ratio = 3.5  # Muitos clusters, novo padrao e significativo
+        else:
+            ratio = 1.5  # Default
 
         if ratio < 1.5:
             return "low"
@@ -316,35 +385,52 @@ class StreamingDetector:
         else:
             return "critical"
 
-    def _process_flow(self, flow: Dict[str, Any]) -> Optional[TEDAResult]:
+    def _process_flow(
+        self, flow: Dict[str, Any]
+    ) -> Optional[Union[TEDAResult, MicroTEDAResult]]:
         """
-        Processa um flow: extrai features, aplica TEDA, publica alerta.
+        Processa um flow: extrai features, aplica detector, publica alerta.
 
         Args:
             flow: Dados do flow do Kafka
 
         Returns:
-            TEDAResult ou None se erro
+            TEDAResult ou MicroTEDAResult, ou None se erro
         """
         # Extrai features
         features = self._extract_features(flow)
         if features is None:
             return None
 
-        # Aplica TEDA
-        result = self._teda.update(features)
+        # Aplica detector (TEDA ou MicroTEDAclus)
+        if self._algorithm == DetectorAlgorithm.TEDA:
+            result = self._detector.update(features)  # TEDADetector.update()
+        else:
+            result = self._detector.process(features)  # MicroTEDAclus.process()
 
         self.flows_processed += 1
 
         # Log verbose
         if self.config.verbose:
             status = "ANOMALIA!" if result.is_anomaly else "normal"
-            logger.info(
-                f"Flow {self.flows_processed}: "
-                f"ξ={result.eccentricity:.4f}, "
-                f"τ={result.typicality:.4f}, "
-                f"threshold={result.threshold:.4f} → {status}"
-            )
+            if isinstance(result, TEDAResult):
+                logger.info(
+                    f"Flow {self.flows_processed}: "
+                    f"ξ={result.eccentricity:.4f}, "
+                    f"τ={result.typicality:.4f}, "
+                    f"threshold={result.threshold:.4f} → {status}"
+                )
+            elif isinstance(result, MicroTEDAResult):
+                cluster_info = f"cluster={result.cluster_id}"
+                if result.new_cluster_created:
+                    cluster_info = f"NEW cluster={result.cluster_id}"
+                logger.info(
+                    f"Flow {self.flows_processed}: "
+                    f"ξ={result.eccentricity:.4f}, "
+                    f"τ={result.typicality:.4f}, "
+                    f"{cluster_info}, "
+                    f"total_clusters={result.num_clusters} → {status}"
+                )
 
         # Se anomalia, publica alerta
         if result.is_anomaly:
@@ -359,9 +445,12 @@ class StreamingDetector:
                 )
 
             if self.config.verbose:
+                extra_info = ""
+                if isinstance(result, MicroTEDAResult):
+                    extra_info = f", clusters={result.num_clusters}"
                 logger.warning(
-                    f"🚨 ANOMALIA DETECTADA: {alert['flow_id']} "
-                    f"(ξ={result.eccentricity:.4f}, severity={alert['severity']})"
+                    f"ANOMALIA DETECTADA: {alert['flow_id']} "
+                    f"(ξ={result.eccentricity:.4f}, severity={alert['severity']}{extra_info})"
                 )
 
         # Publica todos os resultados (se configurado)
@@ -393,9 +482,13 @@ class StreamingDetector:
 
         logger.info("=" * 60)
         logger.info("Streaming Detector iniciado")
+        logger.info(f"  Algoritmo: {self._algorithm.value}")
         logger.info(f"  Topico entrada: {self.config.topic_flows}")
         logger.info(f"  Topico alertas: {self.config.topic_alerts}")
-        logger.info(f"  TEDA m={self.config.teda_m}, min_samples={self.config.teda_min_samples}")
+        if self._algorithm == DetectorAlgorithm.TEDA:
+            logger.info(f"  TEDA: m={self.config.teda_m}, min_samples={self.config.teda_min_samples}")
+        else:
+            logger.info(f"  MicroTEDAclus: r0={self.config.micro_teda_r0}, min_samples={self.config.micro_teda_min_samples}")
         logger.info(f"  Features: {len(self._feature_names)}")
         logger.info("=" * 60)
 
@@ -445,7 +538,8 @@ class StreamingDetector:
                            if self.flows_processed > 0 else 0),
             "elapsed_seconds": elapsed,
             "flows_per_second": self.flows_processed / elapsed if elapsed > 0 else 0,
-            "teda_stats": self._teda.get_statistics(),
+            "algorithm": self._algorithm.value,
+            "detector_stats": self._detector.get_statistics(),
         }
 
         return stats
@@ -503,10 +597,23 @@ if __name__ == "__main__":
         help="ID do consumer group (default: teda-detector)"
     )
     parser.add_argument(
+        "--algorithm",
+        type=str,
+        choices=["teda", "micro_teda"],
+        default="micro_teda",
+        help="Algoritmo de deteccao (default: micro_teda)"
+    )
+    parser.add_argument(
         "--m",
         type=float,
         default=3.0,
-        help="Parametro m do TEDA (desvios padrao, default: 3.0)"
+        help="Parametro m do TEDA basico (desvios padrao, default: 3.0)"
+    )
+    parser.add_argument(
+        "--r0",
+        type=float,
+        default=0.1,
+        help="Parametro r0 do MicroTEDAclus (variancia minima, default: 0.1)"
     )
     parser.add_argument(
         "--min-samples",
@@ -522,11 +629,19 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # Seleciona algoritmo
+    algorithm = (DetectorAlgorithm.TEDA
+                 if args.algorithm == "teda"
+                 else DetectorAlgorithm.MICRO_TEDA)
+
     # Configuracao
     config = StreamingDetectorConfig(
         group_id=args.group_id,
+        algorithm=algorithm,
         teda_m=args.m,
         teda_min_samples=args.min_samples,
+        micro_teda_r0=args.r0,
+        micro_teda_min_samples=args.min_samples,
         publish_alerts=not args.no_publish,
         verbose=args.verbose,
     )
@@ -540,7 +655,7 @@ if __name__ == "__main__":
     _detector_instance = detector
 
     logger.info("=" * 60)
-    logger.info("Streaming Detector v0.1 - TEDA")
+    logger.info(f"Streaming Detector v0.2 - {args.algorithm.upper()}")
     logger.info("=" * 60)
 
     try:

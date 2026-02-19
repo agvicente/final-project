@@ -1,13 +1,13 @@
 # SESSION CONTEXT - IoT IDS Research Project
-**Last Updated:** 2026-01-21 (Session: Semana 3 COMPLETA - TEDA v0.1 + testes)
+**Last Updated:** 2026-01-25 (Session: Semana 4 - MicroTEDAclus v0.1 COMPLETO)
 
 ---
 
 ## 🎯 CURRENT STATUS
 
 **Phase:** Fase 2A - Teoria + Design + Setup
-**Week:** Semana 3 de 24 (12.5% complete) ✅ COMPLETE
-**Current Task:** Preparar início da Semana 4 (TEDA v0.2 com micro-clusters)
+**Week:** Semana 4 de 24 (16.7% complete) ✅ COMPLETE
+**Current Task:** Semana 4 completa, pronto para Semana 5
 
 ---
 
@@ -96,11 +96,14 @@
 - `angelov-2014-teda.md` - Fichamento TEDA (100%)
 - `maia-2020-microtedaclus.md` - Fichamento MicroTEDAclus (100%)
 
+*Desenvolvimento (docs/development/):*
+- `microtedaclus-implementation-notes.md` - Lições aprendidas na implementação
+
 *Outros:*
 - `docs/KNOWLEDGE_GAPS.md` - Lacunas de conhecimento
 - `streaming/src/producer/` - Producer v0.1
 - `streaming/src/consumer/` - Consumer v0.1
-- `streaming/src/detector/` - TEDADetector + StreamingDetector
+- `streaming/src/detector/` - TEDADetector + MicroTEDAclus + StreamingDetector v0.2
 - `streaming/docker/docker-compose.yml` - Kafka infrastructure
 
 ---
@@ -133,6 +136,38 @@
 5. ✅ `docs/architecture/CURRENT.md` - Diagrama completo do sistema
 6. ✅ Documentação reorganizada (architecture/, theory/, paper-summaries/)
 
+### Completed: Fase 2A, Semana 4 (MicroTEDAclus v0.1) ✅ 100%
+**Goal:** Implementar MicroTEDAclus para resolver problema de contaminação
+**Period:** 2026-01-25
+
+**Tasks Completed:**
+- [x] Analisar problema de contaminação no TEDA básico
+- [x] Documentar problema (`docs/theory/teda-contamination-problem.md`)
+- [x] Implementar classe MicroCluster com estatísticas isoladas
+- [x] Implementar threshold dinâmico m(k)
+- [x] Implementar Chebyshev rejection + criação de novos clusters
+- [x] Implementar MicroTEDAclus (orquestrador)
+- [x] Criar 31 testes unitários (100% passando)
+- [x] Testar resistência a contaminação
+- [x] Documentar lições aprendidas
+- [x] Integrar MicroTEDAclus com StreamingDetector v0.2
+- [x] Atualizar exports no __init__.py
+
+**Deliverables:**
+1. ✅ `streaming/src/detector/micro_teda.py` - MicroCluster + MicroTEDAclus (~400 linhas)
+2. ✅ `streaming/tests/test_micro_teda.py` - 31 testes unitários
+3. ✅ `docs/theory/teda-contamination-problem.md` - Análise do problema
+4. ✅ `docs/development/microtedaclus-implementation-notes.md` - Lições aprendidas
+5. ✅ `streaming/src/detector/streaming_detector.py` v0.2 - Suporte dual TEDA/MicroTEDAclus
+6. ✅ Total: 67 testes passando (36 TEDA + 31 MicroTEDAclus)
+
+**Key Learnings:**
+- r0 (variância mínima) deve ser proporcional à escala dos dados
+- Threshold para n=1 precisa ser permissivo (13.0) mas não infinito
+- Clusters jovens precisam de tratamento especial
+- Comparação direta com TEDA básico valida a solução
+- Strategy pattern permite seleção de algoritmo em runtime
+
 ---
 
 ## 📅 ROADMAP ATUALIZADO (24 semanas)
@@ -145,19 +180,32 @@
 | **S1** ✅ | K-means, DBSCAN, TEDA, Design | - | Resumos, Arquitetura |
 | **S2** ✅ | Setup Kafka, Producer+Consumer v0.1 | Angelov (2014), Maia (2020) | Pipeline E2E funcionando |
 | **S3** ✅ | TEDA v0.1 (básico) | Survey Drift | TEDADetector + 33 testes |
-| **S4** | TEDA v0.2 (micro-clusters) | Kafka Guide | MicroTEDAclus v0.1 |
+| **S4** ✅ | MicroTEDAclus v0.1 | - | MicroTEDAclus + StreamingDetector v0.2 |
 
 ### Fase 2B: Implementação TEDA + Kafka (Semanas 5-10)
 **Goal:** MVP funcional com experimentos básicos
 
 | Semana | Foco Principal | Leituras | Entregáveis |
 |--------|---------------|----------|-------------|
-| **S5** | TEDA v0.2 (micro-clusters) | Kafka Guide (1-3) | Multi-cluster funcionando |
+| **S5** | Orquestração de experimentos + Teste E2E | Kafka Guide (1-3) | Script orquestrador, benchmark MicroTEDAclus |
 | **S6** | Métricas de avaliação | Temporal Silhouette | Sistema de métricas |
 | **S7** | Experimentos drift sintético | CICIoT2023 releitura | Primeiros resultados |
 | **S8** | TEDA v0.3 (merge/split) | Kafka Guide (4-6) | MicroTEDAclus completo |
 | **S9** | Experimentos comparativos | Survey IDS IoT | Comparação com Fase 1 |
 | **S10** | Otimização, bug fixes | Edge IDS | MVP estável |
+
+**Nota:** S5 original previa "TEDA v0.2 (micro-clusters)" mas isso foi antecipado e concluído na S4 com MicroTEDAclus.
+
+**Detalhes S5 - Orquestração:**
+- Script `run_experiment.sh` ou Python que:
+  1. Verifica/sobe Kafka automaticamente
+  2. Inicia Producer, Consumer, Detector em sequência
+  3. Processa PCAP especificado
+  4. Coleta métricas e logs centralizados
+  5. Para tudo automaticamente ao finalizar
+- Parâmetros: `--pcap`, `--algorithm`, `--output-dir`
+- Facilita reprodutibilidade de experimentos
+- Inclui teste E2E completo com MicroTEDAclus + benchmark de performance
 
 ### Fase 2C: Experimentos + Validação (Semanas 11-14)
 **Goal:** Resultados publicáveis
@@ -276,6 +324,9 @@
 ---
 
 ## 📁 KEY DOCUMENTS
+
+### Metodologia (docs/methodology/)
+- `experiment-methodology.md` - Design de experimentos com PCAPs, avaliação prequential, cenários de concept drift
 
 ### Paper Summaries (Fichamentos)
 - `docs/paper-summaries/angelov-2014-teda.md` - TEDA Framework original (100%)
