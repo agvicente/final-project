@@ -1,7 +1,7 @@
 # Arquitetura Alvo - IoT IDS com Clustering Evolutivo
 
 **Criado:** 2025-12-17
-**Última Atualização:** 2026-01-20
+**Última Atualização:** 2026-02-22
 **Status:** Documento de Visão (Alto Nível)
 
 > **Propósito:** Este documento descreve ONDE QUEREMOS CHEGAR. Para o estado atual da implementação, veja [CURRENT.md](./CURRENT.md).
@@ -20,7 +20,7 @@ Implementar um **Sistema de Detecção de Intrusão (IDS)** para redes IoT usand
 | Fase | Objetivo | Status |
 |------|----------|--------|
 | **Fase A** | Pipeline PCAP → Kafka → TEDA funcional | ✅ Completo |
-| **Fase B** | MicroTEDAclus com micro/macro clusters | Em andamento |
+| **Fase B** | MicroTEDAclus com micro/macro clusters | ✅ Parcial (micro-clusters completos) |
 | **Fase C** | Comparação com Fase 1 (mesmas métricas) | Planejado |
 | **Fase D** | Otimização e escalabilidade | Planejado |
 
@@ -98,7 +98,7 @@ Implementar um **Sistema de Detecção de Intrusão (IDS)** para redes IoT usand
 | Versão | Algoritmo | Características | Status |
 |--------|-----------|-----------------|--------|
 | **v0.1** | TEDA básico | 1 centro global, Chebyshev | ✅ Implementado |
-| **v0.2** | MicroTEDAclus | Múltiplos micro-clusters | ❌ Planejado (S4) |
+| **v0.2** | MicroTEDAclus | Múltiplos micro-clusters | ✅ Implementado (S4) |
 | **v0.3** | + Merge/Split | Clusters dinâmicos | ❌ Planejado |
 | **v1.0** | Completo | + Macro-clusters, concept drift | ❌ Planejado |
 
@@ -143,7 +143,7 @@ Implementar um **Sistema de Detecção de Intrusão (IDS)** para redes IoT usand
 - [x] Producer v0.1
 - [x] Consumer v0.1
 - [x] TEDA v0.1 (básico)
-- [ ] MicroTEDAclus v0.1
+- [x] MicroTEDAclus v0.1 (completo S4)
 
 ### Fase 2B: Implementação (Semanas 5-10)
 - [ ] MicroTEDAclus v0.2 (merge/split)

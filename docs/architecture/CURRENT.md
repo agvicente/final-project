@@ -81,7 +81,7 @@
 │  │  ──────────────────────────    │  │         │               │
 │  │  + add_packet()                │  │         │               │
 │  │  + to_features() ──────────────┼──┼─────────┘               │
-│  │    (17 features)               │  │  KafkaProducer          │
+│  │    (28 features ML)            │  │  KafkaProducer          │
 │  └────────────────────────────────┘  │                         │
 └──────────────────────────────────────┘                         │
                                                                  │
@@ -174,7 +174,7 @@ PCAP ──► PCAPProducer ──► [packets] ──► FlowConsumer ──►
 
 | Componente | Arquivo | Entrada (Topic) | Saída (Topic) | Descrição |
 |------------|---------|-----------------|---------------|-----------|
-| **FlowConsumer** | `consumer/flow_consumer.py` | `packets` | `flows` | Agrega pacotes em flows com 17 features |
+| **FlowConsumer** | `consumer/flow_consumer.py` | `packets` | `flows` | Agrega pacotes em flows (28 features ML + 8 metadata) |
 | **StreamingDetector** | `detector/streaming_detector.py` | `flows` | `alerts` | Detecta anomalias usando TEDA ou MicroTEDAclus |
 
 ### 3.3 Algoritmos de Detecção
@@ -220,6 +220,8 @@ PCAP ──► PCAPProducer ──► [packets] ──► FlowConsumer ──►
 ```
 
 ### 4.2 Flow Schema
+
+> **NOTA:** Este schema está simplificado para legibilidade. O código real em `flow_consumer.py::to_features()` retorna **36 campos totais** (28 features ML + 8 metadata/identificação). Veja código fonte para lista completa.
 
 ```json
 {

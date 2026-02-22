@@ -70,7 +70,7 @@
 
 | # | Referência | Foco | Status |
 |---|------------|------|--------|
-| **CS-P1** | Neto, E.C.P. et al. (2023). "CICIoT2023: A Real-Time Dataset and Benchmark for Large-Scale Attacks in IoT Environment." *Sensors*, 23(13), 5941. | Dataset, ataques, features | 📖 Parcial |
+| **CS-P1** | Neto, E.C.P. et al. (2023). "CICIoT2023: A Real-Time Dataset and Benchmark for Large-Scale Attacks in IoT Environment." *Sensors*, 23(13), 5941. | Dataset, ataques, features | ❌ Não lido |
 | **CS-P2** | Survey: "Machine Learning-Based Intrusion Detection Methods in IoT Systems: A Comprehensive Review" (2024) - MDPI Electronics | Estado da arte IDS + ML | ❌ Não lido |
 
 **Links:**
@@ -241,10 +241,10 @@ Para cada artigo principal, criar fichamento em `docs/paper-summaries/`:
 | Área | Principais | Lidos | Auxiliares | Lidos |
 |------|------------|-------|------------|-------|
 | ML | 2 | **2** ✅ | 3 | 0 |
-| Cyber | 2 | 0.5 | 3 | 0 |
+| Cyber | 2 | 0 | 3 | 0 |
 | IoT | 2 | 0 | 3 | 0 |
 | Arq | 2 | 0 | 3 | 0 |
-| **Total** | **8** | **2.5** | **12** | **0** |
+| **Total** | **8** | **2** | **12** | **0** |
 
 ### Próxima Leitura
 - **Artigo:** ML-A1: Survey Concept Drift (Wiley 2024)
