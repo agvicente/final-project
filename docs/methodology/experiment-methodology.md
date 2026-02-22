@@ -15,7 +15,7 @@ Este documento define a metodologia para conduzir experimentos válidos e reprod
 1. **Validar detecção de anomalias:** O sistema detecta ataques conhecidos?
 2. **Avaliar resistência a concept drift:** O sistema se adapta a novos padrões?
 3. **Medir generalização:** O sistema detecta ataques não vistos durante treinamento?
-4. **Comparar com baseline:** Como se compara aos algoritmos da Fase 1?
+4. **Comparar MicroTeda com outros algoritmos:** Como se compara aos algoritmos de clustering?
 
 ### 1.2 Fundamentação Acadêmica
 
@@ -67,23 +67,18 @@ Baseado em [Survey of IDS: Techniques, Datasets and Challenges](https://link.spr
 
 ## 3. Abordagens de Avaliação
 
-### 3.1 Avaliação Tradicional (Batch)
+### 3.1 Avaliação Tradicional (Batch) (DESCONTINUADA)
 
-Usada para comparação com Fase 1 e baselines.
+~~Usada para comparação com Fase 1 e baselines.~~
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    SPLIT ESTRATIFICADO                       │
-│                                                              │
-│   Dataset ──────┬──────► Train (70-80%)                      │
-│                 │                                            │
-│                 └──────► Test (20-30%)                       │
-│                                                              │
-│   Validação: k-fold cross-validation (k=5 ou k=10)          │
-└─────────────────────────────────────────────────────────────┘
-```
+**STATUS:** ❌ **NÃO SERÁ IMPLEMENTADO**
 
-**Quando usar:** Comparação com algoritmos batch da Fase 1.
+**Motivo:** Comparação direta batch vs streaming é **metodologicamente inválida**:
+- Protocolos diferentes: k-fold CV vs prequential
+- Datasets diferentes: CSV shuffled vs PCAP temporal
+- Objetivos diferentes: accuracy final vs adaptação contínua
+
+**Alternativa:** Ver seção 3.4 "Comparação com Literatura" abaixo.
 
 ### 3.2 Avaliação Prequential (Streaming)
 
@@ -128,6 +123,47 @@ for flow in stream:
 ### 3.3 Avaliação de Generalização (Zero-Day)
 
 Baseada em [usfAD Based Unknown Attack Detection](https://arxiv.org/html/2403.11180v1):
+
+---
+
+### 3.4 Comparação com Algoritmos Streaming
+
+**Objetivo:** Validar MicroTEDAclus comparando com algoritmos streaming estabelecidos.
+
+**Protocolo:** Avaliação prequential com mesmo PCAP para todos os algoritmos.
+
+#### Algoritmos para Comparação (Semana 9)
+
+| Algoritmo | Tipo | Status |
+|-----------|------|--------|
+| **TEDA** | Single-center baseline | ✅ Implementado |
+| **MicroTEDAclus** | Multi-cluster evolutivo (proposto) | ✅ Implementado |
+| **CluStream** | Micro+Macro clustering | A implementar (biblioteca `river`) |
+| **DenStream** | Density-based streaming | A implementar (biblioteca `river`) |
+| **StreamKM++** | K-means streaming | A implementar (ou deixar opcional) |
+
+**Plano mínimo:** TEDA vs MicroTEDAclus (4 algoritmos se incluir CluStream e DenStream).
+
+#### Protocolo de Comparação
+
+1. **Mesmo PCAP:** Todos algoritmos processam exatamente o mesmo stream temporal
+2. **Mesmo protocolo:** Avaliação prequential (test-then-train)
+3. **Mesmas métricas:** Prequential F1, MTTD, tempo de adaptação, throughput, memória
+4. **Mesmo hardware:** Executar no mesmo ambiente
+5. **Múltiplas execuções:** 5 runs com seeds diferentes para validação estatística
+
+#### Métricas de Comparação
+
+- **Prequential F1:** Antes e depois de drift
+- **Tempo de adaptação:** Flows até recuperar 95% do F1 baseline
+- **MTTD:** Mean Time To Detection (flows até primeira detecção)
+- **Throughput:** Flows processados por segundo
+- **Memória:** Uso de RAM ao longo do tempo
+- **Número de clusters:** Evolução temporal
+
+**Detalhamento completo:** Ver seção 8.9 "Semana 9: Comparação de Algoritmos Streaming"
+
+---
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -273,7 +309,7 @@ mergecap -w combined.pcap benign.pcap ddos.pcap mirai.pcap
 | **Variância Média** | Compacidade dos clusters |
 | **Cluster Purity** | Homogeneidade de labels por cluster |
 
-### 5.4 Comparação com Baseline (Fase 1)
+### 5.4 Comparação com Baseline (Fase 1) (ISSO NÃO SERÁ MAIS FEITO)
 
 Para comparar MicroTEDAclus com algoritmos batch da Fase 1:
 
@@ -364,9 +400,13 @@ Este capítulo detalha COMO executar cada semana da Fase 2B, incluindo decisões
 
 ---
 
-### 8.0.5 Semana 4.5: Preparação para Experimentos (IMPLEMENTAÇÃO)
+### 8.0.5 Preparação para Experimentos - Integrado à Semana 5 Fase A
 
-**Objetivo:** Implementar toda a infraestrutura necessária para que a Semana 5 seja apenas execução de experimentos.
+> **NOTA (2026-02-22):** Este conteúdo foi integrado à **Semana 5 - Fase A (Preparação)** no `SESSION_CONTEXT.md`.
+> A "Semana 4.5" não existe mais como semana separada - é agora a primeira metade da Semana 5.
+> Este documento mantém os detalhes técnicos de implementação para referência.
+
+**Objetivo:** Implementar toda a infraestrutura necessária para que a Semana 5 Fase B seja apenas execução de experimentos.
 
 **Definição de "pronto":**
 - Script `run_experiment.py` funcionando end-to-end com 1 PCAP pequeno
