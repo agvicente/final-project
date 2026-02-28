@@ -182,12 +182,19 @@ class StreamingDetector:
         detector.run(max_flows=1000)  # Processa 1000 flows
     """
 
-    def __init__(self, config: Optional[StreamingDetectorConfig] = None):
+    def __init__(
+        self,
+        config: Optional[StreamingDetectorConfig] = None,
+        ground_truth: Optional[Any] = None,
+        metrics: Optional[Any] = None
+    ):
         """
         Inicializa o StreamingDetector.
 
         Args:
             config: Configuracoes (None = defaults, usa MicroTEDAclus)
+            ground_truth: GroundTruthProvider para modo experimento (None = produção)
+            metrics: PrequentialMetrics para modo experimento (None = produção)
         """
         self.config = config or StreamingDetectorConfig()
 
@@ -220,6 +227,15 @@ class StreamingDetector:
 
         # Controle
         self._running = False
+
+        # Ground truth e métricas (opcionais)
+        self.ground_truth = ground_truth
+        self.metrics = metrics
+
+        if ground_truth or metrics:
+            logger.info("Validação habilitada: "
+                       f"ground_truth={'sim' if ground_truth else 'não'}, "
+                       f"metrics={'sim' if metrics else 'não'}")
 
     def connect(self) -> None:
         """Conecta ao Kafka."""
@@ -410,6 +426,13 @@ class StreamingDetector:
 
         self.flows_processed += 1
 
+        # Valida com ground truth e atualiza métricas (se disponíveis)
+        if self.ground_truth and self.metrics:
+            y_pred = result.is_anomaly
+            y_true = self.ground_truth.get_flow_label(flow)
+            timestamp = flow.get("first_packet_time", time.time())
+            self.metrics.update(y_pred, y_true, timestamp)
+
         # Log verbose
         if self.config.verbose:
             status = "ANOMALIA!" if result.is_anomaly else "normal"
@@ -541,6 +564,14 @@ class StreamingDetector:
             "algorithm": self._algorithm.value,
             "detector_stats": self._detector.get_statistics(),
         }
+
+        # Adiciona métricas prequential se disponíveis
+        if self.metrics:
+            stats["prequential_metrics"] = self.metrics.get_global_metrics()
+
+        # Adiciona metadata do ground truth se disponível
+        if self.ground_truth:
+            stats["ground_truth_metadata"] = self.ground_truth.get_metadata()
 
         return stats
 

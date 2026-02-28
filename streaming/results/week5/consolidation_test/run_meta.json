@@ -1,0 +1,22 @@
+{
+  "git_commit": "bdc0415",
+  "algorithm": "micro_teda",
+  "params": {
+    "r0": 0.1,
+    "min_samples": 10,
+    "window_size": 1000,
+    "alpha": 0.01
+  },
+  "pcaps": {
+    "benign": "../data/raw/PCAP/Benign/BenignTraffic.pcap",
+    "attack": null
+  },
+  "execution": {
+    "start_time": "2026-02-25T19:04:06.241649",
+    "duration_seconds": 4.509194850921631
+  },
+  "volumes": {
+    "total_flows": 2000,
+    "anomalies_detected": 87
+  }
+}

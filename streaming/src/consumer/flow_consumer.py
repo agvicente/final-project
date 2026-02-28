@@ -645,8 +645,10 @@ class FlowConsumer:
 
                     if not self._running:
                         break
-
                 # Verifica timeouts periodicamente (a cada segundo)
+                # Pacotes de um flow não chegam todos de uma vez. Uma conexão TCP pode durar minutos — o   
+                # FlowConsumer não pode esperar o flow "terminar naturalmente" para extrair features,      
+                # porque em streaming você precisa emitir resultados continuamente. 
                 if time.time() - last_timeout_check > 1.0:
                     self._check_flow_timeouts()
                     last_timeout_check = time.time()

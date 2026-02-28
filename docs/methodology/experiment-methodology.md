@@ -1611,41 +1611,43 @@ while processing:
 #### 8.1.7 Checklist Executável (Procedimento Passo a Passo)
 
 **Pré-requisitos:**
-- [ ] Kafka up (`docker-compose up -d`)
+- [ ] Kafka up: `docker-compose up -d kafka zookeeper` (aguardar ~30s para inicialização)
 - [ ] Dataset montado localmente (paths válidos)
-- [ ] Tópicos criados: `packets`, `flows`, `alerts`
+- [ ] Verificar Kafka: `docker ps | grep kafka` (deve mostrar containers rodando)
 
 **Passos:**
 
 **1. Sanity check (2 minutos):**
 ```bash
-# Rodar PCAP benign curto sem ataque
+# Rodar PCAP benign curto (validação rápida)
+cd streaming
 python scripts/run_experiment.py \
-    --benign_pcap data/pcaps/benign/BenignTraffic.pcap \
-    --attack_pcap none \
-    --max_flows_warmup 2000 \
-    --output results/week5/sanity/
+    --pcap ../data/pcaps/benign/BenignTraffic.pcap \
+    --max-packets 2000 \
+    --max-flows 500 \
+    --output ../results/week5/sanity/
 ```
 
 Verificar:
-- [ ] `flows` tem eventos
-- [ ] `alerts` tem poucos ou nenhum alerta (< 5%)
+- [ ] Experimento completa sem erros
+- [ ] Diretório `results/week5/sanity/` contém 5 artefatos
+- [ ] `detection_results.json` mostra poucas anomalias (< 5% se PCAP benign)
 
 **2. Cenário A completo (warm-up + ataque):**
 ```bash
 # 6 execuções: 3 configs × 2 algoritmos
+cd streaming
 for algo in teda micro_teda; do
     for r0 in 0.05 0.10 0.20; do
         python scripts/run_experiment.py \
-            --scenario A_basic \
-            --benign_pcap data/pcaps/benign/BenignTraffic.pcap \
-            --attack_pcap data/pcaps/ddos/DDoS-ICMP_Flood.pcap \
-            --max_flows_warmup 5000 \
-            --max_flows_test 10000 \
+            --pcap ../data/pcaps/benign/BenignTraffic.pcap \
+            --attack-pcap ../data/pcaps/ddos/DDoS-ICMP_Flood.pcap \
+            --max-packets 5000 \
+            --max-flows 10000 \
             --algorithm $algo \
             --r0 $r0 \
-            --min_samples 10 \
-            --output results/week5/scenarioA/${algo}_r0${r0}/
+            --min-samples 10 \
+            --output ../results/week5/scenarioA/${algo}_r0_${r0}/
     done
 done
 ```
@@ -1653,9 +1655,9 @@ done
 **3. Análise:**
 ```bash
 # Consolidar resultados
+cd streaming
 python scripts/compare_experiments.py \
-    --input results/week5/scenarioA/ \
-    --output results/week5/scenarioA/comparison_report.md
+    ../results/week5/scenarioA/
 ```
 
 **Saídas esperadas:**

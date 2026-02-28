@@ -1,13 +1,15 @@
 # SESSION CONTEXT - IoT IDS Research Project
-**Last Updated:** 2026-02-22 (Session: Semana 5 - Preparação Orquestração)
+**Last Updated:** 2026-02-25 19:15 (Session: Semana 5 - Isolamento + Validação Completos)
 
 ---
 
 ## 🎯 CURRENT STATUS
 
-**Phase:** Fase 2B - Implementação + Experimentos
-**Week:** Semana 5 de 24 (20.8% complete) ⚙️ IN PROGRESS
-**Current Task:** S5 Fase A - Preparação da infraestrutura de orquestração
+**Phase:** Fase 2B - Experimentos Streaming
+**Week:** Semana 5 de 24 (20.8% complete) ✅ ISOLAMENTO + VALIDAÇÃO COMPLETOS
+**Current Task:** Sistema 100% funcional, isolamento garantido, validação confirmada
+**Next Session:** Executar grid 3×2 (TEDA vs MicroTEDAclus) + experimento DDoS
+**Estimated Time:** ~90 minutos (60 min grid + 15 min DDoS + 15 min análise)
 
 ---
 
@@ -105,6 +107,104 @@
 - `streaming/src/consumer/` - Consumer v0.1
 - `streaming/src/detector/` - TEDADetector + MicroTEDAclus + StreamingDetector v0.2
 - `streaming/docker/docker-compose.yml` - Kafka infrastructure
+
+### Fase 2A, Semana 5: Orquestração + Experimentos + Isolamento (✅ FASE B COMPLETA - 2026-02-25)
+**Goal:** Implementar infraestrutura completa para experimentos streaming + Isolamento total
+
+**Fase A - Preparação (✅ COMPLETO):**
+- ✅ GroundTruthProvider: Heurística filename-based para 33+ ataques CICIoT2023
+- ✅ PrequentialMetrics v0.2: Implementação rigorosa (Gama et al. 2013)
+  - Três estimadores: cumulative, sliding window, fading factor
+  - MTTD corrigido (ignora FP antes do ataque)
+  - Parâmetros justificados: window=1000, alpha=0.01
+- ✅ StreamingDetector estendido: aceita ground_truth + metrics como parâmetros opcionais
+- ✅ run_experiment.py v1.0: Orquestrador básico
+
+**Fase B - Isolamento + Validação (✅ COMPLETO - 2026-02-25):**
+- ✅ Feature de isolamento total entre experimentos (TDD rigoroso)
+  - purge_kafka_topics(): Purga automática de tópicos (~2s overhead)
+  - Group IDs únicos por experimento (timestamp-based)
+  - Flag --skip-purge para debugging
+  - 11/11 testes unitários passando
+- ✅ Bugs críticos corrigidos:
+  - `--attack-pcap none` tratado como string literal
+  - `metrics.get_metrics()` → `metrics.get_global_metrics()`
+  - Logging de métricas usando dicionário correto
+- ✅ Validação experimental executada:
+  - Teste rápido (100 flows): 6.76s, 58 clusters, 49% anomalias
+  - Teste consolidação (2000 flows): 9.73s, 96 clusters, 4.3% anomalias
+  - Cluster dominante: 1822 flows (91% do tráfego) - consolidação confirmada!
+  - Throughput: 444 flows/s
+
+**Fase B - Execução (✅ COMPLETO - 2026-02-25):**
+- ✅ **5 Artefatos Estruturados** salvos por execução:
+  1. `run_meta.json` - Git commit, parâmetros, timestamps
+  2. `detection_results.json` - Resultados completos de detecção
+  3. `metrics_windowed.csv` - Precision, Recall, F1, FPR, erros prequential
+  4. `clusters_state.jsonl` - Snapshots de clusters
+  5. `system_usage.csv` - CPU/memória com psutil
+- ✅ **System monitoring**: CPU e memória RSS coletados
+- ✅ **Cluster snapshots**: Estado dos micro-clusters salvo
+- ✅ **Múltiplos PCAPs**: Suporte a `--pcap` (benign) + `--attack-pcap` (ataque) processados sequencialmente
+- ✅ **compare_experiments.py**: Script básico para comparar múltiplas execuções
+  - Tabela comparativa no terminal
+  - Relatório Markdown gerado automaticamente
+- ✅ README.md principal atualizado com documentação completa
+
+**Deliverables:**
+1. ✅ `streaming/scripts/run_experiment.py` - Orquestrador completo com 5 artefatos
+2. ✅ `streaming/scripts/compare_experiments.py` - Comparador básico
+3. ✅ `streaming/src/metrics/ground_truth.py` - 48/48 testes passando
+4. ✅ `streaming/src/metrics/prequential_metrics.py` - Métricas academicamente rigorosas
+5. ✅ `docs/paper-summaries/gama-2013-prequential-evaluation.md` - Fichamento completo
+6. ✅ `README.md` - Documentação unificada do projeto
+
+**✅ PRÓXIMOS PASSOS (Próxima Sessão - 2026-02-26):**
+
+**1. Grid de Parâmetros - TEDA vs MicroTEDAclus (6 experimentos)**
+```bash
+cd streaming
+for algo in teda micro_teda; do
+    for r0 in 0.05 0.10 0.20; do
+        python3 scripts/run_experiment.py \
+            --pcap ../data/raw/PCAP/Benign/BenignTraffic.pcap \
+            --max-packets 50000 \
+            --max-flows 5000 \
+            --algorithm $algo \
+            --r0 $r0 \
+            --output ../results/week5/grid_${algo}_r0_${r0}/
+    done
+done
+```
+**Estimativa:** ~10 min/experimento × 6 = ~60 minutos
+
+**2. Comparação de Resultados**
+```bash
+python3 scripts/compare_experiments.py ../results/week5/
+# Gera: comparison_report.md com tabela consolidada
+```
+
+**3. Experimento com Ataque DDoS (validar detecção)**
+```bash
+python3 scripts/run_experiment.py \
+    --pcap ../data/raw/PCAP/Benign/BenignTraffic.pcap \
+    --attack-pcap ../data/raw/PCAP/DDoS/DDoS-ICMP_Flood.pcap \
+    --max-packets 50000 \
+    --max-flows 10000 \
+    --output ../results/week5/ddos_detection/
+# Validar: Precision, Recall, F1, MTTD
+```
+
+**4. Análise e Documentação**
+- Gráficos: consolidação de clusters, taxa de anomalia
+- Tabela comparativa: TEDA vs MicroTEDAclus
+- Atualizar semana5-report.md com resultados finais
+
+**Critérios de Sucesso:**
+- ✅ FPR <= 5% durante benign (já validado: 4.3%)
+- [ ] Recall >= 80% durante ataque DDoS
+- [ ] MTTD <= 500 flows
+- [ ] Diferença clara entre TEDA e MicroTEDAclus
 
 ---
 
@@ -253,13 +353,13 @@
 - Baseado em Gama et al. (2013) - Test-then-train
 
 **3. Script de Orquestração (`scripts/run_experiment.py`):**
-- Verifica/sobe Kafka automaticamente
+- Verifica conexão Kafka (pre-flight check)
 - Inicia Producer → Consumer → Detector em sequência
 - Processa PCAP especificado
 - Coleta métricas e logs centralizados
 - Para tudo automaticamente ao finalizar
-- Parâmetros: `--benign_pcap`, `--attack_pcap`, `--algorithm`, `--output-dir`
-- Gera 5 artefatos: metrics_windowed.csv, clusters_state.json, alerts.json, experiment.log, summary.json
+- Parâmetros: `--pcap`, `--attack-pcap`, `--algorithm`, `--output`
+- Gera 5 artefatos: run_meta.json, detection_results.json, metrics_windowed.csv, clusters_state.jsonl, system_usage.csv
 
 **Critérios de "Pronto" (Fase A):**
 - ✅ Script `run_experiment.py` funciona end-to-end com 1 PCAP pequeno
@@ -293,20 +393,28 @@
 
 **Experimentos a Executar:**
 ```bash
+# Pré-requisito: Kafka rodando
+cd /Users/augusto/mestrado/final-project
+docker-compose up -d kafka zookeeper
+# Aguardar ~30s para inicialização
+
 # Sanity Check
-python run_experiment.py \
-  --scenario sanity \
-  --benign_pcap data/pcaps/benign/BenignTraffic.pcap \
+cd streaming
+python scripts/run_experiment.py \
+  --pcap ../data/pcaps/benign/BenignTraffic.pcap \
+  --max-packets 2000 \
+  --max-flows 500 \
   --algorithm micro_teda \
-  --output results/week5/sanity/
+  --output ../results/week5/sanity/
 
 # Cenário A: Detecção Básica
-python run_experiment.py \
-  --scenario A_basic \
-  --benign_pcap data/pcaps/benign/BenignTraffic.pcap \
-  --attack_pcap data/pcaps/ddos/DDoS-ICMP_Flood.pcap \
+python scripts/run_experiment.py \
+  --pcap ../data/pcaps/benign/BenignTraffic.pcap \
+  --attack-pcap ../data/pcaps/ddos/DDoS-ICMP_Flood.pcap \
+  --max-packets 5000 \
+  --max-flows 10000 \
   --algorithm micro_teda \
-  --output results/week5/scenarioA/
+  --output ../results/week5/scenarioA/
 ```
 
 **Análise dos Resultados:**
