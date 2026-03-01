@@ -36,9 +36,9 @@ def make_packet(src_ip, dst_ip, src_port, dst_port, protocol, timestamp, length=
 
 
 class TestPcapClockInitialization:
-    def test_pcap_clock_starts_at_zero(self):
+    def test_pcap_clock_starts_unset(self):
         consumer = make_consumer()
-        assert consumer._pcap_clock == 0.0
+        assert consumer._pcap_clock is None
 
     def test_pcap_clock_updated_on_first_packet(self):
         consumer = make_consumer()
@@ -61,6 +61,13 @@ class TestPcapClockInitialization:
         consumer._process_packet(pkt1)
         consumer._process_packet(pkt2)
         assert consumer._pcap_clock == 1698800100.0  # max, not overwritten by older pkt
+
+    def test_pcap_clock_ignores_zero_timestamp_packet(self):
+        """A packet with timestamp=0 should not count as clock initialized."""
+        consumer = make_consumer()
+        pkt = make_packet("1.1.1.1", "2.2.2.2", 1234, 80, "TCP", timestamp=0.0)
+        consumer._process_packet(pkt)
+        assert consumer._pcap_clock is None  # clock not set by zero-timestamp packet
 
 
 class TestEventTimeTimeout:
@@ -116,11 +123,11 @@ class TestEventTimeTimeout:
     def test_timeout_not_triggered_when_pcap_clock_zero(self):
         """If no packets processed yet, _check_flow_timeouts should be a no-op."""
         consumer = make_consumer()
-        consumer._pcap_clock = 0.0
+        # _pcap_clock is None by default (no packets seen)
         # Manually insert a flow to test
         from src.consumer.flow_consumer import FlowData
         key = ("1.1.1.1", "2.2.2.2", 1234, 80, "TCP")
         consumer._active_flows[key] = FlowData(*key)
         consumer._check_flow_timeouts()
-        # Should not close anything when pcap_clock is 0
+        # Should not close anything when pcap_clock is None
         assert len(consumer._active_flows) == 1

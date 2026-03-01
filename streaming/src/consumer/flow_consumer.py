@@ -385,7 +385,7 @@ class FlowConsumer:
         # Event-time clock: maximum packet timestamp seen so far.
         # Used instead of time.time() for flow timeout checks so that
         # PCAP replays (with historical timestamps) behave correctly.
-        self._pcap_clock: float = 0.0
+        self._pcap_clock: Optional[float] = None
 
         # Estatisticas
         self.packets_processed = 0
@@ -535,7 +535,7 @@ class FlowConsumer:
 
         # Advance event-time clock to the latest timestamp seen
         ts = packet.get("timestamp", 0)
-        if ts > self._pcap_clock:
+        if ts and (self._pcap_clock is None or ts > self._pcap_clock):
             self._pcap_clock = ts
 
         # Verifica se flow deve ser fechado
@@ -588,7 +588,7 @@ class FlowConsumer:
 
         Chamado periodicamente durante o consumo.
         """
-        if self._pcap_clock == 0.0:
+        if self._pcap_clock is None:
             return  # No packets seen yet — nothing to expire
         current_time = self._pcap_clock
         timeout = self.config.flow.flow_timeout_seconds
