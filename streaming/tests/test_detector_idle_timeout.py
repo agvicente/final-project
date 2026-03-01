@@ -9,8 +9,8 @@ Fix: Count consecutive empty polls. After IDLE_LIMIT (10) consecutive
 empty polls (~10s), set _running = False and exit gracefully.
 """
 import pytest
-from unittest.mock import MagicMock, patch, call
-from src.detector.streaming_detector import StreamingDetector, StreamingDetectorConfig
+from unittest.mock import MagicMock, patch
+from src.detector.streaming_detector import StreamingDetector, StreamingDetectorConfig, IDLE_LIMIT
 
 
 def make_detector():
@@ -22,28 +22,19 @@ def make_detector():
 
 class TestIdleTimeout:
     def test_detector_stops_after_idle_limit_empty_polls(self):
-        """After IDLE_LIMIT consecutive empty polls, _running must become False."""
+        """After IDLE_LIMIT consecutive empty polls, run() must exit with _running=False."""
         detector = make_detector()
 
-        # Mock consumer: always returns empty records
         mock_consumer = MagicMock()
-        mock_consumer.poll.return_value = {}
-        detector._consumer = mock_consumer
-        detector._running = True
+        mock_consumer.poll.return_value = {}  # always empty
 
-        # Simulate the idle logic directly (unit test without full run())
-        idle_polls = 0
-        idle_limit = 10
+        with patch.object(detector, 'connect'):
+            detector._consumer = mock_consumer
+            result = detector.run(max_flows=None)
 
-        for _ in range(idle_limit):
-            records = detector._consumer.poll(timeout_ms=1000)
-            if not records:
-                idle_polls += 1
-                if idle_polls >= idle_limit:
-                    detector._running = False
-
-        assert detector._running is False
-        assert idle_polls == idle_limit
+        assert mock_consumer.poll.call_count == IDLE_LIMIT
+        assert isinstance(result, dict)
+        assert result["flows_processed"] == 0
 
     def test_idle_counter_resets_on_message(self):
         """Receiving a message resets the idle counter to 0."""
