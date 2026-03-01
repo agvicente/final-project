@@ -69,6 +69,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Number of consecutive empty Kafka polls before the detector self-terminates.
+# With poll(timeout_ms=1000), this equals ~10 seconds of silence.
+IDLE_LIMIT = 10
+
 
 # ============================================================
 # CONFIGURACAO
@@ -502,6 +506,7 @@ class StreamingDetector:
 
         self._running = True
         self.start_time = time.time()
+        idle_polls = 0
 
         logger.info("=" * 60)
         logger.info("Streaming Detector iniciado")
@@ -519,6 +524,15 @@ class StreamingDetector:
             while self._running:
                 # Poll com timeout de 1s
                 records = self._consumer.poll(timeout_ms=1000)
+
+                if not records:
+                    idle_polls += 1
+                    if idle_polls >= IDLE_LIMIT:
+                        logger.info(f"Sem mensagens por {IDLE_LIMIT}s — encerrando")
+                        self._running = False
+                    continue
+
+                idle_polls = 0  # reset on any message
 
                 for topic_partition, messages in records.items():
                     for message in messages:
