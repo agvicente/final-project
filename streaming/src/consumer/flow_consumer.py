@@ -382,6 +382,11 @@ class FlowConsumer:
         # --------------------------------------------------------
         self._active_flows: Dict[FlowKey, FlowData] = {}
 
+        # Event-time clock: maximum packet timestamp seen so far.
+        # Used instead of time.time() for flow timeout checks so that
+        # PCAP replays (with historical timestamps) behave correctly.
+        self._pcap_clock: float = 0.0
+
         # Estatisticas
         self.packets_processed = 0
         self.flows_completed = 0
@@ -528,6 +533,11 @@ class FlowConsumer:
         flow.add_packet(packet, is_forward)
         self.packets_processed += 1
 
+        # Advance event-time clock to the latest timestamp seen
+        ts = packet.get("timestamp", 0)
+        if ts > self._pcap_clock:
+            self._pcap_clock = ts
+
         # Verifica se flow deve ser fechado
         if flow.packet_count >= self.config.flow.max_packets_per_flow:
             self._complete_flow(actual_key, reason="max_packets")
@@ -578,7 +588,9 @@ class FlowConsumer:
 
         Chamado periodicamente durante o consumo.
         """
-        current_time = time.time()
+        if self._pcap_clock == 0.0:
+            return  # No packets seen yet — nothing to expire
+        current_time = self._pcap_clock
         timeout = self.config.flow.flow_timeout_seconds
 
         # Lista de flows a fechar (nao podemos modificar dict durante iteracao)
