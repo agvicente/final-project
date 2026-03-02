@@ -37,55 +37,45 @@ class TestIdleTimeout:
         assert result["flows_processed"] == 0
 
     def test_idle_counter_resets_on_message(self):
-        """Receiving a message resets the idle counter to 0."""
+        """Receiving a message before idle limit resets counter — detector stays alive."""
         detector = make_detector()
 
-        mock_consumer = MagicMock()
-        # Returns empty 5 times, then a message, then empty again
-        fake_flow = {"src_ip": "1.1.1.1", "dst_ip": "2.2.2.2",
-                     "src_port": 1234, "dst_port": 80, "protocol": "TCP",
-                     "packet_count": 5, "flow_duration": 1.0,
-                     "total_bytes": 500, "fwd_packet_count": 3,
-                     "bwd_packet_count": 2, "fwd_bytes": 300, "bwd_bytes": 200,
-                     "packets_per_second": 5.0, "bytes_per_second": 500.0,
-                     "packet_size_mean": 100.0, "packet_size_std": 0.0,
-                     "packet_size_min": 100.0, "packet_size_max": 100.0,
-                     "fwd_packet_size_mean": 100.0, "fwd_packet_size_std": 0.0,
-                     "bwd_packet_size_mean": 100.0, "bwd_packet_size_std": 0.0,
-                     "iat_mean": 0.2, "iat_std": 0.0, "iat_min": 0.2, "iat_max": 0.2,
-                     "syn_count": 1, "ack_count": 4, "fin_count": 1,
-                     "rst_count": 0, "psh_count": 2, "urg_count": 0,
-                     "fwd_bwd_ratio": 1.5, "first_packet_time": 1698800000.0,
-                     "last_packet_time": 1698800001.0}
-
+        # Build a fake flow message
         from kafka import TopicPartition
         tp = TopicPartition("flows", 0)
         mock_msg = MagicMock()
-        mock_msg.value = fake_flow
+        mock_msg.value = {
+            "src_ip": "1.1.1.1", "dst_ip": "2.2.2.2",
+            "src_port": 1234, "dst_port": 80, "protocol": "TCP",
+            "packet_count": 5, "flow_duration": 1.0,
+            "total_bytes": 500, "fwd_packet_count": 3, "bwd_packet_count": 2,
+            "fwd_bytes": 300, "bwd_bytes": 200,
+            "packets_per_second": 5.0, "bytes_per_second": 500.0,
+            "packet_size_mean": 100.0, "packet_size_std": 0.0,
+            "packet_size_min": 100.0, "packet_size_max": 100.0,
+            "fwd_packet_size_mean": 100.0, "fwd_packet_size_std": 0.0,
+            "bwd_packet_size_mean": 100.0, "bwd_packet_size_std": 0.0,
+            "iat_mean": 0.2, "iat_std": 0.0, "iat_min": 0.2, "iat_max": 0.2,
+            "syn_count": 1, "ack_count": 4, "fin_count": 1,
+            "rst_count": 0, "psh_count": 2, "urg_count": 0,
+            "fwd_bwd_ratio": 1.5, "first_packet_time": 1698800000.0,
+            "last_packet_time": 1698800001.0,
+        }
 
-        side_effects = [
-            {},          # empty
-            {},          # empty
-            {},          # empty
-            {},          # empty
-            {},          # empty
-            {tp: [mock_msg]},   # message arrives
-            {},          # empty again
-        ]
+        mock_consumer = MagicMock()
+        # Pattern: 5 empty polls, then 1 message, then IDLE_LIMIT empty polls to terminate
+        # Total polls = 5 + 1 + IDLE_LIMIT
+        side_effects = [{}] * 5 + [{tp: [mock_msg]}] + [{}] * IDLE_LIMIT
         mock_consumer.poll.side_effect = side_effects
-        detector._consumer = mock_consumer
 
-        idle_polls = 0
-        idle_limit = 10
+        with patch.object(detector, 'connect'):
+            detector._consumer = mock_consumer
+            result = detector.run(max_flows=None)
 
-        for poll_result in side_effects:
-            if not poll_result:
-                idle_polls += 1
-            else:
-                idle_polls = 0  # reset on message
-
-        # After receiving a message and 1 more empty, counter should be 1 (not 6)
-        assert idle_polls == 1
+        # The message was received and one flow was processed
+        assert result["flows_processed"] == 1
+        # Total polls = 5 (empty) + 1 (message) + IDLE_LIMIT (empty again = terminates)
+        assert mock_consumer.poll.call_count == 5 + 1 + IDLE_LIMIT
 
     def test_run_exits_after_idle_timeout(self):
         """Integration: run() must return after IDLE_LIMIT empty polls."""
