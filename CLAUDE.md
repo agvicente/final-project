@@ -11,7 +11,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Master's dissertation research project at UFMG (Electrical Engineering) developing an **anomaly-based intrusion detection system (IDS) for IoT networks using evolutionary clustering algorithms**. The project follows a 4-phase incremental research plan with baseline experiments completed (Phase 1).
 
-**Current Status**: Phase 1 Complete - 705 experiments executed, 10 ML algorithms evaluated on CICIoT2023 dataset with excellent results (F1 > 0.99).
+**Current Status**: Phase 2B — Streaming experiments. Phase 1 complete (705 experiments, F1 > 0.99). TEDA + MicroTEDAclus implemented, experiment orchestration complete, grid 3×2 executed.
+
+## Documentation Maintenance (OBRIGATÓRIO)
+
+**Leia sempre primeiro:** `STATUS.md` na raiz — responde onde estamos e o que fazer agora.
+
+**Ao final de qualquer sessão significativa, atualize `STATUS.md`:**
+- Seção "Agora": o que foi feito nesta sessão
+- Seção "Próxima sessão": os próximos 3 passos concretos (com comandos prontos)
+- Seção "Critérios de Sucesso": marque ✅ o que foi concluído
+
+**Nunca deixe STATUS.md desatualizado.** É o único arquivo que o pesquisador lê ao retomar.
+
+**Hierarquia de documentação:**
+1. `STATUS.md` — estado atual (sempre atualizado)
+2. `docs/SESSION_CONTEXT.md` — histórico detalhado (referência)
+3. `docs/weekly-reports/` — relatórios semanais para orientador
+4. `docs/architecture/CURRENT.md` — arquitetura implementada
 
 ## Essential Commands
 

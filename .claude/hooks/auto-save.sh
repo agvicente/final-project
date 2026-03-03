@@ -1,50 +1,23 @@
 #!/usr/bin/env bash
-# Auto-Save Hook - Saves work every 10 minutes to protect against crashes
-
-set -e
+# Auto-Save Hook - Triggered by Stop hook after each Claude response
 
 PROJECT_ROOT="/Users/augusto/mestrado/final-project"
+cd "$PROJECT_ROOT" || exit 0
+
+# Skip if not a git repo
+[ -d ".git" ] || exit 0
+
+# Skip if no unstaged or staged changes
+if git diff-index --quiet HEAD -- 2>/dev/null && git diff --cached --quiet 2>/dev/null; then
+    echo '{"status":"skipped","message":"No changes to save"}'
+    exit 0
+fi
+
 TIMESTAMP=$(date +%Y-%m-%d\ %H:%M:%S)
+BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
 
-cd "$PROJECT_ROOT" || exit 1
+# Add all changes and commit with wip: prefix on current branch
+git add -A 2>/dev/null
+git commit -m "wip: auto-save $TIMESTAMP" --no-verify 2>/dev/null || true
 
-# Check if git repo
-if [ ! -d ".git" ]; then
-    echo '{"status": "skipped", "message": "Not a git repository"}'
-    exit 0
-fi
-
-# Check if there are changes
-if git diff-index --quiet HEAD --; then
-    echo '{"status": "skipped", "message": "No changes to save"}'
-    exit 0
-fi
-
-# Create or switch to wip/auto-save branch
-git branch wip/auto-save 2>/dev/null || true
-CURRENT_BRANCH=$(git branch --show-current)
-
-# Stash current changes
-git stash push -m "auto-save-$TIMESTAMP" 2>/dev/null || true
-
-# Switch to auto-save branch
-git checkout wip/auto-save 2>/dev/null || git checkout -b wip/auto-save
-
-# Apply stash
-git stash pop 2>/dev/null || true
-
-# Add and commit
-git add -A
-git commit -m "Auto-save: $TIMESTAMP" --no-verify 2>/dev/null || true
-
-# Return to original branch
-git checkout "$CURRENT_BRANCH" 2>/dev/null
-
-cat << EOF
-{
-  "status": "success",
-  "message": "Auto-saved to wip/auto-save branch",
-  "timestamp": "$TIMESTAMP",
-  "display_message": "💾 Auto-save realizado"
-}
-EOF
+echo "{\"status\":\"success\",\"message\":\"Auto-saved on branch $BRANCH at $TIMESTAMP\"}"

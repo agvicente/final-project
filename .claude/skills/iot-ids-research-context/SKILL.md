@@ -1,9 +1,8 @@
 ---
 name: iot-ids-research-context
 description: Core context skill that maintains complete project state, knows all code structure, research phases, and previous work. Always active to prevent repetitive explanations.
-version: 1.0.0
+version: 2.0.0
 author: Research Acceleration System
-always_active: true
 ---
 
 # IoT IDS Research Context
@@ -12,230 +11,181 @@ always_active: true
 
 You are working on a Master's dissertation research project at UFMG (Federal University of Minas Gerais) in Electrical Engineering. This skill maintains complete context so you never need to re-explain the project, restate what's been done, or repeat basic information.
 
+**ALWAYS leia `STATUS.md` na raiz antes de qualquer ação** — é a fonte de verdade do estado atual.
+
 ## Project Identity
 
 **Title:** Anomaly-based Intrusion Detection System for IoT Networks using Evolutionary Clustering
 
 **Researcher:** Augusto (Master's student)
-**Institution:** UFMG PPGEE (Programa de Pós-Graduação em Engenharia Elétrica)
-**Timeline:** 5-7 months remaining for completion
+**Institution:** UFMG PPGEE
+**Advisor:** Frederico Gadelha Guimarães (co-autor do MicroTEDAclus — Maia et al. 2020)
+**Timeline:** ~6 meses restantes (24 semanas no total)
 **Weekly Dedication:** 10-20 hours
-**Meetings:** Weekly with advisor (flexible scheduling)
+**Meetings:** Weekly with advisor
 
-## Research Problem
+## Current Phase Status (2026-03-03)
 
-IoT networks face critical security challenges:
-- Heterogeneous devices with varying capabilities
-- High-velocity data streams requiring real-time detection
-- Concept drift (traffic patterns change over time)
-- Resource constraints on edge devices
-- High false positive rates in traditional IDS
+**Phase 1:** ✅ COMPLETE — 705 experiments, 10 ML algorithms, F1 > 0.99
+**Phase 2A:** ✅ COMPLETE — Teoria + TEDA + MicroTEDAclus + setup Kafka
+**Phase 2B:** 🔄 EM ANDAMENTO — Experimentos streaming (Semana 5/24)
+**Phase 3:** 📋 PLANEJADO
+**Phase 4:** 📋 PLANEJADO
 
-**Core Innovation:** Using evolutionary clustering algorithms (Mixture of Typicalities) that adapt to concept drift in streaming IoT network traffic.
+### Phase 2B — Estado Atual (Semana 5)
 
-## Current Phase Status
+**O que está funcionando:**
+- PCAPProducer v0.1: lê PCAPs → tópico `packets` (2909 pkt/s)
+- FlowConsumer v0.1: agrega flows → tópico `flows` (28 features ML + 8 metadata)
+- TEDADetector: eccentricidade + tipicalidade + threshold Chebyshev
+- MicroTEDAclus: micro-clusters com estatísticas isoladas, threshold dinâmico m(k)
+- StreamingDetector v0.2: seleção de algoritmo em runtime (TEDA ou MicroTEDAclus)
+- run_experiment.py: orquestrador completo com 5 artefatos por execução
+- compare_experiments.py: comparação de múltiplos experimentos
+- Métricas prequential (Gama et al. 2013): sliding window P/R/F1/FPR/MTTD
+- Ground truth heurístico: inferência por filename do PCAP
+- **Testes:** 98 testes unitários passando
 
-**Phase 1:** ✅ COMPLETE (100%)
-**Phase 2:** 🔄 STARTING (Evolutionary Clustering)
-**Phase 3:** 📋 PLANNED (Streaming Architecture)
-**Phase 4:** 📋 PLANNED (Finalization)
+**Pendente na Semana 5:**
+- Experimento DDoS (validar Recall >= 80%, MTTD <= 500 flows)
 
-### Phase 1 Achievements (DO NOT RE-DO)
-- 705 experiments across 10 ML algorithms
-- Excellent baseline results: F1 > 0.99 on CICIoT2023 dataset
-- Reproducible DVC pipeline established
-- Docker + MLflow infrastructure working
-- Best performers identified:
-  - GradientBoostingClassifier: F1 0.9964 (best accuracy)
-  - SGDOneClassSVM: 128.3s (fastest)
-  - RandomForest: Good balance
-- Paper in progress (artigo1) documenting baseline comparison
-
-**Files Location:** `iot-ids-research/experiments/.results/full/`
-
-##Code Structure (MEMORIZE THIS)
+## Code Structure (MEMORIZE THIS)
 
 ```
-/Users/augusto/mestrado/
-├── final-project/              # Main research repository
-│   ├── iot-ids-research/       # Core research code
-│   │   ├── data/
-│   │   │   ├── raw/CSV/MERGED_CSV/  # CICIoT2023 original
-│   │   │   └── processed/           # Preprocessed data
-│   │   │       ├── sampled.csv      # 10% stratified sample
-│   │   │       └── binary/          # Binary classification data
-│   │   ├── src/
-│   │   │   ├── clustering/     # NEW: Evolutionary clustering (Phase 2)
-│   │   │   ├── streaming/      # NEW: Kafka pipeline (Phase 3)
-│   │   │   └── eda/           # Exploratory analysis
-│   │   ├── experiments/        # Experiment orchestration
-│   │   │   ├── algorithm_comparison.py  # Core experiment runner
-│   │   │   ├── run_single_algorithm.py  # DVC wrapper
-│   │   │   ├── consolidate_results.py   # Results aggregation
-│   │   │   └── .results/       # All experiment results
-│   │   ├── configs/           # Configuration files
-│   │   ├── docs/              # Research documentation
-│   │   │   ├── SESSION_CONTEXT.md     # PROJECT BRAIN - READ FIRST
-│   │   │   ├── weekly-reports/        # Advisor meeting reports
-│   │   │   ├── progress/              # Daily session logs
-│   │   │   ├── decisions/             # Technical decisions log
-│   │   │   └── plans/                 # Design documents
-│   │   ├── dvc.yaml           # DVC pipeline definition
-│   │   ├── requirements.txt   # 250+ Python dependencies
-│   │   └── docker-compose.yml # Multi-service setup
-│   ├── .claude/              # Skills, hooks, commands
-│   └── CLAUDE.md             # Claude Code guidance
-├── artigo1/                   # Baseline comparison paper (Overleaf)
-├── dissertation/              # Master's dissertation (PT + EN)
-└── references.bib            # Zotero auto-exported bibliography
+/Users/augusto/mestrado/final-project/
+├── STATUS.md                    ← LEIA PRIMEIRO: estado atual + próximos passos
+├── CLAUDE.md                    ← Instruções para Claude Code
+├── README.md                    ← Visão geral do projeto
+│
+├── streaming/                   ← CÓDIGO PRINCIPAL (Fase 2)
+│   ├── src/
+│   │   ├── producer/            ← PCAPProducer (lê PCAP → Kafka)
+│   │   ├── consumer/            ← FlowConsumer (pacotes → flows)
+│   │   ├── detector/            ← TEDADetector + MicroTEDAclus + StreamingDetector
+│   │   ├── metrics/             ← PrequentialMetrics + GroundTruthProvider
+│   │   └── kafka_utils.py       ← purge_kafka_topics(), pre-flight check
+│   ├── scripts/
+│   │   ├── run_experiment.py    ← Orquestrador principal (CLI)
+│   │   └── compare_experiments.py ← Comparador de resultados
+│   ├── tests/                   ← 98 testes unitários + E2E
+│   ├── results/week5/           ← Resultados dos experimentos da semana 5
+│   ├── docker/                  ← docker-compose.yml (Kafka + Zookeeper + UI)
+│   └── venv/                    ← Python environment (ativar com source venv/bin/activate)
+│
+├── baseline/                    ← Fase 1 (COMPLETA — não modificar)
+│   └── experiments/.results/    ← 705 experimentos executados
+│
+├── data/
+│   └── raw/PCAP/                ← PCAPs do CICIoT2023
+│       ├── Benign/BenignTraffic.pcap
+│       └── DDoS/DDoS-ICMP_Flood.pcap
+│
+└── docs/
+    ├── SESSION_CONTEXT.md       ← Histórico detalhado (referência)
+    ├── architecture/CURRENT.md  ← Arquitetura implementada
+    ├── weekly-reports/          ← Relatórios para orientador
+    ├── theory/                  ← TEDA, MicroTEDAclus, concept drift
+    └── paper-summaries/         ← Fichamentos de papers
 ```
 
 ## Dataset: CICIoT2023
 
 **Source:** Canadian Institute for Cybersecurity
-**Type:** Real IoT network traffic with labeled attacks
-**Current Usage:** 10% stratified sample (maintains attack distribution)
-**Classification:** Binary (Benign=0 vs Attack=1) for Phase 1-2
-**Files:**
-- Train: `data/processed/binary/X_train_binary.npy`, `y_train_binary.npy`
-- Test: `data/processed/binary/X_test_binary.npy`, `y_test_binary.npy`
-- Metadata: `data/processed/binary/binary_metadata.json`
+**Type:** Real IoT network traffic with labeled attacks (33 ataques, 7 categorias)
+**Important:** CSVs são shuffled — processar PCAPs é obrigatório para preservar ordem temporal
+**Local PCAPs:** `data/raw/PCAP/` (~548GB total, subset local disponível)
+
+## Kafka Infrastructure
+
+```
+Zookeeper: localhost:2181
+Kafka:     localhost:9092
+Kafka-UI:  localhost:8080
+```
+
+**Tópicos:** `packets` (raw), `flows` (aggregated), `alerts` (anomalies)
+
+**Para iniciar:**
+```bash
+cd streaming/docker && docker-compose up -d
+# Aguardar ~30s
+```
+
+## Running Experiments
+
+```bash
+cd streaming
+source venv/bin/activate
+
+# Experimento básico (apenas benigno)
+python3 scripts/run_experiment.py \
+  --pcap ../data/raw/PCAP/Benign/BenignTraffic.pcap \
+  --max-packets 50000 --max-flows 5000 \
+  --algorithm micro_teda --r0 0.10 \
+  --output results/week5/test/
+
+# Experimento com ataque
+python3 scripts/run_experiment.py \
+  --pcap ../data/raw/PCAP/Benign/BenignTraffic.pcap \
+  --attack-pcap ../data/raw/PCAP/DDoS/DDoS-ICMP_Flood.pcap \
+  --max-packets 50000 --max-flows 10000 \
+  --output results/week5/ddos_detection/
+
+# Comparar resultados
+python3 scripts/compare_experiments.py results/week5/
+```
+
+## Test Suite
+
+```bash
+cd streaming
+source venv/bin/activate
+python3 -m pytest tests/ -q    # 98 testes, ~16s
+```
 
 ## Research Methodology
 
-**Learning Style:** Iterative (30% theory / 60% practice / 10% review)
-- Learn basic concept → implement minimal version → experiment → review theory → expand
-- Weekly sprints with demo for advisor
-- Just-in-time learning (don't study everything upfront)
+**Experiment Standards:**
+- Métricas prequential: sliding window (1000 flows), fading factor (alpha=0.01)
+- Isolamento entre experimentos: group IDs únicos + purge de tópicos (~2s overhead)
+- 5 artefatos por execução: run_meta.json, detection_results.json, metrics_windowed.csv, clusters_state.jsonl, system_usage.csv
 
-**Experiment Standards (from Phase 1):**
-- 5 runs per configuration for statistical rigor
-- Grid search for hyperparameter optimization
-- Metrics: Accuracy, Precision, Recall, F1, ROC-AUC, Balanced Accuracy
-- Bayesian statistical validation
-- Resource monitoring (CPU, memory, time)
-- MLflow tracking for all experiments
+**Success Criteria (Fase 2B):**
+- FPR em tráfego benigno: ≤ 5%
+- Recall em ataques: ≥ 80%
+- MTTD: ≤ 500 flows
+- Throughput: ≥ 100 flows/s
 
-## Phase 2: Evolutionary Clustering (CURRENT)
+## Key Papers
 
-**Duration:** 10-12 weeks
-**Goal:** Implement Mixture of Typicalities (Maia et al. 2020)
-
-**Key Papers to Study:**
-1. Maia et al. (2020) - Core algorithm (Mixture of Typicalities)
-2. Lu et al. (2019) - Concept drift theory
-3. Wahab (2022) - IoT concept drift detection
-
-**Implementation Plan:**
-- Weeks 1-3: Study papers, review clustering fundamentals (K-means, DBSCAN)
-- Weeks 4-9: Implement evolutionary clustering + experiments
-- Weeks 10-12: Analysis, validation, write dissertation chapter
-
-**Current Task:** Setting up development system (this week)
-**Next Task:** Begin clustering fundamentals review (next week)
-
-## Phase 3: Streaming Architecture (FUTURE)
-
-**Duration:** 10-12 weeks
-**Goal:** Kafka-based real-time streaming with evolutionary clustering integration
-
-**Key Concepts:**
-- Apache Kafka for data streaming
-- Real-time anomaly detection
-- High-throughput architecture
-- Latency and performance benchmarking
-
-## Key References (in Zotero)
-
-**Always available in:** `/Users/augusto/mestrado/references.bib`
-
-- Maia et al. (2020) - Evolutionary clustering (core)
-- Neto et al. (2023) - CICIoT2023 dataset
-- Surianarayanan et al. (2024) - Streaming architecture
-- Brodersen et al. - Bayesian accuracy (used in Phase 1)
-- 220+ additional papers catalogued by phase
-
-## Development Tools & Commands
-
-**DVC Pipeline:**
-```bash
-cd iot-ids-research
-dvc repro                    # Run full pipeline
-dvc repro exp_<algorithm>   # Run specific experiment
-```
-
-**Docker Services:**
-```bash
-docker-compose up -d        # Start Jupyter + MLflow
-# Access: Jupyter (8888), MLflow (5000)
-```
-
-**Python Environment:**
-- Python 3.12
-- Key libraries: scikit-learn 1.7.1, pandas 2.3.1, numpy 2.3.2, MLflow 3.1.4, DVC 3.61.0
-
-**Custom Commands (use these):**
-- `/resume` - Show current context and next steps
-- `/start-sprint` - Begin new weekly sprint
-- `/finalize-week` - Generate weekly report for advisor
-- `/paper-summary <name>` - Summarize paper from Zotero
-
-## Researcher's Knowledge Level
-
-**ML/Data Science:** Intermediate
-- Knows Python, pandas, scikit-learn basics
-- Completed Phase 1 experiments successfully
-- Needs to learn: Clustering algorithms (starting from basics), evolutionary approaches
-
-**IoT Security:** Learning
-- Understands IoT security challenges conceptually
-- Knows CICIoT2023 dataset structure
-- Needs to deepen: Attack taxonomy, detection patterns
-
-**Streaming/Infrastructure:** Beginner
-- Has Docker/DVC experience from Phase 1
-- Needs to learn: Kafka, streaming architectures, real-time processing
+- **Angelov (2014)** — TEDA Framework original (fichamento: `docs/paper-summaries/angelov-2014-teda.md`)
+- **Maia et al. (2020)** — MicroTEDAclus (fichamento: `docs/paper-summaries/maia-2020-microtedaclus.md`)
+- **Gama et al. (2013)** — Prequential evaluation (fichamento: `docs/paper-summaries/gama-2013-prequential-evaluation.md`)
 
 ## Critical Guidelines
 
-### DO NOT:
-- ❌ Re-explain what Phase 1 accomplished (it's done, move forward)
-- ❌ Suggest re-running baseline experiments (results are validated)
-- ❌ Ask "what is your research about" (read this skill)
-- ❌ Propose changing the core approach (evolutionary clustering is the thesis)
-- ❌ Assume unlimited time (5-7 months, 10-20h/week is reality)
+### NÃO FAÇA:
+- ❌ Re-explicar o que a Fase 1 fez (está completo)
+- ❌ Sugerir re-executar experimentos baseline
+- ❌ Assumir tempo ilimitado (20h/semana é a realidade)
+- ❌ Ignorar STATUS.md ao retomar trabalho
+- ❌ Deixar STATUS.md desatualizado ao final da sessão
 
-### ALWAYS:
-- ✅ Read `docs/SESSION_CONTEXT.md` first when resuming
-- ✅ Update SESSION_CONTEXT.md after significant progress
-- ✅ Use iterative learning approach (small steps, not big lectures)
-- ✅ Generate weekly reports in `docs/weekly-reports/current-week.md`
-- ✅ Protect against data loss (auto-save every 10min)
-- ✅ Keep advisor meeting format in mind (code + results + insights)
-
-### Working Style:
-- Augusto learns best by doing, not long theoretical explanations
-- Prefers concrete code examples over abstract concepts
-- Values efficiency (limited time availability)
-- Needs protection against terminal crashes (happens on his Mac)
-- Weekly meetings need demonstrable progress
-
-## Session Recovery
-
-If session is interrupted or resumed:
-1. Check `docs/SESSION_CONTEXT.md` for current state
-2. Check `docs/weekly-reports/current-week.md` for week progress
-3. Check git branch `wip/auto-save` for latest auto-saved work
-4. Summarize: "You were doing X, got to Y, next is Z"
+### SEMPRE:
+- ✅ Ler `STATUS.md` antes de qualquer ação
+- ✅ Atualizar `STATUS.md` ao final de sessão significativa
+- ✅ Ativar venv antes de rodar código Python: `source streaming/venv/bin/activate`
+- ✅ Verificar Kafka rodando antes de experimentos
+- ✅ Rodar `pytest tests/ -q` após mudanças no código
 
 ## Communication Style
 
-- Be direct and efficient (respect limited time)
-- No unnecessary pleasantries or praise
-- Focus on actionable next steps
-- Explain "why" for technical decisions (learning objective)
-- Use Portuguese for dissertation-related work when appropriate
+- Direto e eficiente (respeitar tempo limitado)
+- Sem elogios desnecessários
+- Foco em próximos passos acionáveis
+- Explicar o "porquê" de decisões técnicas (objetivo de aprendizado)
+- Português para trabalho relacionado à dissertação
 
 ---
 
-**This skill ensures Claude always has full project context without repetitive explanations.**
+**Esta skill garante contexto completo sem explicações repetitivas.**
