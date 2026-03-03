@@ -1,10 +1,7 @@
 """
 Unit tests for Experiment Orchestration with Unique Group IDs.
 
-Tests follow TDD RED PHASE - all tests MUST FAIL because the feature
-(unique group IDs per experiment execution) is not yet implemented.
-
-Feature being tested:
+Verifies that unique group IDs are generated per experiment execution:
 - FlowConsumer: f"flow-consumer-{experiment_id}"
 - StreamingDetector: f"detector-{experiment_id}"
 - experiment_id format: datetime.now().strftime("%Y%m%d_%H%M%S_%f")
@@ -47,24 +44,36 @@ def extract_group_ids_from_source(source):
 
 
 def extract_flow_consumer_group_id(source):
-    """Extract the group-id used for FlowConsumer from source."""
-    # Look for the pattern in start_flow_consumer function
-    pattern = r'--group-id["\']?\s*,\s*["\']([^"\']+)["\']'
-    # Focus on the start_flow_consumer function
+    """Extract the group-id used for FlowConsumer from source.
+
+    Detects both static strings and dynamic f-string patterns.
+    Returns 'flow-consumer-{experiment_id}' when the dynamic pattern is found.
+    """
     flow_consumer_func = source[source.find('def start_flow_consumer'):source.find('def start_flow_consumer') + 1000]
-    matches = re.findall(pattern, flow_consumer_func)
+    # Check for dynamic f-string pattern
+    dynamic_pattern = r'--group-id["\']?\s*,\s*f["\']flow-consumer-\{experiment_id\}["\']'
+    if re.search(dynamic_pattern, flow_consumer_func):
+        return 'flow-consumer-{experiment_id}'
+    # Fallback: static string literal
+    static_pattern = r'--group-id["\']?\s*,\s*["\']([^"\']+)["\']'
+    matches = re.findall(static_pattern, flow_consumer_func)
     return matches[0] if matches else None
 
 
 def extract_detector_group_id(source):
-    """Extract the group_id used for StreamingDetector from source."""
-    # Look for the pattern: group_id="..." or group_id='...'
-    pattern = r'group_id\s*=\s*["\']([^"\']+)["\']'
-    matches = re.findall(pattern, source)
-    # Get the one from StreamingDetectorConfig context
-    if matches:
-        return matches[0]  # First occurrence should be in StreamingDetectorConfig
-    return None
+    """Extract the group_id used for StreamingDetector from source.
+
+    Detects both static strings and dynamic f-string patterns.
+    Returns 'detector-{experiment_id}' when the dynamic pattern is found.
+    """
+    # Check for dynamic f-string pattern
+    dynamic_pattern = r'group_id\s*=\s*f["\']detector-\{experiment_id\}["\']'
+    if re.search(dynamic_pattern, source):
+        return 'detector-{experiment_id}'
+    # Fallback: static string literal
+    static_pattern = r'group_id\s*=\s*["\']([^"\']+)["\']'
+    matches = re.findall(static_pattern, source)
+    return matches[0] if matches else None
 
 
 # ============================================================
@@ -75,21 +84,17 @@ class TestExperimentGeneratesUniqueId:
     """
     TEST 1: test_experiment_generates_unique_id
 
-    Verifies that FlowConsumer group-id is NOT the hardcoded value.
-    This test FAILS when feature is not implemented (current state).
-
-    EXPECTED FAILURE: Currently run_experiment.py uses fixed group ID
-    "experiment-flow-processor" instead of unique ID.
+    Verifies that FlowConsumer group-id uses a dynamic experiment_id,
+    not a hardcoded static value.
     """
 
     def test_experiment_generates_unique_id(self, run_experiment_source):
-        """Verify FlowConsumer does not use hardcoded group-id."""
+        """Verify FlowConsumer uses dynamic group-id based on experiment_id."""
         flow_consumer_id = extract_flow_consumer_group_id(run_experiment_source)
 
-        # This assertion MUST FAIL - currently hardcoded
         assert flow_consumer_id is not None, "FlowConsumer must have group-id"
         assert flow_consumer_id != 'experiment-flow-processor', \
-            f"FAIL: Group ID is hardcoded '{flow_consumer_id}'. Should be unique with timestamp format."
+            f"Group ID should not be hardcoded '{flow_consumer_id}'. Should be dynamic with experiment_id."
 
 
 # ============================================================
@@ -101,19 +106,15 @@ class TestFlowConsumerUsesUniqueGroupId:
     TEST 2: test_flow_consumer_uses_unique_group_id
 
     Verifies that FlowConsumer command includes dynamic group-id
-    matching pattern: flow-consumer-YYYYMMDD_HHMMSS_microseconds
-
-    EXPECTED FAILURE: Currently uses hardcoded "experiment-flow-processor"
+    using f"flow-consumer-{experiment_id}".
     """
 
     def test_flow_consumer_uses_unique_group_id(self, run_experiment_source):
-        """FlowConsumer should use pattern: flow-consumer-<timestamp>"""
+        """FlowConsumer should use f-string: flow-consumer-{experiment_id}"""
         flow_consumer_id = extract_flow_consumer_group_id(run_experiment_source)
 
-        # This test MUST FAIL - pattern should be flow-consumer-YYYYMMDD_HHMMSS_microseconds
-        pattern = r'^flow-consumer-\d{8}_\d{6}_\d{6}$'
-        assert re.match(pattern, flow_consumer_id or ''), \
-            f"FAIL: Group ID should match pattern '{pattern}', got: '{flow_consumer_id}'"
+        assert flow_consumer_id == 'flow-consumer-{experiment_id}', \
+            f"Group ID should be dynamic f-string 'flow-consumer-{{experiment_id}}', got: '{flow_consumer_id}'"
 
 
 # ============================================================
@@ -125,19 +126,15 @@ class TestDetectorUsesUniqueGroupId:
     TEST 3: test_detector_uses_unique_group_id
 
     Verifies that StreamingDetector is configured with dynamic group_id
-    matching pattern: detector-YYYYMMDD_HHMMSS_microseconds
-
-    EXPECTED FAILURE: Currently uses hardcoded "experiment-detector"
+    using f"detector-{experiment_id}".
     """
 
     def test_detector_uses_unique_group_id(self, run_experiment_source):
-        """Detector config should use pattern: detector-<timestamp>"""
+        """Detector config should use f-string: detector-{experiment_id}"""
         detector_id = extract_detector_group_id(run_experiment_source)
 
-        # This test MUST FAIL - pattern should be detector-YYYYMMDD_HHMMSS_microseconds
-        pattern = r'^detector-\d{8}_\d{6}_\d{6}$'
-        assert re.match(pattern, detector_id or ''), \
-            f"FAIL: Detector group_id should match pattern '{pattern}', got: '{detector_id}'"
+        assert detector_id == 'detector-{experiment_id}', \
+            f"Detector group_id should be dynamic f-string 'detector-{{experiment_id}}', got: '{detector_id}'"
 
 
 # ============================================================
@@ -226,38 +223,3 @@ class TestExperimentIdGenerationPattern:
             f"Timestamp should be 22 chars (YYYYMMDD_HHMMSS_microseconds), got {len(timestamp)}"
 
 
-# ============================================================
-# IMPLEMENTATION VERIFICATION
-# ============================================================
-
-class TestCurrentImplementationUsesHardcodedIds:
-    """
-    Verify the current implementation (RED PHASE) uses hardcoded IDs.
-    These tests document the current state that needs to be fixed.
-    """
-
-    def test_flow_consumer_currently_hardcoded(self, run_experiment_source):
-        """Currently FlowConsumer uses hardcoded 'experiment-flow-processor'."""
-        flow_consumer_id = extract_flow_consumer_group_id(run_experiment_source)
-
-        # This documents the CURRENT state (RED PHASE)
-        assert flow_consumer_id == 'experiment-flow-processor', \
-            f"Current implementation uses hardcoded ID, got: {flow_consumer_id}"
-
-    def test_detector_currently_hardcoded(self, run_experiment_source):
-        """Currently StreamingDetector uses hardcoded 'experiment-detector'."""
-        detector_id = extract_detector_group_id(run_experiment_source)
-
-        # This documents the CURRENT state (RED PHASE)
-        assert detector_id == 'experiment-detector', \
-            f"Current implementation uses hardcoded ID, got: {detector_id}"
-
-    def test_no_datetime_import_for_ids(self, run_experiment_source):
-        """Currently no datetime-based ID generation exists."""
-        # Check that there's NO experiment_id variable
-        experiment_id_pattern = r'experiment_id\s*=\s*datetime\.now\(\)\.strftime'
-        has_id_generation = re.search(experiment_id_pattern, run_experiment_source)
-
-        # This documents that the feature doesn't exist (RED PHASE)
-        assert has_id_generation is None, \
-            "RED PHASE: experiment_id based on datetime should not exist yet"
