@@ -1,0 +1,22 @@
+{
+  "git_commit": "2ab9497",
+  "algorithm": "micro_teda",
+  "params": {
+    "r0": 0.05,
+    "min_samples": 10,
+    "window_size": 1000,
+    "alpha": 0.01
+  },
+  "pcaps": {
+    "benign": "/Users/augusto/mestrado/final-project/data/raw/PCAP/Benign/BenignTraffic.pcap",
+    "attack": null
+  },
+  "execution": {
+    "start_time": "2026-03-02T13:22:44.983521",
+    "duration_seconds": 14.760889053344727
+  },
+  "volumes": {
+    "total_flows": 2808,
+    "anomalies_detected": 83
+  }
+}
