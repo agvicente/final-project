@@ -17,16 +17,22 @@ This is a Master's dissertation research project at UFMG (Electrical Engineering
 
 **Leia sempre primeiro:** `STATUS.md` na raiz — responde onde estamos e o que fazer agora.
 
-**Ao final de qualquer sessão significativa, atualize `STATUS.md`:**
-- Seção "Agora": o que foi feito nesta sessão
-- Seção "Próxima sessão": os próximos 3 passos concretos (com comandos prontos)
-- Seção "Critérios de Sucesso": marque ✅ o que foi concluído
+**Ao final de qualquer sessão significativa, SUBSTITUA as seções dinâmicas do `STATUS.md`:**
+- Seção "Agora": SUBSTITUIR com o que foi feito nesta sessão (não acumular)
+- Seção "Próxima sessão": SUBSTITUIR com os próximos 3 passos concretos
+- Seção "Critérios de Sucesso": atualizar status dos itens
+- Seção "Código Relevante": atualizar se mudou
+- Seções "Roadmap" e "Referências": só alterar quando houver mudança real
+
+**STATUS.md é um snapshot, não um log.** Deve refletir apenas o estado ATUAL.
+O histórico fica em `docs/progress/` (gerado automaticamente pelo hook de SessionEnd).
 
 **Nunca deixe STATUS.md desatualizado.** É o único arquivo que o pesquisador lê ao retomar.
+Um hook `Stop` vai lembrar de atualizar se houver mudanças pendentes.
 
 **Hierarquia de documentação:**
-1. `STATUS.md` — estado atual (sempre atualizado)
-2. `docs/SESSION_CONTEXT.md` — histórico detalhado (referência)
+1. `STATUS.md` — snapshot atual (sempre substituído, nunca acumula)
+2. `docs/progress/` — histórico cronológico (gerado automaticamente por sessão)
 3. `docs/weekly-reports/` — relatórios semanais para orientador
 4. `docs/architecture/CURRENT.md` — arquitetura implementada
 

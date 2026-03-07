@@ -1,28 +1,14 @@
 #!/usr/bin/env bash
-# Session Start Hook - Loads context and syncs Zotero
-
-set -e
+# Session Start Hook - Records baseline commit for progress tracking
 
 PROJECT_ROOT="/Users/augusto/mestrado/final-project"
-CONTEXT_FILE="$PROJECT_ROOT/docs/SESSION_CONTEXT.md"
-ZOTERO_BIB="/Users/augusto/mestrado/references.bib"
+MARKER_FILE="$PROJECT_ROOT/.claude/.session-start-commit"
 
-# Check if running in Claude Code context
-if [ -z "$CLAUDE_SESSION_ID" ]; then
-    echo "Not in Claude Code session"
-    exit 0
+cd "$PROJECT_ROOT" || exit 0
+
+# Save current HEAD as session baseline
+if [ -d ".git" ]; then
+    git rev-parse HEAD 2>/dev/null > "$MARKER_FILE"
 fi
 
-# Create message for Claude
-cat << EOF
-{
-  "status": "success",
-  "message": "Session started successfully",
-  "context": {
-    "session_context_available": $([ -f "$CONTEXT_FILE" ] && echo "true" || echo "false"),
-    "zotero_bib_available": $([ -f "$ZOTERO_BIB" ] && echo "true" || echo "false"),
-    "timestamp": "$(date +%Y-%m-%d\ %H:%M:%S)"
-  },
-  "display_message": "🚀 Session iniciada! Use /resume para ver o contexto atual."
-}
-EOF
+echo "Success"

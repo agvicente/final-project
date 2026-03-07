@@ -108,3 +108,6 @@ iot-ids-research/experiments/mlflow-tracking/
 
 # Temporary files for shared timestamps
 iot-ids-research/experiments/.current_run_timestamp
+
+# Claude Code session markers
+.claude/.session-start-commit

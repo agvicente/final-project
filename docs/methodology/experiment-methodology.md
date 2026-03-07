@@ -89,10 +89,12 @@ Baseado em [Survey of IDS: Techniques, Datasets and Challenges](https://link.spr
 │              PREQUENTIAL (Test-Then-Train)                   │
 │                                                              │
 │   Para cada amostra x:                                       │
-│     1. Prever: ŷ = modelo.predict(x)                        │
-│     2. Avaliar: comparar ŷ com y real                        │
-│     3. Atualizar: modelo.update(x, y)                        │
+│     1. Prever: ŷ = modelo.predict(x)  ← is_anomaly?        │
+│     2. Avaliar: comparar ŷ com y_true (aplicado externamente)│
+│     3. Atualizar: modelo.update(x)    ← sem labels          │
 │                                                              │
+│   Nota: o detector é não-supervisionado — atualiza apenas   │
+│   com x. O y_true é aplicado pelo orquestrador offline.    │
 │   Métricas calculadas com sliding window ou fading factor   │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -555,9 +557,10 @@ chmod +x streaming/scripts/verify_pcaps.sh
 
 ```python
 """
-Ground truth heurístico para validação de experimentos.
-Semana 4.5: Inferir label do nome do arquivo PCAP.
-Semana 6+: Integrar com CSVs do CICIoT2023 para labels exatos.
+Ground truth por fase de injeção para avaliação offline.
+Label inferido da fase do experimento (não do flow individual):
+    - Fase benign (warm-up): y_true = False
+    - Fase ataque: y_true = True
 """
 
 from pathlib import Path
@@ -1737,12 +1740,12 @@ def label_flow(flow: Dict, pcap_label: str) -> bool:
     return pcap_label != 'benign'
 ```
 
-**Solução 2: CSV do CICIoT2023 (S8+)**
-- Processar PCAPs + carregar CSV correspondente
-- Fazer matching flow-by-flow (5-tuple + timestamp)
-- Mais preciso mas mais complexo
+**Abordagem adotada:** Labels por fase de injeção (não por CSV)
+- Fase warm-up (PCAP benign): y_true = False para todos os flows
+- Fase ataque (PCAP de ataque): y_true = True para todos os flows
+- O sistema é não-supervisionado: o detector não usa labels — apenas o orquestrador, para avaliar a qualidade offline.
 
-**Decisão S6:** Usar Solução 1 (heurística por arquivo)
+> **Nota:** Integração com CSVs do CICIoT2023 contradiz a abordagem não-supervisionada e está fora do escopo desta dissertação.
 
 #### 8.2.3 Métricas de Adaptação a Drift
 

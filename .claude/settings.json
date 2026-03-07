@@ -95,7 +95,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": ".claude/hooks/auto-save.sh"
+						"command": ".claude/hooks/doc-check.sh"
 					}
 				]
 			}

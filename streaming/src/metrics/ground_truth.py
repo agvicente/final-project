@@ -1,10 +1,14 @@
 """
-Ground truth heurístico para validação de experimentos.
+Ground truth por PCAP para avaliação offline de experimentos.
 
-Semana 5: Inferir label do nome do arquivo PCAP.
-Semana 6+: Integrar com CSVs do CICIoT2023 para labels exatos.
+Infere o label de todos os flows a partir do nome do arquivo PCAP:
+    - 'benign' no filename → y_true = False (tráfego normal)
+    - qualquer outro arquivo → y_true = True (ataque)
 
-Baseado em: docs/methodology/experiment-methodology.md seção 8.0.5.4
+O label é aplicado externamente pelo orquestrador (run_experiment.py),
+não pelo detector (que é puramente não-supervisionado).
+
+Baseado em: docs/methodology/experiment-methodology.md seção 8.2.2
 """
 
 from pathlib import Path

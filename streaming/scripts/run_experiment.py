@@ -65,7 +65,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 from producer.pcap_producer import PCAPProducer
 from producer.config import KafkaConfig as ProducerKafkaConfig, ProducerConfig
 from detector.streaming_detector import StreamingDetector, StreamingDetectorConfig, DetectorAlgorithm
-from metrics.ground_truth import GroundTruthProvider
 from metrics.prequential_metrics import PrequentialMetrics
 
 # Kafka imports para pre-flight check
@@ -221,7 +220,6 @@ def start_flow_consumer(experiment_id: str, verbose: bool = False) -> subprocess
 
 def run_detector(
     experiment_id: str,
-    pcap_path: str,
     bootstrap_servers: str = "localhost:9092",
     algorithm: str = "micro_teda",
     r0: float = 0.1,
@@ -229,14 +227,23 @@ def run_detector(
     window_size: int = 1000,
     alpha: float = 0.01,
     max_flows: Optional[int] = None,
-    verbose: bool = False
+    verbose: bool = False,
+    benign_packets_sent: int = 0,
+    attack_packets_sent: int = 0,
 ) -> Dict[str, Any]:
     """
-    Executa StreamingDetector com ground truth e métricas.
+    Executa StreamingDetector e avalia resultados por fase.
+
+    O detector é cego a labels (puramente não-supervisionado).
+    A avaliação é feita externamente aqui, com base na fase de injeção:
+        - Fase warm-up (benign): y_true = False
+        - Fase ataque: y_true = True
+
+    A divisão entre fases é estimada pela proporção de pacotes injetados
+    de cada PCAP.
 
     Args:
         experiment_id: ID único do experimento
-        pcap_path: Caminho do PCAP (para ground truth)
         bootstrap_servers: Endereço do Kafka
         algorithm: "teda" ou "micro_teda"
         r0: Variância mínima (MicroTEDAclus)
@@ -245,20 +252,15 @@ def run_detector(
         alpha: Fading factor (prequential)
         max_flows: Limite de flows (None = todos disponíveis)
         verbose: Modo verboso
+        benign_packets_sent: Pacotes injetados da fase benign
+        attack_packets_sent: Pacotes injetados da fase ataque (0 = experimento benign-only)
 
     Returns:
-        Estatísticas completas (detector + métricas)
+        Estatísticas completas (detector + métricas prequential)
     """
     logger.info("=" * 60)
-    logger.info("ETAPA 3: Executando detecção com validação")
+    logger.info("ETAPA 3: Executando detecção")
     logger.info("=" * 60)
-
-    # Ground truth provider
-    ground_truth = GroundTruthProvider(pcap_path)
-    logger.info(f"Ground truth: {ground_truth.get_attack_type().value}")
-
-    # Métricas prequential
-    metrics = PrequentialMetrics(window_size=window_size, alpha=alpha)
 
     # Configuração do detector
     algo_enum = (DetectorAlgorithm.TEDA if algorithm == "teda"
@@ -278,34 +280,62 @@ def run_detector(
         log_interval=100,
     )
 
-    # Cria detector COM ground_truth e metrics
-    detector = StreamingDetector(config, ground_truth=ground_truth, metrics=metrics)
+    # Detector puramente não-supervisionado — sem ground truth
+    detector = StreamingDetector(config)
 
     try:
-        # Executa detecção
         stats = detector.run(max_flows=max_flows)
-
-        # Log de métricas finais
-        if metrics:
-            global_metrics = metrics.get_global_metrics()
-            logger.info("=" * 60)
-            logger.info("MÉTRICAS PREQUENTIAL:")
-            logger.info(f"  Precision: {global_metrics.get('precision', 0):.4f}")
-            logger.info(f"  Recall: {global_metrics.get('recall', 0):.4f}")
-            logger.info(f"  F1-Score: {global_metrics.get('f1', 0):.4f}")
-
-            mttd = metrics.get_mttd()
-            if mttd is not None:
-                logger.info(f"  MTTD: {mttd:.2f}s")
-            else:
-                logger.info(f"  MTTD: N/A (sem ataques ou não detectados)")
-
-            logger.info("=" * 60)
-
-        return stats
 
     finally:
         detector.close()
+
+    # -----------------------------------------------------------------------
+    # Avaliação por fase — fora do detector
+    # O orquestrador sabe em qual fase cada flow foi gerado.
+    # Divisão estimada pela proporção de pacotes de cada PCAP.
+    # -----------------------------------------------------------------------
+    detection_results = stats.pop("detection_results", [])
+    metrics = PrequentialMetrics(window_size=window_size, alpha=alpha)
+
+    total_packets = benign_packets_sent + attack_packets_sent
+    if total_packets > 0 and attack_packets_sent > 0:
+        benign_ratio = benign_packets_sent / total_packets
+        benign_flow_count = int(len(detection_results) * benign_ratio)
+        logger.info(
+            f"Divisão de fases: {benign_flow_count} flows benign / "
+            f"{len(detection_results) - benign_flow_count} flows ataque"
+            f" (proporção: {benign_ratio:.2%} benign)"
+        )
+    else:
+        # Experimento benign-only: todos os flows têm y_true=False
+        benign_flow_count = len(detection_results)
+
+    for i, result in enumerate(detection_results):
+        is_anomaly = result["is_anomaly"]
+        timestamp = result["first_packet_time"]
+        y_true = i >= benign_flow_count  # False=benign, True=ataque
+        metrics.update(is_anomaly, y_true, timestamp)
+
+    # Adiciona métricas ao stats
+    global_metrics = metrics.get_global_metrics()
+    stats["prequential_metrics"] = global_metrics
+
+    # Log de métricas finais
+    logger.info("=" * 60)
+    logger.info("MÉTRICAS PREQUENTIAL:")
+    logger.info(f"  Precision: {global_metrics.get('precision', 0):.4f}")
+    logger.info(f"  Recall: {global_metrics.get('recall', 0):.4f}")
+    logger.info(f"  F1-Score: {global_metrics.get('f1', 0):.4f}")
+
+    mttd = metrics.get_mttd()
+    if mttd is not None:
+        logger.info(f"  MTTD: {mttd:.2f}s")
+    else:
+        logger.info(f"  MTTD: N/A (sem ataques ou não detectados)")
+
+    logger.info("=" * 60)
+
+    return stats
 
 
 def save_structured_results(
@@ -577,13 +607,12 @@ def main():
         # ETAPA 2: Iniciar FlowConsumer
         flow_consumer_process = start_flow_consumer(experiment_id=experiment_id, verbose=args.verbose)
 
-        # ETAPA 3: Executar detector com validação
-        # Usar primeiro PCAP para ground truth (ou attack se disponível)
-        gt_pcap = args.attack_pcap if args.attack_pcap else args.pcap
+        # ETAPA 3: Executar detector (sem ground truth — avaliação por fase)
+        benign_packets = pcap_stats_benign.get("packets_sent", 0)
+        attack_packets = pcap_stats_list[1].get("packets_sent", 0) if len(pcap_stats_list) > 1 else 0
 
         results = run_detector(
             experiment_id=experiment_id,
-            pcap_path=gt_pcap,
             bootstrap_servers=args.bootstrap_servers,
             algorithm=args.algorithm,
             r0=args.r0,
@@ -591,7 +620,9 @@ def main():
             window_size=args.window_size,
             alpha=args.alpha,
             max_flows=args.max_flows,
-            verbose=args.verbose
+            verbose=args.verbose,
+            benign_packets_sent=benign_packets,
+            attack_packets_sent=attack_packets,
         )
 
         # ETAPA 4: Coletar snapshots de clusters (simplificado)
