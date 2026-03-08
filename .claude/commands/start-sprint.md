@@ -9,7 +9,7 @@ Start a new weekly sprint for research.
 ## Steps
 
 1. **Check previous week:**
-   - Read `docs/weekly-reports/current-week.md`
+   - Read `STATUS.md` and latest file in `docs/progress/`
    - Ask: "Deseja finalizar o relatório da semana passada primeiro? (/finalize-week)"
 
 2. **Set week goals:**
@@ -49,9 +49,8 @@ Start a new weekly sprint for research.
    ```
 
 4. **After approval:**
-   - Update `docs/SESSION_CONTEXT.md` with new week info
-   - Create fresh `docs/weekly-reports/current-week.md`
-   - Commit: `git add docs/ && git commit -m "Start sprint: Week X - [goal]"`
+   - Update `STATUS.md` with new week goals
+   - Commit: `git add STATUS.md && git commit -m "Start sprint: Week X - [goal]"`
 
 5. **Start first task:**
    "Pronto! Vamos começar com: [first task from Monday]. O que você precisa para começar?"

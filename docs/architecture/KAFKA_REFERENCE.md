@@ -43,8 +43,8 @@ Este documento contém:
 
 | Componente | Localizacao | Funcao |
 |------------|-------------|--------|
-| Kafka + Zookeeper | `streaming/docker/` | Message broker |
-| PCAP Producer | `streaming/src/producer/` | Le PCAPs, publica pacotes |
+| Kafka + Zookeeper | `experiments/streaming/docker/` | Message broker |
+| PCAP Producer | `experiments/streaming/src/producer/` | Le PCAPs, publica pacotes |
 | Topicos | `packets`, `flows` | Canais de comunicacao |
 
 ### 2.3 Limitacoes da v0.1

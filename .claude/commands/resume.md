@@ -8,20 +8,19 @@ You are resuming a research session. Read and present the current context clearl
 
 ## Steps
 
-1. **Read SESSION_CONTEXT.md:**
+1. **Read STATUS.md:**
    ```
-   /Users/augusto/mestrado/final-project/docs/SESSION_CONTEXT.md
+   /Users/augusto/mestrado/final-project/STATUS.md
    ```
 
 2. **Extract key information:**
-   - Current phase and week
+   - Current phase and deadline
    - What was done in last session
    - Current task/goal
-   - Next immediate steps
+   - Next immediate steps (seção "Próxima sessão")
 
-3. **Check for interrupted session:**
-   - Look for `wip/auto-save` branch: `git branch --list wip/auto-save`
-   - If exists: "⚠️ Sessão anterior foi interrompida. Posso recuperar o trabalho salvo automaticamente. Deseja continuar de onde parou?"
+3. **Check recent progress logs:**
+   - Read latest file in `docs/progress/` for detailed history
 
 4. **Present summary (in Portuguese):**
    ```markdown
@@ -52,5 +51,5 @@ You are resuming a research session. Read and present the current context clearl
 
 - Be concise but informative
 - Use Portuguese for better communication with Augusto
-- If SESSION_CONTEXT.md doesn't exist or is empty, say so and offer to create it
+- If STATUS.md doesn't exist or is empty, say so and offer to create it
 - Don't start working automatically, wait for Augusto's input

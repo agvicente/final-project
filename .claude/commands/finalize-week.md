@@ -10,7 +10,7 @@ Consolidate weekly report for advisor meeting.
 
 1. **Read current week progress:**
    ```
-   docs/weekly-reports/current-week.md
+   STATUS.md
    docs/progress/*.md (all sessions this week)
    ```
 
@@ -73,9 +73,9 @@ Consolidate weekly report for advisor meeting.
    ```
 
 3. **Save finalized report:**
-   - Move `current-week.md` to `week-NN-final.md` with proper numbering
-   - Create new empty `current-week.md` for next week
-   - Commit: `git add docs/ && git commit -m "Finalize Week N report"`
+   - Save report to `docs/progress/YYYY-MM-DD-week-NN-report.md`
+   - Update `STATUS.md` with next week goals
+   - Commit: `git add docs/progress/ STATUS.md && git commit -m "Finalize Week N report"`
 
 4. **Offer to create presentation slides (optional):**
    "Relatório finalizado! Deseja que eu crie slides para a apresentação?"

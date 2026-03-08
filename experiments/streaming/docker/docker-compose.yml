@@ -1,7 +1,7 @@
 # Docker Compose - Kafka para IoT IDS Streaming (Fase 2)
 #
 # Uso:
-#   cd streaming/docker
+#   cd experiments/streaming/docker
 #   docker-compose up -d
 #
 # Funciona em Mac (local) e Ubuntu (remoto)

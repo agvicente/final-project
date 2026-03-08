@@ -290,7 +290,7 @@ PCAP ──► PCAPProducer ──► [packets] ──► FlowConsumer ──►
 
 ```
 ┌─────────────────────────────────────────┐
-│     streaming/docker/docker-compose.yml │
+│  experiments/streaming/docker/docker-compose.yml │
 ├─────────────────────────────────────────┤
 │  zookeeper    :2181  (coordination)     │
 │  kafka        :9092  (message broker)   │
