@@ -2,31 +2,32 @@
 <!-- STATUS.md é um snapshot. Substituir seções dinâmicas a cada sessão. -->
 <!-- Histórico em docs/progress/ (gerado automaticamente) -->
 
-**Atualizado:** 2026-03-07 | **Branch:** main | **Prazo defesa:** ~maio 2026 (~8 semanas)
+**Atualizado:** 2026-03-09 | **Branch:** main | **Prazo defesa:** ~maio 2026 (~8 semanas)
 
 ---
 
 ## Agora
 
-**Reorganização do repositório para projeto científico**
+**Transição S1→S2: limpeza de paths antigos + migração de PCAPs**
 
-O que foi feito nesta sessão:
-- Repositório reorganizado em 3 pilares: `research/`, `experiments/`, `writing/`
-- `streaming/` → `experiments/streaming/`, `baseline/` → `experiments/baseline/`
-- Fichamentos e teoria movidos para `research/`
-- Docs obsoletos arquivados em `docs/_archive/`
-- `CLAUDE.md` reescrito com nova estrutura
-- `USAGE.md` criado com guia de uso por cenário
-- Hooks atualizados: auto-save removido, doc-check + progress archive implementados
-- PCAPs removidos do git tracking (~2GB liberados do push)
-- Methodology extraída (seções 1-7, 432 linhas) de documento de 2419 linhas
-- Reading-log consolidado a partir de reading-plan + knowledge-gaps
-- Bibliography.bib em geração (~220 referências do schedule.md)
+Sessão 09/03:
+- `experiments/campaign-plan.md` criado (cenários A/B/E obrigatórios, D se der tempo, C cortado)
+- Plano de limpeza criado: `docs/plans/2026-03-09-cleanup-old-paths.md`
+- Repo tem vestígios de `iot-ids-research/` e paths `data/raw/PCAP/` que precisam ser limpos
 
-**Próxima sessão — 3 ações:**
-1. Verificar e ajustar `research/bibliography.bib` (gerado por agente)
-2. Criar `experiments/campaign-plan.md` — plano experimental de 8 semanas alinhado com defesa
-3. Clonar Overleaf da dissertação → `writing/dissertation/`
+**Próxima sessão (executar na máquina Linux):**
+
+Fase A — Limpeza (pré-requisito, ~30min):
+1. **Executar plano de limpeza** (`docs/plans/2026-03-09-cleanup-old-paths.md`): Passo 0 primeiro (inspecionar estrutura real), depois limpar `.gitignore`, `.dvc/config`, padronizar paths, criar script de migração de PCAPs
+2. **Migrar PCAPs** de `iot-ids-research/data/raw/PCAP/` → `data/pcaps/` (PCAPs existem na máquina Linux, não nesta)
+3. Rodar testes do streaming para confirmar que paths novos funcionam
+
+Fase B — Retomar sequência do projeto:
+4. Substituir `research/bibliography.bib` pelo export do Zotero (completar incrementalmente)
+5. Fazer symlink `writing/dissertation/` → Overleaf ou copiar (decidir com Augusto)
+6. **Iniciar S2** — Cenário A (detecção básica) seguindo `experiments/campaign-plan.md`
+
+**Contexto importante:** Na máquina Linux, `iot-ids-research/` ainda existe com os PCAPs (~548GB). O git não deleta arquivos não-versionados. O plano de limpeza inclui um Passo 0 de inspeção obrigatória antes de qualquer edição. Após a limpeza, os comandos do `campaign-plan.md` estarão com paths corretos e prontos para uso.
 
 ---
 
@@ -41,8 +42,11 @@ O que foi feito nesta sessão:
 | PCAPs fora do git | ✅ |
 | methodology.md extraída (cap. 4) | ✅ |
 | reading-log.md consolidado | ✅ |
-| bibliography.bib criado | ⏳ Em andamento |
-| campaign-plan.md criado | ⏳ Pendente |
+| bibliography.bib criado | ⚠️ Esqueleto — usar Zotero como fonte |
+| campaign-plan.md criado | ✅ |
+| Paths `iot-ids-research/` limpos do repo | ⏳ Plano criado — `docs/plans/2026-03-09-cleanup-old-paths.md` |
+| Paths `data/raw/PCAP/` → `data/pcaps/` | ⏳ Plano criado |
+| PCAPs migrados para `data/pcaps/` | ❌ Bloqueante (PCAPs existem na máquina Linux) |
 | Dissertação clonada do Overleaf | ⏳ Pendente |
 | Testes do streaming passando com novos paths | ⏳ Pendente |
 
@@ -79,6 +83,7 @@ O que foi feito nesta sessão:
 ## Referências Rápidas
 
 - Como usar o repositório: `USAGE.md`
-- Plano detalhado desta reorganização: `docs/plans/2026-03-07-repo-reorganization.md`
+- **Plano de limpeza (próxima ação):** `docs/plans/2026-03-09-cleanup-old-paths.md`
+- Plano da reorganização (concluído): `docs/plans/2026-03-07-repo-reorganization.md`
 - Arquitetura do sistema: `docs/architecture/CURRENT.md`
 - Leituras e lacunas: `research/reading-log.md`

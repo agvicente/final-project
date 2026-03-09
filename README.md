@@ -38,7 +38,7 @@ final-project/
 │   └── tables/                  # Tabelas geradas
 │
 ├── data/                        # Dados
-│   └── raw/PCAP/                # PCAPs do CICIoT2023
+│   └── pcaps/                   # PCAPs do CICIoT2023 (benign/, ddos/, dos/, etc.)
 │
 └── docs/                        # OPERACIONAL
     ├── architecture/            # Arquitetura implementada
@@ -61,7 +61,7 @@ cd experiments/streaming && source venv/bin/activate
 
 # Rodar experimento
 python3 scripts/run_experiment.py \
-  --pcap ../../data/raw/PCAP/Benign/BenignTraffic.pcap \
+  --pcap ../../data/pcaps/benign/BenignTraffic.pcap \
   --max-packets 50000 --max-flows 5000 \
   --algorithm micro_teda --r0 0.10 \
   --output ../results/campaign-01/test/

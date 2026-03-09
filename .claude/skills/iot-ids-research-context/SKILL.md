@@ -24,7 +24,7 @@ You are working on a Master's dissertation research project at UFMG (Federal Uni
 **Weekly Dedication:** 10-20 hours
 **Meetings:** Weekly with advisor
 
-## Current Phase Status (2026-03-08)
+## Current Phase Status (2026-03-09)
 
 **Phase 1:** ✅ COMPLETE — 705 experiments, 10 ML algorithms, F1 > 0.99
 **Phase 2A:** ✅ COMPLETE — Teoria + TEDA + MicroTEDAclus + setup Kafka
@@ -52,7 +52,7 @@ You are working on a Master's dissertation research project at UFMG (Federal Uni
 ## Code Structure (MEMORIZE THIS)
 
 ```
-/Users/augusto/mestrado/final-project/
+# Path relativo à raiz do repositório (varia por máquina)
 ├── STATUS.md                    ← LEIA PRIMEIRO: estado atual + próximos passos
 ├── CLAUDE.md                    ← Instruções para Claude Code
 ├── USAGE.md                     ← Guia de uso do repositório por cenário
@@ -65,7 +65,7 @@ You are working on a Master's dissertation research project at UFMG (Federal Uni
 │
 ├── experiments/                 ← EVIDÊNCIA
 │   ├── methodology.md           ← Metodologia científica (cap. 4)
-│   ├── campaign-plan.md         ← Plano experimental (PENDENTE)
+│   ├── campaign-plan.md         ← Plano experimental (cenários A/B/D/E)
 │   ├── streaming/               ← Código streaming (Fase 2)
 │   │   ├── src/
 │   │   │   ├── producer/        ← PCAPProducer (lê PCAP → Kafka)
@@ -89,7 +89,7 @@ You are working on a Master's dissertation research project at UFMG (Federal Uni
 │   └── tables/                  ← Tabelas geradas pelos experimentos
 │
 ├── data/
-│   └── raw/PCAP/                ← PCAPs do CICIoT2023
+│   └── pcaps/                   ← PCAPs do CICIoT2023 (benign/, ddos/, dos/, mirai/, recon/, spoofing/)
 │
 └── docs/                        ← OPERACIONAL
     ├── architecture/CURRENT.md  ← Arquitetura implementada
@@ -102,7 +102,7 @@ You are working on a Master's dissertation research project at UFMG (Federal Uni
 **Source:** Canadian Institute for Cybersecurity
 **Type:** Real IoT network traffic with labeled attacks (33 ataques, 7 categorias)
 **Important:** CSVs são shuffled — processar PCAPs é obrigatório para preservar ordem temporal
-**Local PCAPs:** `data/raw/PCAP/` (~548GB total, subset local disponível)
+**Local PCAPs:** `data/pcaps/` (~548GB total, subset local disponível)
 
 ## Kafka Infrastructure
 
@@ -128,15 +128,15 @@ source venv/bin/activate
 
 # Experimento básico (apenas benigno)
 python3 scripts/run_experiment.py \
-  --pcap ../../data/raw/PCAP/Benign/BenignTraffic.pcap \
+  --pcap ../../data/pcaps/benign/BenignTraffic.pcap \
   --max-packets 50000 --max-flows 5000 \
   --algorithm micro_teda --r0 0.10 \
   --output ../results/campaign-01/test/
 
 # Experimento com ataque
 python3 scripts/run_experiment.py \
-  --pcap ../../data/raw/PCAP/Benign/BenignTraffic.pcap \
-  --attack-pcap ../../data/raw/PCAP/DDoS/DDoS-ICMP_Flood.pcap \
+  --pcap ../../data/pcaps/benign/BenignTraffic.pcap \
+  --attack-pcap ../../data/pcaps/ddos/DDoS-ICMP_Flood.pcap \
   --max-packets 50000 --max-flows 10000 \
   --output ../results/campaign-01/ddos_detection/
 
