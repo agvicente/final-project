@@ -89,7 +89,7 @@ You are working on a Master's dissertation research project at UFMG (Federal Uni
 │   └── tables/                  ← Tabelas geradas pelos experimentos
 │
 ├── data/
-│   └── pcaps/                   ← PCAPs do CICIoT2023 (benign/, ddos/, dos/, mirai/, recon/, spoofing/)
+│   └── pcaps/                   ← PCAPs do CICIoT2023 (34 pastas: Benign_Final/, DDoS-*/, DoS-*/, Mirai-*/, Recon-*/, etc.)
 │
 └── docs/                        ← OPERACIONAL
     ├── architecture/CURRENT.md  ← Arquitetura implementada
@@ -128,15 +128,15 @@ source venv/bin/activate
 
 # Experimento básico (apenas benigno)
 python3 scripts/run_experiment.py \
-  --pcap ../../data/pcaps/benign/BenignTraffic.pcap \
+  --pcap ../../data/pcaps/Benign_Final/BenignTraffic.pcap \
   --max-packets 50000 --max-flows 5000 \
   --algorithm micro_teda --r0 0.10 \
   --output ../results/campaign-01/test/
 
 # Experimento com ataque
 python3 scripts/run_experiment.py \
-  --pcap ../../data/pcaps/benign/BenignTraffic.pcap \
-  --attack-pcap ../../data/pcaps/ddos/DDoS-ICMP_Flood.pcap \
+  --pcap ../../data/pcaps/Benign_Final/BenignTraffic.pcap \
+  --attack-pcap ../../data/pcaps/DDoS-ICMP_Flood/DDoS-ICMP_Flood.pcap \
   --max-packets 50000 --max-flows 10000 \
   --output ../results/campaign-01/ddos_detection/
 

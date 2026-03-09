@@ -1,5 +1,2 @@
 [core]
-    remote = local
     no_scm = false
-['remote "local"']
-    url = ../iot-ids-research/tmp/dvc-remote

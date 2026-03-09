@@ -754,7 +754,7 @@ cd /Users/augusto/mestrado/final-project/streaming
 
 # Simples: purga automática, experiment_id gerado
 python scripts/run_experiment.py \
-  --pcap ../data/raw/PCAP/Benign/Benign_Final.pcap \
+  --pcap ../data/pcaps/Benign/Benign_Final.pcap \
   --output results/exp_benign.json
 
 # Output:
@@ -777,7 +777,7 @@ python scripts/run_experiment.py \
 ```bash
 # Cada experimento: purga automática → isolamento garantido
 
-for pcap in data/raw/PCAP/*/*.pcap; do
+for pcap in data/pcaps/*/*.pcap; do
   python scripts/run_experiment.py \
     --pcap "$pcap" \
     --output "results/$(basename $pcap).json"
@@ -796,7 +796,7 @@ done
 # CUIDADO: Apenas para debugging, não para experimentos válidos
 
 python scripts/run_experiment.py \
-  --pcap data/raw/PCAP/Test/Test.pcap \
+  --pcap data/pcaps/Test/Test.pcap \
   --skip-purge \
   --verbose
 
@@ -814,7 +814,7 @@ python scripts/run_experiment.py \
 # Se purga falhar mas você quer continuar (risco!)
 
 python scripts/run_experiment.py \
-  --pcap data/raw/PCAP/Attack/DDoS.pcap \
+  --pcap data/pcaps/Attack/DDoS.pcap \
   --force \
   --output results/ddos.json
 

@@ -213,4 +213,4 @@ DEV_CONFIG = KafkaConfig()
 
 # Caminho relativo ao diretorio streaming/
 # Usado para testes locais com PCAP pequeno (9MB)
-DEV_PCAP = "../data/raw/PCAP/SqlInjection/SqlInjection.pcap"
+DEV_PCAP = "../../data/pcaps/SqlInjection/SqlInjection.pcap"

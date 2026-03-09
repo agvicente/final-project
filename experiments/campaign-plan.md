@@ -44,7 +44,7 @@ Confirmar que o pipeline funciona end-to-end e produzir primeiros resultados pub
 ```bash
 cd experiments/streaming && source venv/bin/activate
 python3 scripts/run_experiment.py \
-  --pcap ../../data/raw/PCAP/Benign/BenignTraffic.pcap \
+  --pcap ../../data/pcaps/Benign_Final/BenignTraffic.pcap \
   --max-packets 100000 --max-flows 10000 \
   --algorithm micro_teda --r0 0.10 \
   --output ../results/campaign-01/A1-benign/
@@ -55,8 +55,8 @@ python3 scripts/run_experiment.py \
 **A2: Deteccao DDoS**
 ```bash
 python3 scripts/run_experiment.py \
-  --pcap ../../data/raw/PCAP/Benign/BenignTraffic.pcap \
-  --attack-pcap ../../data/raw/PCAP/DDoS/DDoS-ICMP_Flood.pcap \
+  --pcap ../../data/pcaps/Benign_Final/BenignTraffic.pcap \
+  --attack-pcap ../../data/pcaps/DDoS-ICMP_Flood/DDoS-ICMP_Flood.pcap \
   --max-packets 100000 --max-flows 10000 \
   --algorithm micro_teda --r0 0.10 \
   --output ../results/campaign-01/A2-ddos/
@@ -68,8 +68,8 @@ python3 scripts/run_experiment.py \
 ```bash
 # Mesmo PCAP, mesmo protocolo, algoritmo diferente
 python3 scripts/run_experiment.py \
-  --pcap ../../data/raw/PCAP/Benign/BenignTraffic.pcap \
-  --attack-pcap ../../data/raw/PCAP/DDoS/DDoS-ICMP_Flood.pcap \
+  --pcap ../../data/pcaps/Benign_Final/BenignTraffic.pcap \
+  --attack-pcap ../../data/pcaps/DDoS-ICMP_Flood/DDoS-ICMP_Flood.pcap \
   --max-packets 100000 --max-flows 10000 \
   --algorithm teda --r0 0.10 \
   --output ../results/campaign-01/A3-teda-baseline/
@@ -97,9 +97,9 @@ python3 scripts/run_experiment.py \
 # Fase 1: Treinar com DDoS
 # Fase 2: Testar com Mirai (drift subito)
 python3 scripts/run_experiment.py \
-  --pcap ../../data/raw/PCAP/Benign/BenignTraffic.pcap \
-  --attack-pcap ../../data/raw/PCAP/DDoS/DDoS-ICMP_Flood.pcap \
-  --drift-pcap ../../data/raw/PCAP/Mirai/[variante].pcap \
+  --pcap ../../data/pcaps/Benign_Final/BenignTraffic.pcap \
+  --attack-pcap ../../data/pcaps/DDoS-ICMP_Flood/DDoS-ICMP_Flood.pcap \
+  --drift-pcap ../../data/pcaps/Mirai-greeth_flood/Mirai-greeth_flood.pcap \
   --max-flows 20000 \
   --algorithm micro_teda --r0 [otimo de A1] \
   --output ../results/campaign-01/B1-drift-ddos-mirai/
@@ -114,9 +114,9 @@ python3 scripts/run_experiment.py \
 # Treinar: Benign + DDoS + DoS
 # Testar: Mirai + Recon (nunca vistos)
 python3 scripts/run_experiment.py \
-  --pcap ../../data/raw/PCAP/Benign/BenignTraffic.pcap \
-  --attack-pcap ../../data/raw/PCAP/DDoS/DDoS-ICMP_Flood.pcap \
-  --holdout-pcap ../../data/raw/PCAP/Mirai/[variante].pcap \
+  --pcap ../../data/pcaps/Benign_Final/BenignTraffic.pcap \
+  --attack-pcap ../../data/pcaps/DDoS-ICMP_Flood/DDoS-ICMP_Flood.pcap \
+  --holdout-pcap ../../data/pcaps/Mirai-greeth_flood/Mirai-greeth_flood.pcap \
   --max-flows 20000 \
   --algorithm micro_teda --r0 [otimo] \
   --output ../results/campaign-01/E1-zero-day/
@@ -187,12 +187,12 @@ Fase 5: DDoS (deve reconhecer ainda mais rapido)
 
 | PCAP | Cenarios | Disponivel? |
 |------|----------|-------------|
-| Benign/BenignTraffic.pcap | Todos | Verificar |
-| DDoS/DDoS-ICMP_Flood.pcap | A, B, D, E | Verificar |
-| Mirai/[variante].pcap | B, E | Verificar |
-| DoS/[variante].pcap | E | Verificar |
-| Recon/[variante].pcap | E | Verificar |
-| Spoofing/[variante].pcap | E (opcional) | Verificar |
+| Benign_Final/BenignTraffic.pcap | Todos | ✅ |
+| DDoS-ICMP_Flood/DDoS-ICMP_Flood.pcap | A, B, D, E | ✅ |
+| Mirai-greeth_flood/Mirai-greeth_flood.pcap | B, E | ✅ |
+| DoS-TCP_Flood/DoS-TCP_Flood.pcap | E | ✅ |
+| Recon-PortScan/Recon-PortScan.pcap | E | ✅ |
+| DNS_Spoofing/DNS_Spoofing.pcap | E (opcional) | ✅ |
 
 ---
 

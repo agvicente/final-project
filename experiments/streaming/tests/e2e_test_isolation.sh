@@ -5,9 +5,9 @@ echo "=========================================="
 echo "E2E TEST: Experiment Isolation"
 echo "=========================================="
 
-STREAMING_DIR="/Users/augusto/mestrado/final-project/streaming"
+STREAMING_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 RESULTS_DIR="/tmp/e2e_isolation_test"
-PCAP_PATH="/Users/augusto/mestrado/final-project/data/raw/PCAP/Benign/BenignTraffic.pcap"
+PCAP_PATH="$(cd "$(dirname "$0")/../../.." && pwd)/data/pcaps/Benign_Final/BenignTraffic.pcap"
 
 # Cleanup
 rm -rf "$RESULTS_DIR"

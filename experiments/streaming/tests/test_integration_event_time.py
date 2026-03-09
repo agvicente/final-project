@@ -2,7 +2,7 @@
 Integration smoke test: verifies FlowConsumer produces >1 packet per flow
 when using a real PCAP with historical timestamps (event-time fix).
 
-Requires: BenignTraffic.pcap at data/raw/PCAP/Benign/BenignTraffic.pcap
+Requires: BenignTraffic.pcap at data/pcaps/Benign_Final/BenignTraffic.pcap
 Skipped automatically if PCAP not found.
 """
 import socket
@@ -12,7 +12,7 @@ from src.consumer.flow_consumer import FlowConsumer
 from src.consumer.config import ConsumerConfig
 
 PCAP_PATH = os.path.join(
-    os.path.dirname(__file__), "..", "..", "data", "raw", "PCAP", "Benign", "BenignTraffic.pcap"
+    os.path.dirname(__file__), "..", "..", "..", "data", "pcaps", "Benign_Final", "BenignTraffic.pcap"
 )
 
 

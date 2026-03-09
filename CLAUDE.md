@@ -53,8 +53,8 @@ python -m pytest tests/ -v
 
 # Rodar experimento
 python scripts/run_experiment.py \
-  --pcap ../../data/pcaps/benign/BenignTraffic.pcap \
-  --attack-pcap ../../data/pcaps/ddos/DDoS-ICMP_Flood.pcap \
+  --pcap ../../data/pcaps/Benign_Final/BenignTraffic.pcap \
+  --attack-pcap ../../data/pcaps/DDoS-ICMP_Flood/DDoS-ICMP_Flood.pcap \
   --max-packets 50000 --max-flows 10000 \
   --algorithm micro_teda \
   --output ../../experiments/results/campaign-01/
