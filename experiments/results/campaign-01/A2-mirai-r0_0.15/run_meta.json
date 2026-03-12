@@ -1,0 +1,22 @@
+{
+  "git_commit": "975d27a",
+  "algorithm": "micro_teda",
+  "params": {
+    "r0": 0.15,
+    "min_samples": 10,
+    "window_size": 1000,
+    "alpha": 0.01
+  },
+  "pcaps": {
+    "benign": "../../data/pcaps/Benign_Final/BenignTraffic.pcap",
+    "attack": "../../data/pcaps/Mirai-greeth_flood/Mirai-greeth_flood.pcap"
+  },
+  "execution": {
+    "start_time": "2026-03-12T18:01:01.833100",
+    "duration_seconds": 28.92774987220764
+  },
+  "volumes": {
+    "total_flows": 4275,
+    "anomalies_detected": 135
+  }
+}

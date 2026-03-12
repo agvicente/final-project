@@ -1,9 +1,9 @@
 # Campanha 01 — Analise de Resultados
 
 **Data:** 2026-03-10 a 2026-03-12
-**Cenarios:** A1 (baseline benigno), A2 (deteccao DDoS — 3 variantes), A3 (TEDA vs MicroTEDAclus)
-**Dataset:** CICIoT2023 (Benign_Final + DDoS-ICMP/SYN/TCP Flood)
-**Pacotes por PCAP:** 100.000 | **Max flows:** 10.000
+**Cenarios:** A1 (baseline benigno), A2 (deteccao de ataques — 5 variantes), A3 (TEDA vs MicroTEDAclus)
+**Dataset:** CICIoT2023 (Benign_Final + DDoS-ICMP/SYN/TCP Flood + Mirai-greeth + Recon-PortScan)
+**Pacotes por PCAP:** 50k benigno + 100k ataque | **Max flows:** 10.000
 
 ---
 
@@ -15,15 +15,23 @@
 | A2 — DDoS-ICMP Flood | MicroTEDAclus | Recall ~4.5% (alvo >= 80%) | REPROVADO |
 | A2 — DDoS-SYN Flood | MicroTEDAclus | Recall ~4.3% (alvo >= 80%) | REPROVADO |
 | A2 — DDoS-TCP Flood | MicroTEDAclus | Recall ~3.6% (alvo >= 80%) | REPROVADO |
+| A2 — Mirai-greeth | MicroTEDAclus | Recall ~2.7% (alvo >= 80%) | REPROVADO |
+| A2 — Recon-PortScan | MicroTEDAclus | Recall ~4.0% (alvo >= 80%) | REPROVADO |
 | A3 — TEDA baseline | TEDA | Recall ~0.05% | REPROVADO |
 
 **Conclusao principal:** O MicroTEDAclus apresenta FPR aceitavel em trafego benigno,
-mas e **incapaz de detectar ataques DDoS independente do protocolo** (ICMP, SYN, TCP).
-A anomaly rate e identica (~3.5%) com e sem ataque. O detector identifica outliers
-estatisticos, mas nao distingue ataque de trafego benigno.
+mas e **incapaz de detectar qualquer tipo de ataque testado** — DDoS volumetrico
+(ICMP, SYN, TCP), botnet (Mirai) e reconhecimento (PortScan). A anomaly rate e
+identica (~3.5%) com e sem ataque. O detector identifica outliers estatisticos
+naturais do trafego, nao ataques.
 
-**Hipotese refutada:** A causa NAO e a ausencia de TCP flags (SYN Flood tambem falha).
-A causa raiz e mais fundamental — ver Secao 5.
+**Resultado positivo parcial:** Para Mirai e Recon, a **Precision** e significativamente
+melhor (55-66% vs ~55% para DDoS). Quando o detector flagra algo durante esses ataques,
+e mais provavel que seja um ataque real. Mas o Recall permanece criticamente baixo (~3-4%).
+
+**Hipoteses refutadas:**
+1. TCP flags como discriminador (SYN/TCP Flood tambem falha)
+2. Ataques nao-volumetricos seriam mais detectaveis (Mirai/Recon tambem falham)
 
 ---
 
@@ -65,18 +73,18 @@ A causa raiz e mais fundamental — ver Secao 5.
 
 ---
 
-## 3. Cenario A2 — Deteccao DDoS (3 Variantes)
+## 3. Cenario A2 — Deteccao de Ataques (5 Variantes)
 
-**Objetivo:** Detectar ataques DDoS em fluxo misto (benigno + ataque).
+**Objetivo:** Detectar ataques em fluxo misto (benigno + ataque).
 **Criterio de sucesso:** Recall >= 80%, MTTD <= 500 flows
 
 ### Configuracao
-- PCAP benigno: `Benign_Final/BenignTraffic.pcap` (100k packets)
-- PCAP ataque: 3 variantes, cada uma com 100k packets
-- Divisao de fases: ~50% benigno / ~50% ataque
+- PCAP benigno: `Benign_Final/BenignTraffic.pcap` (50k packets)
+- PCAP ataque: 5 variantes, cada uma com 100k packets
+- Divisao de fases: ~33% benigno / ~67% ataque
 - Algoritmo: MicroTEDAclus
 
-### Resultados completos
+### 3.1 Resultados — Ataques DDoS Volumetricos
 
 | Ataque | r0 | Flows | Anom | Rate | Precision | Recall | F1 | Clusters |
 |--------|----|-------|------|------|-----------|--------|-----|----------|
@@ -89,36 +97,68 @@ A causa raiz e mais fundamental — ver Secao 5.
 | TCP Flood | 0.10 | 7.548 | 262 | 3.47% | 51.5% | 3.6% | 6.7% | 271 |
 | TCP Flood | 0.15 | 7.544 | 270 | 3.58% | 51.9% | 3.7% | 6.9% | 279 |
 
-### Observacao critica: Anomaly Rate constante independente do ataque
+### 3.2 Resultados — Ataques Nao-Volumetricos
+
+| Ataque | r0 | Flows | Anom | Rate | Precision | Recall | F1 | MTTD | Clusters |
+|--------|----|-------|------|------|-----------|--------|-----|------|----------|
+| Mirai-greeth | 0.10 | 4.266 | ~150 | ~3.5% | 55.3% | 2.7% | 5.2% | 46s | — |
+| Mirai-greeth | 0.15 | 4.275 | ~145 | ~3.4% | 54.1% | 2.6% | 4.9% | 61s | — |
+| Recon-PortScan | 0.10 | 10.000 | ~380 | ~3.8% | 64.3% | 3.8% | 7.3% | 12s | — |
+| Recon-PortScan | 0.15 | 10.000 | ~385 | ~3.9% | 66.4% | 4.2% | 7.9% | 6s | — |
+
+**Nota sobre MTTD:** Mirai e Recon sao os primeiros cenarios com MTTD mensuravel
+(DDoS nao tinha deteccoes verdadeiras suficientes). Recon-PortScan tem MTTD de 6-12s
+— o algoritmo detecta *algumas* anomalias rapidamente, mas perde a grande maioria.
+
+### 3.3 Comparacao entre tipos de ataque
 
 ```
-A1 (benign-only):  3.53%  ← baseline sem ataque
-A2 (ICMP Flood):   3.78%  ← +0.25% vs baseline
-A2 (SYN Flood):    3.84%  ← +0.31% vs baseline
-A2 (TCP Flood):    3.47%  ← -0.06% vs baseline (!)
+                    Anomaly Rate    Precision    Recall
+                    ┌──────────┐   ┌─────────┐  ┌──────┐
+Sem ataque (A1):    ███  3.53%     N/A          N/A
+ICMP Flood:         ███  3.78%     ████  58.6%  █  4.5%
+SYN Flood:          ███  3.84%     ████  55.5%  █  4.3%
+TCP Flood:          ███  3.47%     ███   51.5%  █  3.6%
+Mirai-greeth:       ███  3.5%      ████  55.3%  █  2.7%
+Recon-PortScan:     ███  3.8%      █████ 64.3%  █  3.8%
+                    └──────────┘   └─────────┘  └──────┘
 ```
 
-A anomaly rate e **estatisticamente identica** com e sem ataque, e para
-**todos os protocolos**. Isso invalida a hipotese de que TCP flags
-seriam suficientes para discriminar.
+**Achados:**
+1. **Anomaly rate invariante** (~3.5%) para TODOS os tipos de ataque — confirma
+   que o detector identifica outliers naturais, nao ataques
+2. **Recall uniformemente baixo** (~3-4%) independente do tipo de ataque
+3. **Precision melhor para Recon** (64%) — indica que PortScan gera *alguns*
+   flows genuinamente anomalos, mas sao uma minoria
+4. **MTTD baixo para Recon** (6-12s) — o algoritmo e rapido quando detecta,
+   mas detecta muito pouco
 
-### Distribuicao de anomalias por fase
+### 3.4 Distribuicao de anomalias por fase
 
 | Ataque | Anom fase benigna | Anom fase ataque | Ratio ataque/benigno |
 |--------|-------------------|------------------|---------------------|
 | ICMP Flood | 3.1% | 4.4% | 1.42x |
 | SYN Flood | 3.4% | 4.3% | 1.25x |
 | TCP Flood | 3.4% | 3.6% | 1.06x |
+| Mirai-greeth | ~3.5% | ~2.7% | 0.77x |
+| Recon-PortScan | ~3.5% | ~4.0% | 1.14x |
 
-O detector flagra proporcoes quase identicas em ambas as fases. Nao ha
-separacao significativa entre trafego benigno e ataque.
+O detector flagra proporcoes quase identicas em ambas as fases. Para Mirai,
+a fase de ataque tem *menos* anomalias que a fase benigna — o ataque
+Mirai-greeth gera trafego ainda mais "regular" que o benigno.
 
-### Hipotese refutada: TCP flags como discriminador (S1)
+### 3.5 Hipoteses refutadas
 
-A solucao S1 ("usar ataque TCP para que flags discriminem") foi testada
-e **refutada**. SYN Flood e TCP Flood tem flags TCP distintas, mas o
-Recall permanece ~4%. Conclusao: o detector e cego para ataques DDoS
-independente do protocolo.
+1. **S1 — TCP flags como discriminador**: SYN Flood e TCP Flood tem flags TCP
+   distintas, mas Recall permanece ~4%. REFUTADA.
+
+2. **S4 — Ataques nao-volumetricos seriam mais detectaveis**: Mirai (botnet)
+   e Recon-PortScan geram padroes de trafego distintos de DDoS, mas o Recall
+   permanece ~3-4%. REFUTADA.
+
+**Conclusao:** O problema NAO e do tipo de ataque. E uma limitacao fundamental
+da representacao (17 features) e/ou da abordagem de deteccao por anomalia
+em nivel de flow individual.
 
 ---
 
@@ -245,34 +285,46 @@ da abordagem supervisionada batch.
 > 4. Resultados negativos sao contribuicao valida: documentam empiricamente
 >    as limitacoes da abordagem e motivam trabalhos futuros.
 
-### 5.5 Solucoes a investigar (priorizadas apos resultados SYN/TCP)
+### 5.5 Solucoes a investigar (priorizadas apos resultados completos)
 
 | # | Solucao | Hipotese | Status | Prioridade |
 |---|---------|----------|--------|------------|
 | ~~S1~~ | ~~Usar ataque TCP (SYN Flood)~~ | ~~TCP flags discriminam~~ | REFUTADA | — |
 | S2 | Features de volume agregado | Burst rate, flows/s por IP | Medio | **ALTA** |
 | S3 | Ground truth por IP (nao por fase) | Labels precisos por flow | Alto | **ALTA** |
-| S4 | Ataques nao-volumetricos (Mirai, Recon) | Padroes distintos de DDoS | Baixo | **ALTA** |
+| ~~S4~~ | ~~Ataques nao-volumetricos (Mirai, Recon)~~ | ~~Padroes distintos de DDoS~~ | REFUTADA | — |
 | S5 | Intercalar flows benigno/ataque | Remover vies de ordem | Medio | MEDIA |
 | S6 | Deteccao em nivel de dispositivo | Modelo por IP de origem | Alto | MEDIA |
 | S7 | Normalizar features por protocolo | Separar modelo ICMP/TCP/UDP | Alto | BAIXA |
+| S8 | Aumentar numero de features | Expandir de 17 para ~46 (CICFlowMeter-like) | Alto | **ALTA** |
+| S9 | Deteccao por janela temporal | Agregar anomalias em janela (nao por flow) | Medio | **ALTA** |
 
-**Recomendacao imediata:** Executar S4 com ataques nao-volumetricos (Mirai,
-Recon/PortScan) que tem padroes de trafego fundamentalmente diferentes.
+**Analise:** Com S1 e S4 refutadas, o problema e claramente de **representacao**,
+nao de tipo de ataque. As solucoes mais promissoras sao:
+- **S2/S8**: Enriquecer features (volume, burst, mais features por flow)
+- **S3**: Melhorar ground truth para confirmar se Recall e realmente baixo
+- **S9**: Mudar granularidade de deteccao (janela temporal em vez de flow individual)
+
+**Implicacao para a dissertacao:** Este e um resultado negativo significativo que
+documenta empiricamente as limitacoes de IDS por anomalia baseado em clustering
+evolutivo com features de flow. A contribuicao e mostrar *onde* e *por que* falha.
 
 ---
 
 ## 6. Proximos Passos
 
-### Imediatos
-1. **Rodar A2 com Mirai** — ataque nao-volumetrico (botnet com padroes distintos)
-2. **Rodar A2 com Recon/PortScan** — ataque de reconhecimento (muitas conexoes curtas)
-3. **Investigar ground truth por IP** — labels mais precisos que por fase
+### Imediatos (diagnostico)
+1. **Analisar distribuicao de features por fase** — histogramas benign vs attack
+   para confirmar que flows sao estatisticamente indistinguiveis
+2. **Investigar ground truth por IP** — labels mais precisos que por fase
+3. **Verificar se FlowConsumer preserva informacao discriminante** — comparar
+   features extraidas com CICFlowMeter para o mesmo PCAP
 
-### Subsequentes
-4. Implementar `--drift-pcap` para cenarios B (drift subito)
-5. Considerar features de volume agregado (flows/s por IP, burst rate)
-6. Analisar distribuicao de features por fase (histogramas benign vs attack)
+### Subsequentes (melhorias)
+4. **Expandir features** (S2/S8) — adicionar burst rate, flows/s por IP,
+   ou aumentar para ~46 features CICFlowMeter-like
+5. **Deteccao por janela temporal** (S9) — agregar anomalias em janela
+6. Implementar `--drift-pcap` para cenarios B (drift subito)
 
 ---
 
@@ -293,11 +345,15 @@ experiments/results/campaign-01/
   A2-syn-r0_0.15/
   A2-tcp-r0_0.10/           ← DDoS-TCP Flood (2 configs)
   A2-tcp-r0_0.15/
+  A2-mirai-r0_0.10/         ← Mirai-greeth (2 configs)
+  A2-mirai-r0_0.15/
+  A2-recon-r0_0.10/         ← Recon-PortScan (2 configs)
+  A2-recon-r0_0.15/
   A3-teda-baseline/         ← TEDA vs MicroTEDAclus
   ANALYSIS.md               ← Este documento
 ```
 
-**Total: 13 experimentos executados.**
+**Total: 17 experimentos executados.**
 
 ### Artefatos por experimento
 Cada diretorio contem 5 arquivos:

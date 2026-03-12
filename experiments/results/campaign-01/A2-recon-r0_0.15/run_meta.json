@@ -1,0 +1,22 @@
+{
+  "git_commit": "975d27a",
+  "algorithm": "micro_teda",
+  "params": {
+    "r0": 0.15,
+    "min_samples": 10,
+    "window_size": 1000,
+    "alpha": 0.01
+  },
+  "pcaps": {
+    "benign": "../../data/pcaps/Benign_Final/BenignTraffic.pcap",
+    "attack": "../../data/pcaps/Recon-PortScan/Recon-PortScan.pcap"
+  },
+  "execution": {
+    "start_time": "2026-03-12T18:09:45.017603",
+    "duration_seconds": 86.97303462028503
+  },
+  "volumes": {
+    "total_flows": 10000,
+    "anomalies_detected": 419
+  }
+}

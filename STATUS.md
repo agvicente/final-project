@@ -8,23 +8,25 @@
 
 ## Agora
 
-**S2 — Cenários A1/A2/A3 completos. DDoS-ICMP não detectado — investigando.**
+**S2 — Campanha 01 completa (17 experimentos). Detector não detecta ataques.**
 
 Sessões 10-12/03 (máquina Linux — execução de experimentos):
 - ✅ Bug crítico corrigido: race condition FlowConsumer-Detector (500 → 7500 flows)
-- ✅ Cenário A1 completo: FPR ~3.5% (alvo <= 5%) — APROVADO
-- ✅ Cenário A2 completo: Recall ~4.5% (alvo >= 80%) — REPROVADO
-- ✅ Cenário A3 completo: TEDA Recall ~0.05% — MicroTEDAclus 26x superior
-- ✅ Análise completa: `experiments/results/campaign-01/ANALYSIS.md`
+- ✅ A1 completo (4 runs): FPR ~3.5% — APROVADO
+- ❌ A2 completo (12 runs, 5 tipos de ataque): Recall ~3-4% — REPROVADO
+  - DDoS: ICMP (4), SYN (2), TCP (2) — todos ~3.5-4.5% Recall
+  - Não-volumétricos: Mirai (2) ~2.7%, Recon-PortScan (2) ~4.0%
+- ✅ A3 completo: MicroTEDAclus 26x melhor que TEDA
+- ✅ Resultados commitados e análise completa
 
-**Diagnóstico:** DDoS-ICMP gera flows indistinguíveis do benigno no espaço de
-17 features (TCP flags são zero para ICMP). O algoritmo funciona — o problema
-é de representação.
+**Diagnóstico:** O MicroTEDAclus detecta outliers estatísticos (~3.5% do tráfego),
+mas NÃO detecta ataques. Flows de ataque são indistinguíveis de flows benignos
+no espaço de 17 features. Problema de **representação**, não de algoritmo.
 
 **Próxima sessão:**
-1. Rodar A2 com **DDoS-SYN_Flood** — validar que TCP flags discriminam
-2. Rodar A2 com **DDoS-TCP_Flood** — confirmar com segundo ataque TCP
-3. Commitar todos os resultados para a outra máquina escrever
+1. Analisar distribuição de features (histogramas benign vs attack)
+2. Investigar ground truth por IP (labels mais precisos que por fase)
+3. Decidir: expandir features, mudar granularidade de detecção, ou documentar limitação
 
 ---
 
@@ -33,12 +35,13 @@ Sessões 10-12/03 (máquina Linux — execução de experimentos):
 | Critério | Status |
 |----------|--------|
 | A1: FPR <= 5% (baseline benigno) | ✅ 3.5% |
-| A2-ICMP: Recall >= 80% (DDoS-ICMP) | ❌ 4.5% — features insuficientes |
-| A2-SYN: Recall >= 80% (DDoS-SYN) | ⏳ Próximo passo |
-| A2: MTTD <= 500 flows | ⚠️ 12-39s (mas Recall invalida) |
+| A2-DDoS: Recall >= 80% (ICMP/SYN/TCP) | ❌ ~4% — flows indistinguíveis |
+| A2-Mirai: Recall >= 80% | ❌ 2.7% — mesma limitação |
+| A2-Recon: Recall >= 80% (PortScan) | ❌ 4.0% — mesma limitação |
+| A2: MTTD <= 500 flows | ✅ 6-46s (quando detecta) |
 | A3: TEDA vs MicroTEDAclus | ✅ MicroTEDAclus 26x melhor |
-| r0 ótimo calibrado | ⚠️ Sem impacto em A1/A2-ICMP, testar em A2-SYN |
-| Resultados commitados | ⏳ Após A2-SYN |
+| r0 ótimo calibrado | ⚠️ Sem impacto significativo em nenhum cenário |
+| Resultados commitados | ✅ 17 experimentos |
 
 ---
 
@@ -62,7 +65,7 @@ Sessões 10-12/03 (máquina Linux — execução de experimentos):
 | Semana | Foco |
 |--------|------|
 | S1 ✅ | Reorganização repo + campaign-plan |
-| S2 🔄 | Validar arquitetura + métricas experimentais (A1 ✅, A2/A3 pendentes) |
+| S2 ✅ | Campanha 01: 17 exps, A1 ✅, A2 ❌ (todas variantes), A3 ✅ |
 | S3-S4 | Campanha experimental (cenários A-E) |
 | S5-S6 | Análise de resultados + comparação com literatura |
 | S7 | Escrita dissertação (caps 2-5) |
