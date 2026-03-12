@@ -1,8 +1,8 @@
 # Arquitetura Atual - IoT IDS Streaming
 
 **Criado:** 2026-01-20
-**Última Atualização:** 2026-01-29
-**Versão:** 0.2.0
+**Última Atualização:** 2026-03-10
+**Versão:** 0.3.0
 
 > **Propósito:** Este documento descreve O QUE ESTÁ IMPLEMENTADO AGORA. Para a visão de alto nível (onde queremos chegar), veja [TARGET.md](./TARGET.md).
 
@@ -16,6 +16,7 @@
 |--------|------|-----------|
 | 0.1.0 | 2026-01-20 | Arquitetura inicial: PCAPProducer, FlowConsumer, TEDADetector, StreamingDetector |
 | 0.2.0 | 2026-01-29 | MicroTEDAclus implementado, StreamingDetector v0.2 com seleção de algoritmo |
+| 0.3.0 | 2026-03-10 | Sincronização FlowConsumer-Detector, métricas prequential, orquestrador de experimentos v2 |
 
 ---
 
@@ -385,22 +386,25 @@ python -m src.detector.streaming_detector --max-flows 1000
 - [x] StreamingDetector v0.1 - Integração Kafka + TEDA
 - [x] 3 tópicos Kafka: packets, flows, alerts
 
-### Implementado (v0.2.0 - Semana 4) ✅ ATUAL
+### Implementado (v0.2.0 - Semana 4)
 - [x] MicroCluster - Estatísticas isoladas por cluster
 - [x] MicroTEDAclus - Multi-cluster evolutivo (Maia 2020)
 - [x] Threshold dinâmico m(k)
 - [x] StreamingDetector v0.2 - Seleção de algoritmo
 - [x] 67 testes unitários
 
-### Planejado (v0.3.0 - Semana 5-6)
-- [ ] Teste E2E completo com MicroTEDAclus
-- [ ] Benchmark de performance
-- [ ] Métricas de cluster (densidade, raio)
+### Implementado (v0.3.0 - Semana 8) ✅ ATUAL
+- [x] Sincronização FlowConsumer-Detector (`wait_for_flow_consumer()`)
+- [x] Métricas prequential (`src/metrics/prequential_metrics.py`)
+- [x] Orquestrador de experimentos com pipeline sincronizado
+- [x] Isolamento de experimentos (purga de tópicos Kafka)
+- [x] 5 artefatos estruturados por experimento
+- [x] 98 testes unitários
 
-### Planejado (v0.4.0 - Semana 7-10)
+### Planejado (v0.4.0)
+- [ ] Suporte a multi-fase (`--drift-pcap`) para cenários de drift
+- [ ] Suporte a holdout (`--holdout-pcap`) para cenários zero-day
 - [ ] Merge/split de clusters
-- [ ] Device-specific models
-- [ ] Dashboard de monitoramento
 
 ---
 

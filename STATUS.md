@@ -2,50 +2,43 @@
 <!-- STATUS.md é um snapshot. Substituir seções dinâmicas a cada sessão. -->
 <!-- Histórico em docs/progress/ (gerado automaticamente) -->
 
-**Atualizado:** 2026-03-09 | **Branch:** main | **Prazo defesa:** ~maio 2026 (~8 semanas)
+**Atualizado:** 2026-03-12 | **Branch:** main | **Prazo defesa:** ~maio 2026 (~7 semanas)
 
 ---
 
 ## Agora
 
-**S1 concluída — Limpeza feita, pronto para S2**
+**S2 — Cenários A1/A2/A3 completos. DDoS-ICMP não detectado — investigando.**
 
-Sessão 09/03 (máquina Linux):
-- ✅ Plano de limpeza executado (`docs/plans/2026-03-09-cleanup-old-paths.md`)
-- ✅ `.gitignore` limpo (removidas todas as regras `iot-ids-research/`)
-- ✅ `.dvc/config` limpo (removido remote apontando para `iot-ids-research/`)
-- ✅ PCAPs migrados: `iot-ids-research/data/raw/PCAP/` → `data/pcaps/` (34 pastas, 547GB)
-- ✅ Paths atualizados em: `campaign-plan.md`, `CLAUDE.md`, `SKILL.md`, `config.py`, testes, docs
-- ✅ `venv` criado em `experiments/streaming/venv/`
-- ✅ 98 testes passando
+Sessões 10-12/03 (máquina Linux — execução de experimentos):
+- ✅ Bug crítico corrigido: race condition FlowConsumer-Detector (500 → 7500 flows)
+- ✅ Cenário A1 completo: FPR ~3.5% (alvo <= 5%) — APROVADO
+- ✅ Cenário A2 completo: Recall ~4.5% (alvo >= 80%) — REPROVADO
+- ✅ Cenário A3 completo: TEDA Recall ~0.05% — MicroTEDAclus 26x superior
+- ✅ Análise completa: `experiments/results/campaign-01/ANALYSIS.md`
+
+**Diagnóstico:** DDoS-ICMP gera flows indistinguíveis do benigno no espaço de
+17 features (TCP flags são zero para ICMP). O algoritmo funciona — o problema
+é de representação.
 
 **Próxima sessão:**
-1. Subir Kafka (`cd experiments/streaming/docker && docker-compose up -d`)
-2. **Iniciar S2** — Cenário A1 (baseline benigno): seguir `experiments/campaign-plan.md`
-3. Substituir `research/bibliography.bib` pelo export do Zotero (baixa prioridade)
-
-**Nota:** `iot-ids-research/` ainda existe na máquina Linux mas está vazio de PCAPs. Pode ser deletado quando conveniente. O `.gitignore` já o ignora.
+1. Rodar A2 com **DDoS-SYN_Flood** — validar que TCP flags discriminam
+2. Rodar A2 com **DDoS-TCP_Flood** — confirmar com segundo ataque TCP
+3. Commitar todos os resultados para a outra máquina escrever
 
 ---
 
-## Critérios de Sucesso (Reorganização)
+## Critérios de Sucesso (Campanha S2)
 
 | Critério | Status |
 |----------|--------|
-| Estrutura 3 pilares implementada | ✅ |
-| Docs obsoletos arquivados | ✅ |
-| CLAUDE.md e USAGE.md atualizados | ✅ |
-| Hooks funcionando (sem auto-commit) | ✅ |
-| PCAPs fora do git | ✅ |
-| methodology.md extraída (cap. 4) | ✅ |
-| reading-log.md consolidado | ✅ |
-| bibliography.bib criado | ⚠️ Esqueleto — usar Zotero como fonte |
-| campaign-plan.md criado | ✅ |
-| Paths `iot-ids-research/` limpos do repo | ✅ |
-| Paths `data/raw/PCAP/` → `data/pcaps/` | ✅ |
-| PCAPs migrados para `data/pcaps/` | ✅ 34 pastas, 547GB |
-| Dissertação clonada do Overleaf | ⏳ Pendente |
-| Testes do streaming passando com novos paths | ✅ 98 passed |
+| A1: FPR <= 5% (baseline benigno) | ✅ 3.5% |
+| A2-ICMP: Recall >= 80% (DDoS-ICMP) | ❌ 4.5% — features insuficientes |
+| A2-SYN: Recall >= 80% (DDoS-SYN) | ⏳ Próximo passo |
+| A2: MTTD <= 500 flows | ⚠️ 12-39s (mas Recall invalida) |
+| A3: TEDA vs MicroTEDAclus | ✅ MicroTEDAclus 26x melhor |
+| r0 ótimo calibrado | ⚠️ Sem impacto em A1/A2-ICMP, testar em A2-SYN |
+| Resultados commitados | ⏳ Após A2-SYN |
 
 ---
 
@@ -53,14 +46,14 @@ Sessão 09/03 (máquina Linux):
 
 | O quê | Onde |
 |-------|------|
-| Guia de uso do repositório | `USAGE.md` |
-| Plano de reorganização (checklist) | `docs/plans/2026-03-07-repo-reorganization.md` |
-| Metodologia científica (cap. 4) | `experiments/methodology.md` |
-| Detector TEDA + MicroTEDAclus | `experiments/streaming/src/detector/` |
-| Métricas prequential | `experiments/streaming/src/metrics/` |
+| Análise de resultados | `experiments/results/campaign-01/ANALYSIS.md` |
+| Plano experimental | `experiments/campaign-plan.md` |
+| Resultados campanha 01 | `experiments/results/campaign-01/` |
 | Orquestrador de experimentos | `experiments/streaming/scripts/run_experiment.py` |
-| Teoria consolidada | `research/foundations/` |
-| Fichamentos | `research/summaries/` |
+| Sincronização FlowConsumer | `experiments/streaming/docs/flow-consumer-sync.md` |
+| Detector TEDA + MicroTEDAclus | `experiments/streaming/src/detector/` |
+| Kafka utils (purge + sync) | `experiments/streaming/src/kafka_utils.py` |
+| Arquitetura v0.3.0 | `docs/architecture/CURRENT.md` |
 
 ---
 
@@ -69,7 +62,7 @@ Sessão 09/03 (máquina Linux):
 | Semana | Foco |
 |--------|------|
 | S1 ✅ | Reorganização repo + campaign-plan |
-| S2 | Validar arquitetura + métricas experimentais |
+| S2 🔄 | Validar arquitetura + métricas experimentais (A1 ✅, A2/A3 pendentes) |
 | S3-S4 | Campanha experimental (cenários A-E) |
 | S5-S6 | Análise de resultados + comparação com literatura |
 | S7 | Escrita dissertação (caps 2-5) |

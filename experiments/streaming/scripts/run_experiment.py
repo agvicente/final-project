@@ -70,7 +70,7 @@ from metrics.prequential_metrics import PrequentialMetrics
 # Kafka imports para pre-flight check
 from kafka import KafkaConsumer
 from kafka.errors import NoBrokersAvailable
-from kafka_utils import purge_kafka_topics
+from kafka_utils import purge_kafka_topics, wait_for_flow_consumer
 
 
 # ============================================================
@@ -121,8 +121,8 @@ def check_kafka_connection(bootstrap_servers: str = "localhost:9092", timeout_ms
         logger.error("=" * 70)
         logger.error("")
         logger.error("Para iniciar o Kafka, execute:")
-        logger.error("  cd /Users/augusto/mestrado/final-project")
-        logger.error("  docker-compose up -d kafka zookeeper")
+        logger.error("  cd experiments/streaming/docker")
+        logger.error("  docker compose up -d")
         logger.error("")
         logger.error("Aguarde ~30 segundos para inicialização completa.")
         logger.error("")
@@ -607,10 +607,47 @@ def main():
         # ETAPA 2: Iniciar FlowConsumer
         flow_consumer_process = start_flow_consumer(experiment_id=experiment_id, verbose=args.verbose)
 
-        # ETAPA 3: Executar detector (sem ground truth — avaliação por fase)
+        # ETAPA 2.5: Sincronização — aguardar FlowConsumer processar todos os pacotes
         benign_packets = pcap_stats_benign.get("packets_sent", 0)
         attack_packets = pcap_stats_list[1].get("packets_sent", 0) if len(pcap_stats_list) > 1 else 0
 
+        logger.info("=" * 60)
+        logger.info("SINCRONIZAÇÃO: Aguardando FlowConsumer")
+        logger.info("=" * 60)
+        logger.info(f"Pacotes injetados: {benign_packets + attack_packets}")
+
+        try:
+            # Fase 1: Esperar FlowConsumer consumir todos os pacotes
+            # (flows topic para de crescer quando não há mais timeouts de evento)
+            wait_for_flow_consumer(
+                bootstrap_servers=args.bootstrap_servers,
+                stable_seconds=5.0,
+                timeout_seconds=600,
+            )
+
+            # Fase 2: Terminar FlowConsumer → flush dos flows ativos restantes
+            logger.info("Encerrando FlowConsumer (flush de flows ativos)...")
+            flow_consumer_process.terminate()
+            try:
+                flow_consumer_process.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                flow_consumer_process.kill()
+                flow_consumer_process.wait(timeout=5)
+            flow_consumer_process = None  # Evita duplo terminate no finally
+
+            # Fase 3: Esperar flows do flush aparecerem no Kafka
+            time.sleep(2)
+            total_flows = wait_for_flow_consumer(
+                bootstrap_servers=args.bootstrap_servers,
+                stable_seconds=3.0,
+                timeout_seconds=30,
+            )
+            logger.info(f"✅ FlowConsumer finalizado: {total_flows} flows produzidos")
+
+        except TimeoutError as e:
+            logger.warning(f"⚠️ {e} — prosseguindo mesmo assim")
+
+        # ETAPA 3: Executar detector (sem ground truth — avaliação por fase)
         results = run_detector(
             experiment_id=experiment_id,
             bootstrap_servers=args.bootstrap_servers,

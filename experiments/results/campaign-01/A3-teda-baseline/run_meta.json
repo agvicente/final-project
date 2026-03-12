@@ -1,0 +1,22 @@
+{
+  "git_commit": "dc70dab",
+  "algorithm": "teda",
+  "params": {
+    "r0": 0.1,
+    "min_samples": 10,
+    "window_size": 1000,
+    "alpha": 0.01
+  },
+  "pcaps": {
+    "benign": "../../data/pcaps/Benign_Final/BenignTraffic.pcap",
+    "attack": "../../data/pcaps/DDoS-ICMP_Flood/DDoS-ICMP_Flood.pcap"
+  },
+  "execution": {
+    "start_time": "2026-03-10T23:33:29.523163",
+    "duration_seconds": 16.726711988449097
+  },
+  "volumes": {
+    "total_flows": 7684,
+    "anomalies_detected": 11
+  }
+}

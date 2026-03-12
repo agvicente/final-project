@@ -1,0 +1,22 @@
+{
+  "git_commit": "dc70dab",
+  "algorithm": "micro_teda",
+  "params": {
+    "r0": 0.2,
+    "min_samples": 10,
+    "window_size": 1000,
+    "alpha": 0.01
+  },
+  "pcaps": {
+    "benign": "../../data/pcaps/Benign_Final/BenignTraffic.pcap",
+    "attack": null
+  },
+  "execution": {
+    "start_time": "2026-03-10T17:36:28.008383",
+    "duration_seconds": 54.35086107254028
+  },
+  "volumes": {
+    "total_flows": 7525,
+    "anomalies_detected": 262
+  }
+}
