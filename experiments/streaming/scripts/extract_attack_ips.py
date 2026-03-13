@@ -94,52 +94,62 @@ def extract_ips_from_pcap(pcap_path: str, max_packets: int = None) -> Set[str]:
     return ips
 
 
+def classify_pcap(name: str) -> str:
+    """
+    Classifica um PCAP pelo nome do arquivo ou diretório-pai.
+
+    Usa heurísticas baseadas nos nomes reais do CICIoT2023.
+    Aceita tanto nome de arquivo (BenignTraffic.pcap) quanto
+    nome de diretório (Benign_Final, DDoS-ICMP_Flood).
+
+    Args:
+        name: Nome do arquivo ou diretório (case-insensitive)
+
+    Returns:
+        Categoria: "benign", "ddos", "dos", "mirai", "recon", "spoofing", "other"
+    """
+    name_lower = name.lower()
+
+    if "benign" in name_lower:
+        return "benign"
+    elif "ddos" in name_lower:
+        return "ddos"
+    elif "dos" in name_lower and "ddos" not in name_lower:
+        return "dos"
+    elif "mirai" in name_lower:
+        return "mirai"
+    elif "recon" in name_lower or "scan" in name_lower or "portscan" in name_lower:
+        return "recon"
+    elif "spoof" in name_lower or "mitm" in name_lower:
+        return "spoofing"
+    else:
+        return "other"
+
+
 def find_pcaps(pcap_dir: Path) -> Dict[str, list]:
     """
-    Encontra PCAPs organizados por categoria no diretório data/pcaps/.
+    Encontra PCAPs e classifica por categoria.
 
-    Espera estrutura:
-        pcap_dir/
-            benign/      ← PCAPs de tráfego normal
-            ddos/        ← PCAPs de ataques DDoS
-            dos/         ← PCAPs de ataques DoS
-            mirai/       ← PCAPs de Mirai
-            recon/       ← PCAPs de reconhecimento
-            spoofing/    ← PCAPs de spoofing
+    Aceita qualquer estrutura de diretórios:
+        data/pcaps/Benign_Final/BenignTraffic.pcap   → benign
+        data/pcaps/DDoS-ICMP_Flood/DDoS-ICMP_Flood.pcap → ddos
+        data/pcaps/benign/file.pcap                   → benign
+        data/pcaps/flat_file_ddos.pcap                → ddos
 
-    Também aceita estrutura flat do CICIoT2023:
-        pcap_dir/
-            Benign_Final/BenignTraffic.pcap
-            DDoS-ICMP_Flood/DDoS-ICMP_Flood.pcap
-            ...
+    Classifica por: nome do diretório-pai primeiro, nome do arquivo como fallback.
     """
     categories = defaultdict(list)
 
-    # Estrutura organizada (data/pcaps/categoria/)
-    for subdir in sorted(pcap_dir.iterdir()):
-        if subdir.is_dir():
-            category = subdir.name.lower()
-            for pcap in sorted(subdir.rglob("*.pcap")):
-                categories[category].append(str(pcap))
+    for pcap in sorted(pcap_dir.rglob("*.pcap")):
+        # Tenta classificar pelo diretório-pai primeiro
+        parent_name = pcap.parent.name
+        category = classify_pcap(parent_name)
 
-    # Fallback: estrutura flat do CICIoT2023
-    if not categories:
-        for pcap in sorted(pcap_dir.rglob("*.pcap")):
-            name = pcap.stem.lower()
-            if "benign" in name:
-                categories["benign"].append(str(pcap))
-            elif "ddos" in name:
-                categories["ddos"].append(str(pcap))
-            elif "dos" in name and "ddos" not in name:
-                categories["dos"].append(str(pcap))
-            elif "mirai" in name:
-                categories["mirai"].append(str(pcap))
-            elif "recon" in name or "scan" in name:
-                categories["recon"].append(str(pcap))
-            elif "spoof" in name or "mitm" in name:
-                categories["spoofing"].append(str(pcap))
-            else:
-                categories["other"].append(str(pcap))
+        # Se o diretório-pai não deu match útil, tenta pelo nome do arquivo
+        if category == "other":
+            category = classify_pcap(pcap.stem)
+
+        categories[category].append(str(pcap))
 
     return dict(categories)
 
