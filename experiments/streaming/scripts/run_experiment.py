@@ -218,6 +218,40 @@ def start_flow_consumer(experiment_id: str, verbose: bool = False) -> subprocess
     return process
 
 
+def load_attack_ips(attack_ips_path: Optional[str] = None) -> Optional[set]:
+    """
+    Carrega conjunto de IPs de atacantes do arquivo attack_ips.json.
+
+    Busca em ordem:
+      1. Caminho explícito (--attack-ips-file)
+      2. data/attack_ips.json (relativo ao repo root)
+
+    Args:
+        attack_ips_path: Caminho explícito (opcional)
+
+    Returns:
+        Set de IPs ou None se arquivo não encontrado
+    """
+    search_paths = []
+
+    if attack_ips_path:
+        search_paths.append(Path(attack_ips_path))
+
+    # Padrão: data/attack_ips.json relativo ao repo root
+    repo_root = Path(__file__).parent.parent.parent.parent
+    search_paths.append(repo_root / "data" / "attack_ips.json")
+
+    for path in search_paths:
+        if path.exists():
+            with open(path) as f:
+                data = json.load(f)
+            attack_ips = set(data.get("attack_ips", []))
+            logger.info(f"Carregados {len(attack_ips)} IPs de atacantes de: {path}")
+            return attack_ips
+
+    return None
+
+
 def run_detector(
     experiment_id: str,
     bootstrap_servers: str = "localhost:9092",
@@ -230,17 +264,23 @@ def run_detector(
     verbose: bool = False,
     benign_packets_sent: int = 0,
     attack_packets_sent: int = 0,
+    ground_truth_mode: str = "phase",
+    attack_ips: Optional[set] = None,
 ) -> Dict[str, Any]:
     """
-    Executa StreamingDetector e avalia resultados por fase.
+    Executa StreamingDetector e avalia resultados.
 
     O detector é cego a labels (puramente não-supervisionado).
-    A avaliação é feita externamente aqui, com base na fase de injeção:
-        - Fase warm-up (benign): y_true = False
-        - Fase ataque: y_true = True
+    A avaliação é feita externamente aqui, usando um de dois modos:
 
-    A divisão entre fases é estimada pela proporção de pacotes injetados
-    de cada PCAP.
+    Modo "phase" (legado):
+        Divisão por posição ordinal baseada na proporção de pacotes injetados.
+        Limitações documentadas em methodology.md seção 4.4 (L1-L4).
+
+    Modo "ip" (recomendado):
+        Rotulação por IP de origem — usa mapeamento de IPs de atacantes
+        extraído dos PCAPs (data/attack_ips.json).
+        Elimina limitações L1-L4 do modo phase.
 
     Args:
         experiment_id: ID único do experimento
@@ -253,7 +293,9 @@ def run_detector(
         max_flows: Limite de flows (None = todos disponíveis)
         verbose: Modo verboso
         benign_packets_sent: Pacotes injetados da fase benign
-        attack_packets_sent: Pacotes injetados da fase ataque (0 = experimento benign-only)
+        attack_packets_sent: Pacotes injetados da fase ataque (0 = benign-only)
+        ground_truth_mode: "phase" (legado) ou "ip" (por IP de atacante)
+        attack_ips: Set de IPs de atacantes (obrigatório se ground_truth_mode="ip")
 
     Returns:
         Estatísticas completas (detector + métricas prequential)
@@ -290,31 +332,66 @@ def run_detector(
         detector.close()
 
     # -----------------------------------------------------------------------
-    # Avaliação por fase — fora do detector
-    # O orquestrador sabe em qual fase cada flow foi gerado.
-    # Divisão estimada pela proporção de pacotes de cada PCAP.
+    # Avaliação — fora do detector (ground truth aplicado externamente)
     # -----------------------------------------------------------------------
     detection_results = stats.pop("detection_results", [])
     metrics = PrequentialMetrics(window_size=window_size, alpha=alpha)
 
-    total_packets = benign_packets_sent + attack_packets_sent
-    if total_packets > 0 and attack_packets_sent > 0:
-        benign_ratio = benign_packets_sent / total_packets
-        benign_flow_count = int(len(detection_results) * benign_ratio)
-        logger.info(
-            f"Divisão de fases: {benign_flow_count} flows benign / "
-            f"{len(detection_results) - benign_flow_count} flows ataque"
-            f" (proporção: {benign_ratio:.2%} benign)"
-        )
-    else:
-        # Experimento benign-only: todos os flows têm y_true=False
-        benign_flow_count = len(detection_results)
+    if ground_truth_mode == "ip" and attack_ips:
+        # ── Modo IP: rotulação por IP de origem/destino ──
+        # Cada flow é rotulado individualmente com base nos IPs de atacantes
+        # conhecidos do CICIoT2023 (extraídos por extract_attack_ips.py).
+        logger.info(f"Ground truth: modo IP ({len(attack_ips)} IPs de atacantes)")
 
-    for i, result in enumerate(detection_results):
-        is_anomaly = result["is_anomaly"]
-        timestamp = result["first_packet_time"]
-        y_true = i >= benign_flow_count  # False=benign, True=ataque
-        metrics.update(is_anomaly, y_true, timestamp)
+        attack_flow_count = 0
+        for result in detection_results:
+            is_anomaly = result["is_anomaly"]
+            timestamp = result["first_packet_time"]
+            src_ip = result.get("src_ip")
+            dst_ip = result.get("dst_ip")
+            y_true = (src_ip in attack_ips or dst_ip in attack_ips)
+            if y_true:
+                attack_flow_count += 1
+            metrics.update(is_anomaly, y_true, timestamp)
+
+        logger.info(
+            f"Divisão por IP: {len(detection_results) - attack_flow_count} flows benign / "
+            f"{attack_flow_count} flows ataque"
+        )
+        stats["ground_truth_mode"] = "ip"
+        stats["attack_flows_by_ip"] = attack_flow_count
+        stats["benign_flows_by_ip"] = len(detection_results) - attack_flow_count
+
+    else:
+        # ── Modo Phase (legado): rotulação por posição ordinal ──
+        # Limitações L1-L4 documentadas em methodology.md seção 4.4.
+        if ground_truth_mode == "ip":
+            logger.warning("⚠️ Modo IP solicitado mas attack_ips não disponível — "
+                          "usando fallback para modo phase")
+
+        total_packets = benign_packets_sent + attack_packets_sent
+        if total_packets > 0 and attack_packets_sent > 0:
+            benign_ratio = benign_packets_sent / total_packets
+            benign_flow_count = int(len(detection_results) * benign_ratio)
+            logger.info(
+                f"Ground truth: modo phase (legado)"
+            )
+            logger.info(
+                f"Divisão de fases: {benign_flow_count} flows benign / "
+                f"{len(detection_results) - benign_flow_count} flows ataque"
+                f" (proporção: {benign_ratio:.2%} benign)"
+            )
+        else:
+            # Experimento benign-only: todos os flows têm y_true=False
+            benign_flow_count = len(detection_results)
+
+        for i, result in enumerate(detection_results):
+            is_anomaly = result["is_anomaly"]
+            timestamp = result["first_packet_time"]
+            y_true = i >= benign_flow_count  # False=benign, True=ataque
+            metrics.update(is_anomaly, y_true, timestamp)
+
+        stats["ground_truth_mode"] = "phase"
 
     # Adiciona métricas ao stats
     global_metrics = metrics.get_global_metrics()
@@ -541,6 +618,21 @@ def main():
         help="Pular purga de tópicos (DEBUG: permite reusar dados)"
     )
 
+    # Ground truth
+    parser.add_argument(
+        "--ground-truth",
+        choices=["phase", "ip"],
+        default="ip",
+        help="Modo de ground truth: 'phase' (legado, por posição ordinal) "
+             "ou 'ip' (por IP de atacante, recomendado). Default: ip. "
+             "Se 'ip' mas attack_ips.json não existir, faz fallback para 'phase'."
+    )
+    parser.add_argument(
+        "--attack-ips-file",
+        default=None,
+        help="Caminho para attack_ips.json (default: data/attack_ips.json)"
+    )
+
     args = parser.parse_args()
 
     # Sanitize attack-pcap: tratar "none" como None
@@ -567,6 +659,14 @@ def main():
         logger.warning("⚠️ Purga de tópicos DESABILITADA (--skip-purge)")
         logger.warning("⚠️ Experimento pode ter interferência de dados antigos")
 
+    # Carregar IPs de atacantes se modo IP
+    attack_ips = None
+    if args.ground_truth == "ip":
+        attack_ips = load_attack_ips(args.attack_ips_file)
+        if attack_ips is None:
+            logger.warning("⚠️ attack_ips.json não encontrado — fallback para modo 'phase'")
+            logger.warning("   Execute extract_attack_ips.py primeiro para habilitar modo IP")
+
     flow_consumer_process = None
     start_time = time.time()
     system_usage = []
@@ -581,6 +681,8 @@ def main():
         if args.attack_pcap:
             logger.info(f"PCAP Attack: {args.attack_pcap}")
         logger.info(f"Algoritmo: {args.algorithm}")
+        logger.info(f"Ground truth: {args.ground_truth}"
+                    f"{' (com ' + str(len(attack_ips)) + ' IPs)' if attack_ips else ''}")
         logger.info(f"Output: {args.output}")
         logger.info("=" * 60)
 
@@ -647,7 +749,7 @@ def main():
         except TimeoutError as e:
             logger.warning(f"⚠️ {e} — prosseguindo mesmo assim")
 
-        # ETAPA 3: Executar detector (sem ground truth — avaliação por fase)
+        # ETAPA 3: Executar detector + avaliação por ground truth
         results = run_detector(
             experiment_id=experiment_id,
             bootstrap_servers=args.bootstrap_servers,
@@ -660,6 +762,8 @@ def main():
             verbose=args.verbose,
             benign_packets_sent=benign_packets,
             attack_packets_sent=attack_packets,
+            ground_truth_mode=args.ground_truth,
+            attack_ips=attack_ips,
         )
 
         # ETAPA 4: Coletar snapshots de clusters (simplificado)

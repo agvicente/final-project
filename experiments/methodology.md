@@ -284,6 +284,113 @@ mergecap -w combined.pcap benign.pcap ddos.pcap mirai.pcap
 
 ---
 
+## 4.4 Limitações do Ground Truth por Fase
+
+### Abordagem Atual
+
+O detector MicroTEDAclus é **puramente não-supervisionado** — não recebe labels durante execução. O ground truth é aplicado **externamente pelo orquestrador** (`run_experiment.py`) após a detecção, usando a estratégia de **rotulação por fase de injeção**:
+
+```
+Injeção sequencial:
+  [BenignTraffic.pcap]  →  50k packets  → Kafka (tópico packets)
+  (pausa 2s)
+  [Attack.pcap]         → 100k packets  → Kafka (tópico packets)
+
+FlowConsumer agrega packets em flows (timeout 60s event-time)
+Detector consome flows do tópico "flows" (auto_offset_reset=earliest)
+
+Ground truth atribuído por posição ordinal:
+  benign_ratio = benign_packets / total_packets
+  benign_flow_count = total_flows × benign_ratio
+  flow[0..N-1]    → y_true = False  (benigno)
+  flow[N..fim]    → y_true = True   (ataque)
+```
+
+Código relevante (`run_experiment.py:300-316`):
+```python
+benign_ratio = benign_packets_sent / total_packets
+benign_flow_count = int(len(detection_results) * benign_ratio)
+for i, result in enumerate(detection_results):
+    y_true = i >= benign_flow_count  # False=benign, True=ataque
+```
+
+### Limitações Identificadas
+
+#### L1: Não-linearidade packets → flows
+
+A proporção de packets **não corresponde** linearmente à proporção de flows. Exemplo: 50k packets benignos podem gerar 3.000 flows (muitos packets por flow — conexões longas), enquanto 100k packets de ataque podem gerar 5.000 flows (poucos packets por flow — conexões curtas). A divisão `benign_ratio` assume linearidade, introduzindo erro na fronteira.
+
+**Impacto estimado:** Moderado. Desloca a fronteira benign/ataque em até centenas de flows, afetando primariamente flows próximos à transição de fase.
+
+#### L2: Flows de fronteira (boundary flows)
+
+O FlowConsumer usa timeout de **60 segundos em event-time** para finalizar flows. Um flow que inicia durante a fase benigna pode conter packets da fase de ataque (e vice-versa). Esses "boundary flows" recebem label incorreto independente do método de divisão.
+
+```
+Tempo de injeção:  ──── benign ────┊──── ataque ────
+                                   ↑
+Flow com timeout 60s:     [═══════════════]
+                          ↑ inicia benigno, mas inclui
+                            packets de ataque
+```
+
+**Impacto estimado:** Baixo. Afeta apenas flows ativos no momento da transição (~dezenas de flows, <1% do total).
+
+#### L3: Reordenação no Kafka
+
+O FlowConsumer emite flows quando seu timeout expira, **não na ordem de injeção dos packets**. Flows benignos com timeout longo podem ser emitidos após flows de ataque com timeout curto, criando intercalação na ordem de consumo do detector.
+
+**Impacto estimado:** Moderado a alto. Se flows benignos são emitidos tardiamente, eles recebem label de ataque (e vice-versa). A magnitude depende da distribuição de durações de flow no dataset.
+
+#### L4: Granularidade de label
+
+Todos os flows de uma fase recebem o **mesmo label**. Não há distinção entre:
+- Flows de ataque que realmente contêm tráfego malicioso
+- Flows benignos que por acaso foram criados durante a fase de ataque (ex: tráfego de fundo IoT que continua durante o ataque)
+
+O dataset CICIoT2023 contém **tráfego misto** nos PCAPs de ataque — os dispositivos IoT continuam gerando tráfego benigno durante os ataques. A rotulação por fase classifica **todo** esse tráfego como ataque.
+
+**Impacto estimado:** Alto. Infla artificialmente o número de FN (flows benignos na fase de ataque que o detector corretamente identifica como normais, mas que são contados como "ataques não detectados"). Isso **subestima o Recall real** do detector.
+
+### Quantificação do Impacto nas Métricas
+
+| Limitação | Efeito no Recall | Efeito na Precision | Efeito no FPR |
+|-----------|-------------------|---------------------|----------------|
+| L1 (não-linearidade) | ± (desloca fronteira) | ± (desloca fronteira) | ± |
+| L2 (boundary flows) | Negligível (<1%) | Negligível | Negligível |
+| L3 (reordenação Kafka) | ↓ subestima | ↓ subestima | ↑ superestima |
+| L4 (granularidade) | ↓ **subestima significativamente** | ↑ superestima | Sem efeito |
+
+**Conclusão:** As limitações L3 e L4 tendem a **subestimar o Recall** e **superestimar o FPR**. Contudo, com Recall observado de ~3-4% e alvo de ≥80%, mesmo corrigindo essas limitações é improvável que o Recall atinja valores aceitáveis. O problema de representação (features indistinguíveis) permanece como causa raiz.
+
+### Alternativa: Ground Truth por IP (Solução S3)
+
+Uma abordagem mais precisa seria rotular flows pelo **IP de origem/destino**, usando os IPs conhecidos dos atacantes no CICIoT2023:
+
+```python
+# Pseudocódigo — ground truth por IP
+ATTACK_IPS = {"192.168.1.100", "192.168.1.101", ...}  # IPs do CICIoT2023
+
+for flow in detection_results:
+    y_true = (flow["src_ip"] in ATTACK_IPS or
+              flow["dst_ip"] in ATTACK_IPS)
+```
+
+**Vantagens:**
+- Elimina L1, L2, L3 e L4 simultaneamente
+- Label granular por flow individual
+- Independe da ordem de emissão do FlowConsumer
+
+**Pré-requisitos:**
+- Mapear IPs de atacantes no dataset CICIoT2023 (documentação do dataset)
+- Flows precisam preservar IPs de origem/destino (atualmente disponível)
+
+**Status:** Implementado. O script `extract_attack_ips.py` gera `data/attack_ips.json`
+e o `run_experiment.py` aceita `--ground-truth ip` (default) com fallback automático
+para `--ground-truth phase` se o arquivo de IPs não existir.
+
+---
+
 ## 5. Métricas de Avaliação
 
 ### 5.1 Métricas de Detecção

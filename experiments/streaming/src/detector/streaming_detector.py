@@ -424,6 +424,8 @@ class StreamingDetector:
         self._detection_results.append({
             "is_anomaly": result.is_anomaly,
             "first_packet_time": flow.get("first_packet_time", time.time()),
+            "src_ip": flow.get("src_ip"),
+            "dst_ip": flow.get("dst_ip"),
         })
 
         # Log verbose

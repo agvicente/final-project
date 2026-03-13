@@ -51,13 +51,16 @@ cd docker && docker-compose up -d  # Kafka + Zookeeper + Kafka-UI (localhost:808
 # Testes
 python -m pytest tests/ -v
 
-# Rodar experimento
+# Extrair IPs de atacantes dos PCAPs (executar 1x na máquina Linux)
+python3 scripts/extract_attack_ips.py --pcap-dir ../../data/pcaps/
+
+# Rodar experimento (ground truth por IP = default, fallback para phase)
 python scripts/run_experiment.py \
   --pcap ../../data/pcaps/Benign_Final/BenignTraffic.pcap \
   --attack-pcap ../../data/pcaps/DDoS-ICMP_Flood/DDoS-ICMP_Flood.pcap \
   --max-packets 50000 --max-flows 10000 \
   --algorithm micro_teda \
-  --output ../../experiments/results/campaign-01/
+  --output ../../experiments/results/campaign-02/A2-ddos-r0_0.10/
 
 # Comparar resultados
 python scripts/compare_experiments.py ../../experiments/results/campaign-01/

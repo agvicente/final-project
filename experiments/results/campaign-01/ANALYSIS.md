@@ -237,15 +237,31 @@ entre fases:
 
 ```python
 benign_flow_count = int(total_flows * benign_packets / total_packets)
+for i, result in enumerate(detection_results):
+    y_true = i >= benign_flow_count  # False=benign, True=ataque
 ```
 
-Problemas:
-1. **Nao-linearidade packets→flows**: 100k packets benignos e 100k de ataque
-   podem gerar numeros muito diferentes de flows
-2. **Flows de fronteira**: um flow que comeca na fase benigna pode incluir
-   packets da fase de ataque (timeout de 60s em event-time)
-3. **Mistura no Kafka**: o FlowConsumer emite flows baseado em timeout,
-   nao em ordem de injecao — flows benignos e de ataque podem se intercalar
+Foram identificadas 4 limitacoes nesta abordagem (documentacao completa
+em `experiments/methodology.md` secao 4.4):
+
+1. **L1 — Nao-linearidade packets→flows**: A proporcao de packets nao
+   corresponde linearmente a proporcao de flows. 50k packets benignos
+   podem gerar um numero desproporcional de flows vs 100k de ataque.
+2. **L2 — Boundary flows**: Flows com timeout de 60s podem cruzar a
+   fronteira entre fases, contendo packets de ambas.
+3. **L3 — Reordenacao no Kafka**: O FlowConsumer emite flows por timeout,
+   nao por ordem de injecao — flows benignos e de ataque intercalam.
+4. **L4 — Granularidade de label** (mais severa): Todos os flows da fase
+   de ataque recebem y_true=True, inclusive trafego benigno de fundo que
+   continua durante o ataque. Isso **subestima o Recall** — flows benignos
+   corretamente classificados como normais sao contados como FN.
+
+**Impacto combinado:** L3 e L4 tendem a subestimar Recall e superestimar FPR.
+Contudo, com Recall de ~3-4% vs alvo de >=80%, mesmo corrigindo essas
+limitacoes o gap permanece. A causa raiz 1 (representacao) e dominante.
+
+**Solucao proposta (S3):** Ground truth por IP do atacante (CICIoT2023
+documenta IPs). Elimina L1-L4 simultaneamente. Nao implementado.
 
 #### Causa raiz 3: Deteccao por anomalia vs. deteccao por assinatura
 
