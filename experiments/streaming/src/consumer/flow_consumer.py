@@ -317,11 +317,17 @@ class FlowData:
             "bwd_packet_size_mean": safe_mean(self.bwd_packet_sizes),
             "bwd_packet_size_std": safe_std(self.bwd_packet_sizes),
 
-            # Inter-arrival time
+            # Inter-arrival time (global)
             "iat_mean": safe_mean(self.inter_arrival_times),
             "iat_std": safe_std(self.inter_arrival_times),
             "iat_min": safe_min(self.inter_arrival_times),
             "iat_max": safe_max(self.inter_arrival_times),
+
+            # Inter-arrival time (direcional)
+            "fwd_iat_mean": safe_mean(self.fwd_inter_arrival_times),
+            "fwd_iat_std": safe_std(self.fwd_inter_arrival_times),
+            "bwd_iat_mean": safe_mean(self.bwd_inter_arrival_times),
+            "bwd_iat_std": safe_std(self.bwd_inter_arrival_times),
 
             # TCP Flags
             "syn_count": self.syn_count,

@@ -222,6 +222,64 @@ Avaliar se implementar no orquestrador ou como scripts separados.
 
 ---
 
+---
+
+## Campaign-02: 3 Melhorias Incrementais
+
+**Criado:** 2026-03-16
+**Motivação:** Campaign-01 revelou Recall ~3-4% — flows de ataque indistinguíveis no espaço de 17 features. Problema de representação, não de algoritmo.
+
+### Estratégia
+
+3 melhorias incrementais, cada uma mudando **exatamente uma variável**:
+
+| Variável | Campaign-01 | S1 | S2 | S3 |
+|----------|-------------|-----|-----|-----|
+| Ground truth | Phase | **IP** | IP | IP |
+| Features | 17 (v1) | 17 (v1) | **25 (v2)** | 25 (v2) |
+| Granularidade | Per-flow | Per-flow | Per-flow | **Per-window** |
+
+### Step 1: Ground Truth por IP
+
+Re-rodar A1+A2 com ground truth por IP para confirmar se Recall ~3-4% é real.
+
+```
+campaign-02/S1-A1-benign-r0_0.10/
+campaign-02/S1-A2-ddos-{icmp,syn,tcp}-r0_0.10/
+campaign-02/S1-A2-mirai-r0_0.10/
+campaign-02/S1-A2-recon-r0_0.10/
+```
+
+### Step 2: Expansão de Features (v2=25, v3=32)
+
+**v2 (25 features = v1 + 8 curadas):** flow_duration, packet_size_min/max, fwd/bwd_packet_size_mean, iat_min/max, psh_count
+**v3 (32 features = v2 + 7):** fwd/bwd_packet_size_std, urg_count, fwd/bwd_iat_mean/std
+
+```
+campaign-02/S2-A1-benign-v2-r0_{0.05..0.30}/   # calibração
+campaign-02/S2-A2-{attack}-v2-r0_<best>/         # 5 ataques
+```
+
+### Step 3: Detecção por Janela Temporal
+
+Mudar unidade de detecção de flow individual para comportamento agregado por IP em janela temporal (WindowAggregator).
+
+```
+campaign-02/S3-A1-benign-window-{5s,10s,30s}/
+campaign-02/S3-A2-{attack}-window-10s/
+```
+
+### Novos argumentos CLI (run_experiment.py)
+
+| Argumento | Default | Descrição |
+|-----------|---------|-----------|
+| `--features {v1,v2,v3}` | v2 | Conjunto de features |
+| `--granularity {flow,window}` | flow | Granularidade de detecção |
+| `--window-seconds` | 10.0 | Tamanho da janela (modo window) |
+| `--min-flows-per-window` | 5 | Mínimo de flows por IP/janela |
+
+---
+
 ## Notas
 
 - Resultados anteriores (`streaming/results/week5/`) sao descartaveis

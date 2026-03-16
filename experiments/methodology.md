@@ -534,6 +534,53 @@ Documentar para cada experimento:
 
 ---
 
+---
+
+## 8. Detecção por Janela Temporal (Campaign-02, Step 3)
+
+### 8.1 Motivação
+
+Campaign-01 revelou que flows individuais de ataque são estatisticamente indistinguíveis de flows benignos no espaço de features. Um flow DDoS individual pode ter as mesmas características que um heartbeat IoT. Porém, um IP atacante gera **centenas de flows similares em poucos segundos** — esse padrão agregado é anômalo.
+
+### 8.2 Arquitetura
+
+```
+flows → WindowAggregator → features_por_IP_por_janela → MicroTEDAclus → is_anomaly?
+```
+
+O `WindowAggregator` acumula flows por `src_ip` em janelas temporais fixas (default: 10 segundos). Quando uma janela fecha, emite um vetor de 12 features agregadas para cada IP que atingiu `min_flows_per_window` (default: 5).
+
+### 8.3 Features Agregadas (12)
+
+| Feature | Sinal de ataque |
+|---------|-----------------|
+| `flow_count` | DDoS: muito alto |
+| `total_packets` | DDoS: muito alto |
+| `total_bytes` | DDoS: muito alto |
+| `unique_dst_ips` | Recon: alto |
+| `unique_dst_ports` | PortScan: alto |
+| `mean_flow_duration` | DDoS: muito curto |
+| `mean_packets_per_flow` | Característico por tipo |
+| `mean_packet_size` | DDoS: uniforme, pequeno |
+| `std_packet_size` | DDoS: muito baixo |
+| `fwd_bwd_ratio_mean` | DDoS: fortemente unidirecional |
+| `syn_ratio` | SYN flood: muito alto |
+| `mean_iat` | DDoS: muito baixo |
+
+### 8.4 Ground Truth em Modo Window
+
+Em modo window, a unidade de avaliação muda de "flow" para "IP/janela". O ground truth é: `y_true = src_ip in attack_ips`. Isso é semanticamente correto pois estamos classificando o **comportamento do IP**, não flows individuais.
+
+### 8.5 Parâmetros
+
+| Parâmetro | CLI | Default | Descrição |
+|-----------|-----|---------|-----------|
+| Tamanho da janela | `--window-seconds` | 10.0 | Segundos por janela |
+| Min flows | `--min-flows-per-window` | 5 | Mínimo de flows para emitir vetor |
+| Granularidade | `--granularity` | flow | `flow` ou `window` |
+
+---
+
 **Este documento serve como guia para conduzir experimentos válidos e reprodutíveis com o sistema IoT IDS.**
 
 *Atualizar conforme experimentos forem realizados e novas práticas identificadas.*

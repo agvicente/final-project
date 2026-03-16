@@ -1,8 +1,8 @@
 # Arquitetura Atual - IoT IDS Streaming
 
 **Criado:** 2026-01-20
-**Última Atualização:** 2026-03-10
-**Versão:** 0.3.0
+**Última Atualização:** 2026-03-16
+**Versão:** 0.4.0
 
 > **Propósito:** Este documento descreve O QUE ESTÁ IMPLEMENTADO AGORA. Para a visão de alto nível (onde queremos chegar), veja [TARGET.md](./TARGET.md).
 
@@ -17,6 +17,7 @@
 | 0.1.0 | 2026-01-20 | Arquitetura inicial: PCAPProducer, FlowConsumer, TEDADetector, StreamingDetector |
 | 0.2.0 | 2026-01-29 | MicroTEDAclus implementado, StreamingDetector v0.2 com seleção de algoritmo |
 | 0.3.0 | 2026-03-10 | Sincronização FlowConsumer-Detector, métricas prequential, orquestrador de experimentos v2 |
+| 0.4.0 | 2026-03-16 | Feature sets v1/v2/v3, WindowAggregator (detecção por janela temporal), DetectionGranularity enum |
 
 ---
 
@@ -176,7 +177,8 @@ PCAP ──► PCAPProducer ──► [packets] ──► FlowConsumer ──►
 | Componente | Arquivo | Entrada (Topic) | Saída (Topic) | Descrição |
 |------------|---------|-----------------|---------------|-----------|
 | **FlowConsumer** | `consumer/flow_consumer.py` | `packets` | `flows` | Agrega pacotes em flows (28 features ML + 8 metadata) |
-| **StreamingDetector** | `detector/streaming_detector.py` | `flows` | `alerts` | Detecta anomalias usando TEDA ou MicroTEDAclus |
+| **StreamingDetector** | `detector/streaming_detector.py` | `flows` | `alerts` | Detecta anomalias usando TEDA ou MicroTEDAclus (per-flow ou per-window) |
+| **WindowAggregator** | `detector/window_aggregator.py` | flows (interno) | feature vectors | Agrega flows por IP em janelas temporais (12 features agregadas) |
 
 ### 3.3 Algoritmos de Detecção
 
@@ -393,7 +395,7 @@ python -m src.detector.streaming_detector --max-flows 1000
 - [x] StreamingDetector v0.2 - Seleção de algoritmo
 - [x] 67 testes unitários
 
-### Implementado (v0.3.0 - Semana 8) ✅ ATUAL
+### Implementado (v0.3.0 - Semana 8)
 - [x] Sincronização FlowConsumer-Detector (`wait_for_flow_consumer()`)
 - [x] Métricas prequential (`src/metrics/prequential_metrics.py`)
 - [x] Orquestrador de experimentos com pipeline sincronizado
@@ -401,7 +403,15 @@ python -m src.detector.streaming_detector --max-flows 1000
 - [x] 5 artefatos estruturados por experimento
 - [x] 98 testes unitários
 
-### Planejado (v0.4.0)
+### Implementado (v0.4.0 - Semana 10) ✅ ATUAL
+- [x] Feature sets v1 (17), v2 (25), v3 (32) com seleção via `--features`
+- [x] WindowAggregator: detecção por janela temporal (12 features agregadas por IP)
+- [x] DetectionGranularity enum (FLOW | WINDOW)
+- [x] FlowConsumer: features IAT direcionais (fwd/bwd_iat_mean/std)
+- [x] extract_attack_ips.py: fix double-read, --pcap-files, progress logging
+- [x] 110 testes unitários
+
+### Planejado (v0.5.0)
 - [ ] Suporte a multi-fase (`--drift-pcap`) para cenários de drift
 - [ ] Suporte a holdout (`--holdout-pcap`) para cenários zero-day
 - [ ] Merge/split de clusters

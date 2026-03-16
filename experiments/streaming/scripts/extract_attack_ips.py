@@ -63,6 +63,7 @@ def extract_ips_from_pcap(pcap_path: str, max_packets: int = None) -> Set[str]:
     """
     ips = set()
     count = 0
+    log_interval = 100000
 
     with open(pcap_path, 'rb') as f:
         try:
@@ -76,6 +77,9 @@ def extract_ips_from_pcap(pcap_path: str, max_packets: int = None) -> Set[str]:
             if max_packets and count >= max_packets:
                 break
             count += 1
+
+            if count % log_interval == 0:
+                logger.info(f"  {Path(pcap_path).name}: {count/1000:.0f}k packets, {len(ips)} IPs...")
 
             try:
                 eth = dpkt.ethernet.Ethernet(buf)
@@ -160,8 +164,13 @@ def main():
     )
     parser.add_argument(
         "--pcap-dir",
-        required=True,
+        default=None,
         help="Diretório raiz dos PCAPs (ex: ../../data/pcaps/)"
+    )
+    parser.add_argument(
+        "--pcap-files",
+        nargs="+",
+        help="PCAPs específicos (auto-classifica por nome do dir pai). Ignora --pcap-dir."
     )
     parser.add_argument(
         "--output",
@@ -171,14 +180,13 @@ def main():
     parser.add_argument(
         "--max-packets",
         type=int,
-        default=None,
-        help="Limite de pacotes por PCAP (None = todos, use para teste rápido)"
+        default=500000,
+        help="Limite de pacotes por PCAP (default: 500000)"
     )
     args = parser.parse_args()
 
-    pcap_dir = Path(args.pcap_dir)
-    if not pcap_dir.exists():
-        logger.error(f"Diretório não encontrado: {pcap_dir}")
+    if not args.pcap_files and not args.pcap_dir:
+        logger.error("Forneça --pcap-dir ou --pcap-files")
         sys.exit(1)
 
     # 1. Encontrar PCAPs por categoria
@@ -186,7 +194,26 @@ def main():
     logger.info("PASSO 1: Descobrindo PCAPs")
     logger.info("=" * 60)
 
-    categories = find_pcaps(pcap_dir)
+    if args.pcap_files:
+        # Modo --pcap-files: classifica cada arquivo pelo nome do diretório pai
+        categories = defaultdict(list)
+        for pcap_path in args.pcap_files:
+            p = Path(pcap_path)
+            if not p.exists():
+                logger.warning(f"PCAP não encontrado: {p}")
+                continue
+            parent_name = p.parent.name
+            category = classify_pcap(parent_name)
+            if category == "other":
+                category = classify_pcap(p.stem)
+            categories[category].append(str(p))
+        categories = dict(categories)
+    else:
+        pcap_dir = Path(args.pcap_dir)
+        if not pcap_dir.exists():
+            logger.error(f"Diretório não encontrado: {pcap_dir}")
+            sys.exit(1)
+        categories = find_pcaps(pcap_dir)
     if "benign" not in categories:
         logger.error("Nenhum PCAP benigno encontrado! Necessário para baseline de IPs.")
         sys.exit(1)
@@ -215,6 +242,8 @@ def main():
     attack_ips_by_category = {}
     all_attack_ips = set()
 
+    shared_ips = set()
+
     for category, pcaps in sorted(attack_categories.items()):
         logger.info(f"\nCategoria: {category}")
         category_ips = set()
@@ -227,15 +256,11 @@ def main():
         attack_ips_by_category[category] = sorted(exclusive)
         all_attack_ips.update(exclusive)
 
+        # IPs compartilhados (calculado aqui, sem re-leitura)
+        shared_ips.update(category_ips & benign_ips)
+
         logger.info(f"  IPs totais: {len(category_ips)}, "
                     f"exclusivos (não-benignos): {len(exclusive)}")
-
-    # 4. IPs compartilhados entre benign e ataque (tráfego de fundo IoT)
-    shared_ips = set()
-    for category, pcaps in attack_categories.items():
-        for pcap in pcaps:
-            ips = extract_ips_from_pcap(pcap, max_packets=args.max_packets)
-            shared_ips.update(ips & benign_ips)
 
     # 5. Montar resultado
     logger.info("=" * 60)
@@ -247,7 +272,7 @@ def main():
             "description": "IPs de atacantes extraídos dos PCAPs do CICIoT2023. "
                            "Gerado por extract_attack_ips.py.",
             "method": "IPs presentes em PCAPs de ataque mas ausentes no PCAP benigno",
-            "pcap_dir": str(pcap_dir.resolve()),
+            "pcap_dir": str(pcap_dir.resolve()) if args.pcap_dir else "multiple files",
             "max_packets_per_pcap": args.max_packets,
             "benign_pcaps": categories["benign"],
             "total_benign_ips": len(benign_ips),

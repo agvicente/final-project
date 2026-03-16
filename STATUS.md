@@ -2,46 +2,40 @@
 <!-- STATUS.md é um snapshot. Substituir seções dinâmicas a cada sessão. -->
 <!-- Histórico em docs/progress/ (gerado automaticamente) -->
 
-**Atualizado:** 2026-03-12 | **Branch:** main | **Prazo defesa:** ~maio 2026 (~7 semanas)
+**Atualizado:** 2026-03-16 | **Branch:** main | **Prazo defesa:** ~maio 2026 (~7 semanas)
 
 ---
 
 ## Agora
 
-**S2 — Campanha 01 completa (17 experimentos). Detector não detecta ataques.**
+**S3 — Campaign-02 implementada: 3 melhorias incrementais para resolver Recall ~3-4%.**
 
-Sessões 10-12/03 (máquina Linux — execução de experimentos):
-- ✅ Bug crítico corrigido: race condition FlowConsumer-Detector (500 → 7500 flows)
-- ✅ A1 completo (4 runs): FPR ~3.5% — APROVADO
-- ❌ A2 completo (12 runs, 5 tipos de ataque): Recall ~3-4% — REPROVADO
-  - DDoS: ICMP (4), SYN (2), TCP (2) — todos ~3.5-4.5% Recall
-  - Não-volumétricos: Mirai (2) ~2.7%, Recon-PortScan (2) ~4.0%
-- ✅ A3 completo: MicroTEDAclus 26x melhor que TEDA
-- ✅ Resultados commitados e análise completa
+Sessão 16/03 — implementação de código (pronto para rodar na Linux):
+- ✅ Fix `extract_attack_ips.py`: double-read bug, `--pcap-files`, default 500k, progress logging
+- ✅ Feature expansion: v1 (17), v2 (25), v3 (32) feature sets no streaming_detector
+- ✅ FlowConsumer: 4 novas features IAT direcionais (fwd/bwd_iat_mean/std)
+- ✅ WindowAggregator: novo módulo de detecção por janela temporal (12 features agregadas)
+- ✅ Integration: `--features`, `--granularity`, `--window-seconds` no run_experiment.py
+- ✅ 110 testes passando (12 novos para WindowAggregator)
+- ✅ Documentação atualizada: architecture v0.4.0, campaign-plan, methodology
 
-**Diagnóstico:** O MicroTEDAclus detecta outliers estatísticos (~3.5% do tráfego),
-mas NÃO detecta ataques. Flows de ataque são indistinguíveis de flows benignos
-no espaço de 17 features. Problema de **representação**, não de algoritmo.
-
-**Próxima sessão:**
-1. Analisar distribuição de features (histogramas benign vs attack)
-2. Investigar ground truth por IP (labels mais precisos que por fase)
-3. Decidir: expandir features, mudar granularidade de detecção, ou documentar limitação
+**Próxima sessão (máquina Linux):**
+1. Rodar `extract_attack_ips.py --pcap-files` para os 6 PCAPs da campaign-02
+2. Executar Step 1 (6 exps com ground truth IP, features v1) para baseline
+3. Executar Step 2 (calibração r0 com features v2, depois 5 ataques)
 
 ---
 
-## Critérios de Sucesso (Campanha S2)
+## Critérios de Sucesso (Campaign-02)
 
 | Critério | Status |
 |----------|--------|
-| A1: FPR <= 5% (baseline benigno) | ✅ 3.5% |
-| A2-DDoS: Recall >= 80% (ICMP/SYN/TCP) | ❌ ~4% — flows indistinguíveis |
-| A2-Mirai: Recall >= 80% | ❌ 2.7% — mesma limitação |
-| A2-Recon: Recall >= 80% (PortScan) | ❌ 4.0% — mesma limitação |
-| A2: MTTD <= 500 flows | ✅ 6-46s (quando detecta) |
-| A3: TEDA vs MicroTEDAclus | ✅ MicroTEDAclus 26x melhor |
-| r0 ótimo calibrado | ⚠️ Sem impacto significativo em nenhum cenário |
-| Resultados commitados | ✅ 17 experimentos |
+| Step 0: extract_attack_ips.py fixado | ✅ Implementado |
+| Step 1: Ground truth IP confirma Recall | ⬜ Pendente (rodar na Linux) |
+| Step 2: Features v2 melhora Recall | ⬜ Pendente |
+| Step 3: Window detection melhora Recall | ⬜ Pendente |
+| 110 testes passando | ✅ |
+| Código commitado e pronto para Linux | ⬜ Pendente commit |
 
 ---
 

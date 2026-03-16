@@ -64,7 +64,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from producer.pcap_producer import PCAPProducer
 from producer.config import KafkaConfig as ProducerKafkaConfig, ProducerConfig
-from detector.streaming_detector import StreamingDetector, StreamingDetectorConfig, DetectorAlgorithm
+from detector.streaming_detector import (
+    StreamingDetector, StreamingDetectorConfig, DetectorAlgorithm,
+    DetectionGranularity, FEATURE_SETS,
+)
 from metrics.prequential_metrics import PrequentialMetrics
 
 # Kafka imports para pre-flight check
@@ -237,8 +240,9 @@ def load_attack_ips(attack_ips_path: Optional[str] = None) -> Optional[set]:
     if attack_ips_path:
         search_paths.append(Path(attack_ips_path))
 
-    # Padrão: data/attack_ips.json relativo ao repo root
+    # Padrão: data/attack_ips_campaign02.json, depois attack_ips.json
     repo_root = Path(__file__).parent.parent.parent.parent
+    search_paths.append(repo_root / "data" / "attack_ips_campaign02.json")
     search_paths.append(repo_root / "data" / "attack_ips.json")
 
     for path in search_paths:
@@ -266,6 +270,10 @@ def run_detector(
     attack_packets_sent: int = 0,
     ground_truth_mode: str = "phase",
     attack_ips: Optional[set] = None,
+    feature_names: Optional[List[str]] = None,
+    granularity: str = "flow",
+    window_seconds: float = 10.0,
+    min_flows_per_window: int = 5,
 ) -> Dict[str, Any]:
     """
     Executa StreamingDetector e avalia resultados.
@@ -308,6 +316,9 @@ def run_detector(
     algo_enum = (DetectorAlgorithm.TEDA if algorithm == "teda"
                  else DetectorAlgorithm.MICRO_TEDA)
 
+    gran_enum = (DetectionGranularity.WINDOW if granularity == "window"
+                 else DetectionGranularity.FLOW)
+
     config = StreamingDetectorConfig(
         bootstrap_servers=bootstrap_servers,
         topic_flows="flows",
@@ -320,6 +331,10 @@ def run_detector(
         publish_alerts=False,  # Não publica alerts em experimentos
         verbose=verbose,
         log_interval=100,
+        feature_names=feature_names,
+        granularity=gran_enum,
+        window_size_seconds=window_seconds,
+        min_flows_per_window=min_flows_per_window,
     )
 
     # Detector puramente não-supervisionado — sem ground truth
@@ -459,6 +474,11 @@ def save_structured_results(
             "min_samples": config_used.get("min_samples", 10),
             "window_size": config_used.get("window_size", 1000),
             "alpha": config_used.get("alpha", 0.01),
+            "features": config_used.get("features", "v1"),
+            "granularity": config_used.get("granularity", "flow"),
+            "window_seconds": config_used.get("window_seconds", None),
+            "min_flows_per_window": config_used.get("min_flows_per_window", None),
+            "ground_truth": config_used.get("ground_truth", "ip"),
         },
         "pcaps": pcap_paths,
         "execution": {
@@ -558,6 +578,12 @@ def main():
 
     # Detector
     parser.add_argument(
+        "--features",
+        choices=["v1", "v2", "v3"],
+        default="v1",
+        help="Conjunto de features: v1 (17), v2 (25), v3 (32)"
+    )
+    parser.add_argument(
         "--algorithm",
         choices=["teda", "micro_teda"],
         default="micro_teda",
@@ -616,6 +642,26 @@ def main():
         "--skip-purge",
         action="store_true",
         help="Pular purga de tópicos (DEBUG: permite reusar dados)"
+    )
+
+    # Granularidade de detecção
+    parser.add_argument(
+        "--granularity",
+        choices=["flow", "window"],
+        default="flow",
+        help="Granularidade: 'flow' (per-flow) ou 'window' (agregado por IP/janela temporal)"
+    )
+    parser.add_argument(
+        "--window-seconds",
+        type=float,
+        default=10.0,
+        help="Tamanho da janela temporal em segundos (modo window)"
+    )
+    parser.add_argument(
+        "--min-flows-per-window",
+        type=int,
+        default=5,
+        help="Mínimo de flows por janela para emitir vetor (modo window)"
     )
 
     # Ground truth
@@ -750,6 +796,7 @@ def main():
             logger.warning(f"⚠️ {e} — prosseguindo mesmo assim")
 
         # ETAPA 3: Executar detector + avaliação por ground truth
+        selected_features = FEATURE_SETS.get(args.features)
         results = run_detector(
             experiment_id=experiment_id,
             bootstrap_servers=args.bootstrap_servers,
@@ -764,6 +811,10 @@ def main():
             attack_packets_sent=attack_packets,
             ground_truth_mode=args.ground_truth,
             attack_ips=attack_ips,
+            feature_names=selected_features,
+            granularity=args.granularity,
+            window_seconds=args.window_seconds,
+            min_flows_per_window=args.min_flows_per_window,
         )
 
         # ETAPA 4: Coletar snapshots de clusters (simplificado)

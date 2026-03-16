@@ -1,0 +1,27 @@
+{
+  "git_commit": "2f171b6",
+  "algorithm": "micro_teda",
+  "params": {
+    "r0": 0.15,
+    "min_samples": 10,
+    "window_size": 1000,
+    "alpha": 0.01,
+    "features": "v2",
+    "granularity": "flow",
+    "window_seconds": 10.0,
+    "min_flows_per_window": 5,
+    "ground_truth": "ip"
+  },
+  "pcaps": {
+    "benign": "/home/augusto/final-project/data/pcaps/Benign_Final/BenignTraffic.pcap",
+    "attack": null
+  },
+  "execution": {
+    "start_time": "2026-03-16T02:46:43.571415",
+    "duration_seconds": 23.18377923965454
+  },
+  "volumes": {
+    "total_flows": 3231,
+    "anomalies_detected": 121
+  }
+}

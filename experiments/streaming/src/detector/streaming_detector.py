@@ -48,6 +48,7 @@ from kafka.errors import KafkaError
 
 from .teda import TEDADetector, TEDAResult
 from .micro_teda import MicroTEDAclus, MicroTEDAResult
+from .window_aggregator import WindowAggregator, WINDOW_FEATURES
 
 
 # ============================================================
@@ -58,6 +59,12 @@ class DetectorAlgorithm(Enum):
     """Algoritmo de deteccao a usar."""
     TEDA = "teda"
     MICRO_TEDA = "micro_teda"
+
+
+class DetectionGranularity(Enum):
+    """Granularidade de deteccao."""
+    FLOW = "flow"      # Per-flow: cada flow individual
+    WINDOW = "window"  # Per-window: agregado por IP em janela temporal
 
 # ============================================================
 # LOGGING
@@ -106,6 +113,11 @@ class StreamingDetectorConfig:
     # Features a usar (None = todas numericas)
     feature_names: Optional[List[str]] = None
 
+    # Granularidade de deteccao
+    granularity: DetectionGranularity = DetectionGranularity.FLOW
+    window_size_seconds: float = 10.0
+    min_flows_per_window: int = 5
+
     # Comportamento
     publish_alerts: bool = True
     publish_all_results: bool = False  # Se True, publica normal tambem
@@ -123,7 +135,7 @@ class StreamingDetectorConfig:
 # 2. Relevantes para deteccao de anomalias
 # 3. Disponiveis no Consumer v0.1
 
-DEFAULT_FEATURES = [
+FEATURES_V1 = [
     # Contadores basicos
     "packet_count",
     "total_bytes",
@@ -153,6 +165,37 @@ DEFAULT_FEATURES = [
     # Ratio
     "fwd_bwd_ratio",
 ]
+
+# v2: 25 features = v1 (17) + 8 curadas para melhorar separabilidade ataque/benigno
+FEATURES_V2 = FEATURES_V1 + [
+    "flow_duration",          # Distingue bursts curtos de conexoes longas
+    "packet_size_min",        # Ataques DDoS tem pacotes uniformes (min ≈ max)
+    "packet_size_max",        # Complementa min — revela uniformidade
+    "fwd_packet_size_mean",   # Assimetria direcional forte em ataques
+    "bwd_packet_size_mean",   # DDoS tipicamente sem trafego de retorno
+    "iat_min",                # Floods tem IAT minimo muito baixo
+    "iat_max",                # Combinado com iat_min revela burstiness
+    "psh_count",              # Padrao PSH difere entre tipos de ataque
+]
+
+# v3: 32 features = v2 (25) + 7 adicionais (variabilidade direcional + IAT direcional)
+FEATURES_V3 = FEATURES_V2 + [
+    "fwd_packet_size_std",    # Variabilidade direcional forward
+    "bwd_packet_size_std",    # Variabilidade direcional backward
+    "urg_count",              # Completude de flags
+    "fwd_iat_mean",           # IAT direcional forward
+    "fwd_iat_std",            # Variabilidade IAT forward
+    "bwd_iat_mean",           # IAT direcional backward
+    "bwd_iat_std",            # Variabilidade IAT backward
+]
+
+FEATURE_SETS = {
+    "v1": FEATURES_V1,
+    "v2": FEATURES_V2,
+    "v3": FEATURES_V3,
+}
+
+DEFAULT_FEATURES = FEATURES_V1
 
 
 # ============================================================
@@ -218,7 +261,16 @@ class StreamingDetector:
             )
 
         # Features a usar
-        self._feature_names = self.config.feature_names or DEFAULT_FEATURES
+        self._granularity = self.config.granularity
+        if self._granularity == DetectionGranularity.WINDOW:
+            self._feature_names = WINDOW_FEATURES
+            self._window_aggregator = WindowAggregator(
+                window_size_seconds=self.config.window_size_seconds,
+                min_flows_per_window=self.config.min_flows_per_window,
+            )
+        else:
+            self._feature_names = self.config.feature_names or DEFAULT_FEATURES
+            self._window_aggregator = None
 
         # Estatisticas
         self.flows_processed = 0
@@ -395,19 +447,51 @@ class StreamingDetector:
         else:
             return "critical"
 
+    def _process_window_vectors(
+        self, vectors: list
+    ) -> None:
+        """Processa vetores agregados emitidos pelo WindowAggregator."""
+        for feature_vector, metadata in vectors:
+            if self._algorithm == DetectorAlgorithm.TEDA:
+                result = self._detector.update(feature_vector)
+            else:
+                result = self._detector.process(feature_vector)
+
+            self.flows_processed += 1
+
+            self._detection_results.append({
+                "is_anomaly": result.is_anomaly,
+                "first_packet_time": metadata.get("window_start", time.time()),
+                "src_ip": metadata.get("src_ip"),
+                "dst_ip": None,  # Window mode: ground truth por src_ip
+            })
+
+            if result.is_anomaly:
+                self.anomalies_detected += 1
+
     def _process_flow(
         self, flow: Dict[str, Any]
     ) -> Optional[Union[TEDAResult, MicroTEDAResult]]:
         """
         Processa um flow: extrai features, aplica detector, publica alerta.
 
+        Em modo WINDOW: acumula flows no WindowAggregator; quando janela
+        fecha, processa vetores agregados no detector.
+
         Args:
             flow: Dados do flow do Kafka
 
         Returns:
-            TEDAResult ou MicroTEDAResult, ou None se erro
+            TEDAResult ou MicroTEDAResult, ou None se erro/window mode
         """
-        # Extrai features
+        # Modo WINDOW: acumula no agregador
+        if self._granularity == DetectionGranularity.WINDOW:
+            emitted = self._window_aggregator.add_flow(flow)
+            if emitted:
+                self._process_window_vectors(emitted)
+            return None
+
+        # Modo FLOW (original): extrai features e processa
         features = self._extract_features(flow)
         if features is None:
             return None
@@ -509,6 +593,9 @@ class StreamingDetector:
         else:
             logger.info(f"  MicroTEDAclus: r0={self.config.micro_teda_r0}, min_samples={self.config.micro_teda_min_samples}")
         logger.info(f"  Features: {len(self._feature_names)}")
+        logger.info(f"  Granularidade: {self._granularity.value}")
+        if self._granularity == DetectionGranularity.WINDOW:
+            logger.info(f"  Janela: {self.config.window_size_seconds}s, min_flows={self.config.min_flows_per_window}")
         logger.info("=" * 60)
 
         try:
@@ -555,6 +642,12 @@ class StreamingDetector:
             logger.info("Interrompido pelo usuario (Ctrl+C)")
 
         finally:
+            # Flush da janela final (modo window)
+            if self._window_aggregator is not None:
+                remaining = self._window_aggregator.flush()
+                if remaining:
+                    self._process_window_vectors(remaining)
+
             self.close()
 
         # Estatisticas finais
