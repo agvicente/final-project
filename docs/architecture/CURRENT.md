@@ -18,6 +18,7 @@
 | 0.2.0 | 2026-01-29 | MicroTEDAclus implementado, StreamingDetector v0.2 com seleção de algoritmo |
 | 0.3.0 | 2026-03-10 | Sincronização FlowConsumer-Detector, métricas prequential, orquestrador de experimentos v2 |
 | 0.4.0 | 2026-03-16 | Feature sets v1/v2/v3, WindowAggregator (detecção por janela temporal), DetectionGranularity enum |
+| 0.5.0 | 2026-03-16 | WindowAggregator v2: 7 behavioral features (entropy, ratios, rates), --window-features CLI arg |
 
 ---
 
@@ -178,7 +179,7 @@ PCAP ──► PCAPProducer ──► [packets] ──► FlowConsumer ──►
 |------------|---------|-----------------|---------------|-----------|
 | **FlowConsumer** | `consumer/flow_consumer.py` | `packets` | `flows` | Agrega pacotes em flows (28 features ML + 8 metadata) |
 | **StreamingDetector** | `detector/streaming_detector.py` | `flows` | `alerts` | Detecta anomalias usando TEDA ou MicroTEDAclus (per-flow ou per-window) |
-| **WindowAggregator** | `detector/window_aggregator.py` | flows (interno) | feature vectors | Agrega flows por IP em janelas temporais (12 features agregadas) |
+| **WindowAggregator** | `detector/window_aggregator.py` | flows (interno) | feature vectors | Agrega flows por IP em janelas temporais (v1: 12 basic, v2: 19 behavioral) |
 
 ### 3.3 Algoritmos de Detecção
 
@@ -375,7 +376,8 @@ python -m src.detector.streaming_detector --max-flows 1000
 |---------|--------|--------|
 | `tests/test_teda.py` | 36 | ✅ Passando |
 | `tests/test_micro_teda.py` | 31 | ✅ Passando |
-| **Total** | **67** | **0.31s** |
+| `tests/test_window_aggregator.py` | 25 | ✅ Passando |
+| **Total** | **123** | **~17s** |
 
 ---
 
@@ -403,7 +405,7 @@ python -m src.detector.streaming_detector --max-flows 1000
 - [x] 5 artefatos estruturados por experimento
 - [x] 98 testes unitários
 
-### Implementado (v0.4.0 - Semana 10) ✅ ATUAL
+### Implementado (v0.4.0 - Semana 10)
 - [x] Feature sets v1 (17), v2 (25), v3 (32) com seleção via `--features`
 - [x] WindowAggregator: detecção por janela temporal (12 features agregadas por IP)
 - [x] DetectionGranularity enum (FLOW | WINDOW)
@@ -411,10 +413,19 @@ python -m src.detector.streaming_detector --max-flows 1000
 - [x] extract_attack_ips.py: fix double-read, --pcap-files, progress logging
 - [x] 110 testes unitários
 
-### Planejado (v0.5.0)
+### Implementado (v0.5.0 - Semana 11) ✅ ATUAL
+- [x] WindowAggregator v2: 7 behavioral features (entropy, ratios, rates) — 19 features total
+- [x] `_shannon_entropy()` helper for discrete value entropy computation
+- [x] `WINDOW_FEATURES_V2` constant (12 base + 7 behavioral)
+- [x] `--window-features {v1,v2}` CLI argument in run_experiment.py
+- [x] StreamingDetectorConfig.window_feature_version wiring
+- [x] Campaign-03 S4 experiment scripts (48 runs)
+- [x] 123 testes unitários (13 novos para v2 features)
+
+### Planejado (v0.6.0)
+- [ ] Two-Stage Detection (per-flow + IP anomaly concentration)
 - [ ] Suporte a multi-fase (`--drift-pcap`) para cenários de drift
 - [ ] Suporte a holdout (`--holdout-pcap`) para cenários zero-day
-- [ ] Merge/split de clusters
 
 ---
 

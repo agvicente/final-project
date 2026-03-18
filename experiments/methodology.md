@@ -571,13 +571,30 @@ O `WindowAggregator` acumula flows por `src_ip` em janelas temporais fixas (defa
 
 Em modo window, a unidade de avaliação muda de "flow" para "IP/janela". O ground truth é: `y_true = src_ip in attack_ips`. Isso é semanticamente correto pois estamos classificando o **comportamento do IP**, não flows individuais.
 
-### 8.5 Parâmetros
+### 8.5 Behavioral Window Features (v2 = 19 features)
+
+**Motivação (Campaign-02 S3):** As 12 features básicas de janela são agregados simples (somas, médias, contagens únicas). Um IP benigno com 20 flows/janela e um atacante com 20 flows/janela produzem vetores similares nessas features. Features comportamentais capturam **como** os flows se distribuem, não apenas **quanto**.
+
+| Feature | Fórmula | Sinal de ataque |
+|---------|---------|-----------------|
+| `flows_per_second` | `flow_count / window_size_seconds` | DDoS/scan: 10-100x mais flows/s |
+| `dst_port_entropy` | Shannon entropy das dst_port | PortScan: alta, DDoS: ≈0 (porta fixa) |
+| `dst_ip_entropy` | Shannon entropy das dst_ip | DDoS flood: ≈0 (alvo único), benigno: variado |
+| `unanswered_ratio` | flows com SYN>0, ACK==0 / total | SYN flood: handshake nunca completa |
+| `payload_std` | std(total_bytes) dos flows | DDoS: pacotes uniformes (std baixo) |
+| `small_flow_ratio` | flows com packet_count≤3 / total | Scan/probe: muitos flows minúsculos |
+| `fwd_only_ratio` | flows com bwd_packet_count==0 / total | DDoS/scan: fortemente unidirecionais |
+
+Todos os campos necessários já existem no flow dict do FlowConsumer. Seleção via `--window-features {v1,v2}`.
+
+### 8.6 Parâmetros
 
 | Parâmetro | CLI | Default | Descrição |
 |-----------|-----|---------|-----------|
 | Tamanho da janela | `--window-seconds` | 10.0 | Segundos por janela |
 | Min flows | `--min-flows-per-window` | 5 | Mínimo de flows para emitir vetor |
 | Granularidade | `--granularity` | flow | `flow` ou `window` |
+| Window features | `--window-features` | v1 | `v1` (12 basic) ou `v2` (19 behavioral) |
 
 ---
 

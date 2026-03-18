@@ -274,6 +274,7 @@ def run_detector(
     granularity: str = "flow",
     window_seconds: float = 10.0,
     min_flows_per_window: int = 5,
+    window_feature_version: str = "v1",
 ) -> Dict[str, Any]:
     """
     Executa StreamingDetector e avalia resultados.
@@ -335,6 +336,7 @@ def run_detector(
         granularity=gran_enum,
         window_size_seconds=window_seconds,
         min_flows_per_window=min_flows_per_window,
+        window_feature_version=window_feature_version,
     )
 
     # Detector puramente não-supervisionado — sem ground truth
@@ -478,6 +480,7 @@ def save_structured_results(
             "granularity": config_used.get("granularity", "flow"),
             "window_seconds": config_used.get("window_seconds", None),
             "min_flows_per_window": config_used.get("min_flows_per_window", None),
+            "window_features": config_used.get("window_features", "v1"),
             "ground_truth": config_used.get("ground_truth", "ip"),
         },
         "pcaps": pcap_paths,
@@ -664,6 +667,14 @@ def main():
         help="Mínimo de flows por janela para emitir vetor (modo window)"
     )
 
+    # Window features version
+    parser.add_argument(
+        "--window-features",
+        choices=["v1", "v2"],
+        default="v1",
+        help="Window feature set: 'v1' (12 basic) or 'v2' (19 = basic + behavioral)"
+    )
+
     # Ground truth
     parser.add_argument(
         "--ground-truth",
@@ -815,6 +826,7 @@ def main():
             granularity=args.granularity,
             window_seconds=args.window_seconds,
             min_flows_per_window=args.min_flows_per_window,
+            window_feature_version=args.window_features,
         )
 
         # ETAPA 4: Coletar snapshots de clusters (simplificado)

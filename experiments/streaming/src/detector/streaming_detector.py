@@ -48,7 +48,7 @@ from kafka.errors import KafkaError
 
 from .teda import TEDADetector, TEDAResult
 from .micro_teda import MicroTEDAclus, MicroTEDAResult
-from .window_aggregator import WindowAggregator, WINDOW_FEATURES
+from .window_aggregator import WindowAggregator, WINDOW_FEATURES, WINDOW_FEATURES_V2
 
 
 # ============================================================
@@ -117,6 +117,7 @@ class StreamingDetectorConfig:
     granularity: DetectionGranularity = DetectionGranularity.FLOW
     window_size_seconds: float = 10.0
     min_flows_per_window: int = 5
+    window_feature_version: str = "v1"
 
     # Comportamento
     publish_alerts: bool = True
@@ -263,10 +264,12 @@ class StreamingDetector:
         # Features a usar
         self._granularity = self.config.granularity
         if self._granularity == DetectionGranularity.WINDOW:
-            self._feature_names = WINDOW_FEATURES
+            wfv = self.config.window_feature_version
+            self._feature_names = WINDOW_FEATURES_V2 if wfv == "v2" else WINDOW_FEATURES
             self._window_aggregator = WindowAggregator(
                 window_size_seconds=self.config.window_size_seconds,
                 min_flows_per_window=self.config.min_flows_per_window,
+                window_feature_version=wfv,
             )
         else:
             self._feature_names = self.config.feature_names or DEFAULT_FEATURES

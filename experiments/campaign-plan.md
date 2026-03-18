@@ -280,6 +280,54 @@ campaign-02/S3-A2-{attack}-window-10s/
 
 ---
 
+---
+
+## Campaign-03: Features Comportamentais + Abordagens Evolutivas
+
+**Criado:** 2026-03-16
+**Motivação:** Campaign-02 S3 mostrou que janelas temporais melhoram Recall (SYN 3%→54%, Recon 4%→45%) mas FPR explode (58% @60s). Diagnóstico: 12 features básicas de janela (somas, médias) não capturam **comportamento** (entropia, taxas, assimetria). Um IP benigno e um atacante com 20 flows/janela produzem vetores similares.
+
+### Configuração Cumulativa (frozen from C02)
+
+| Decisão | Valor | Origem |
+|---------|-------|--------|
+| Algoritmo | MicroTEDAclus | C01 |
+| Ground truth | IP-based | C02-S1 |
+| Features per-flow | v1 (17) | C02-S2 (Occam — v2/v3 sem impacto) |
+| Granularidade | Window | C02-S3 (direção certa) |
+| Window features | **variável aberta** | C03-S4 |
+
+### Step S4: Behavioral Window Features (v2 = 19 features)
+
+7 novas features computadas por IP/janela:
+
+| Feature | Discriminação |
+|---------|--------------|
+| `flows_per_second` | DDoS/scan gera 10-100x mais flows/s |
+| `dst_port_entropy` | PortScan = alta entropia, DDoS = 0 |
+| `dst_ip_entropy` | DDoS flood → alvo único (≈0) |
+| `unanswered_ratio` | SYN flood: handshake nunca completa |
+| `payload_std` | DDoS envia pacotes uniformes (std baixo) |
+| `small_flow_ratio` | Scan/probe: muitos flows ≤3 pkts |
+| `fwd_only_ratio` | DDoS/scan são unidirecionais |
+
+**Variáveis:** `window_features={v1,v2}`, `window_seconds={10,30}`, `r0={0.05,0.10,0.15}`
+
+**Runs:** 48 (12 control v1 + 12 features v2 + 24 r0 sweep v2)
+
+**Script:** `experiments/streaming/scripts/run_campaign03_s4.sh`
+**Plots:** `experiments/results/campaign-03/generate_plots_s4.py`
+
+### Step S5: Two-Stage Detection (após S4)
+
+Stage 1 = per-flow MicroTEDAclus. Stage 2 = monitorar concentração de anomalias por IP em janela.
+
+### Step S6: Threshold Adaptativo (após S5)
+
+r0 dinâmico baseado em percentil de eccentricidade ou desvio do cluster.
+
+---
+
 ## Notas
 
 - Resultados anteriores (`streaming/results/week5/`) sao descartaveis

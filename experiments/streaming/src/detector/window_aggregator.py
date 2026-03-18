@@ -19,6 +19,8 @@ Features por IP/janela (~12):
     syn_ratio, mean_iat
 """
 
+from collections import Counter
+
 import numpy as np
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, field
@@ -40,6 +42,26 @@ WINDOW_FEATURES = [
     "mean_iat",
 ]
 
+# v2: 19 features = 12 base + 7 behavioral (entropy, ratios, rates)
+WINDOW_FEATURES_V2 = WINDOW_FEATURES + [
+    "flows_per_second",
+    "dst_port_entropy",
+    "dst_ip_entropy",
+    "unanswered_ratio",
+    "payload_std",
+    "small_flow_ratio",
+    "fwd_only_ratio",
+]
+
+
+def _shannon_entropy(values: list) -> float:
+    """Compute Shannon entropy (bits) of a list of discrete values."""
+    if not values:
+        return 0.0
+    counts = Counter(values)
+    total = len(values)
+    return -sum((c / total) * np.log2(c / total) for c in counts.values() if c > 0)
+
 
 @dataclass
 class WindowRecord:
@@ -55,12 +77,22 @@ class WindowRecord:
     def flow_count(self) -> int:
         return len(self.flows)
 
-    def to_feature_vector(self) -> np.ndarray:
-        """Agrega flows em um vetor de features."""
+    def to_feature_vector(
+        self,
+        feature_version: str = "v1",
+        window_size_seconds: float = 10.0,
+    ) -> np.ndarray:
+        """Agrega flows em um vetor de features.
+
+        Args:
+            feature_version: "v1" (12 base) or "v2" (19 = base + behavioral)
+            window_size_seconds: Window duration in seconds (used by v2 for flows_per_second)
+        """
         flows = self.flows
         n = len(flows)
         if n == 0:
-            return np.zeros(len(WINDOW_FEATURES), dtype=np.float64)
+            num_features = len(WINDOW_FEATURES_V2 if feature_version == "v2" else WINDOW_FEATURES)
+            return np.zeros(num_features, dtype=np.float64)
 
         total_packets = sum(f.get("packet_count", 0) for f in flows)
         total_bytes = sum(f.get("total_bytes", 0) for f in flows)
@@ -77,7 +109,7 @@ class WindowRecord:
         total_syn = sum(syn_counts)
         syn_ratio = total_syn / total_packets if total_packets > 0 else 0
 
-        features = np.array([
+        base_features = [
             float(n),                                       # flow_count
             float(total_packets),                           # total_packets
             float(total_bytes),                             # total_bytes
@@ -90,9 +122,41 @@ class WindowRecord:
             float(np.mean(fwd_bwd)) if fwd_bwd else 0,     # fwd_bwd_ratio_mean
             float(syn_ratio),                               # syn_ratio
             float(np.mean(iats)) if iats else 0,            # mean_iat
-        ], dtype=np.float64)
+        ]
 
-        return features
+        if feature_version == "v2":
+            # 7 behavioral features
+            flows_per_second = n / max(window_size_seconds, 0.001)
+
+            dst_ports_list = [f.get("dst_port") for f in flows if f.get("dst_port") is not None]
+            dst_port_entropy = _shannon_entropy(dst_ports_list)
+
+            dst_ips_list = [f.get("dst_ip") for f in flows if f.get("dst_ip") is not None]
+            dst_ip_entropy = _shannon_entropy(dst_ips_list)
+
+            unanswered = sum(1 for f in flows if f.get("syn_count", 0) > 0 and f.get("ack_count", 0) == 0)
+            unanswered_ratio = unanswered / n
+
+            bytes_list = [f.get("total_bytes", 0) for f in flows]
+            payload_std = float(np.std(bytes_list)) if len(bytes_list) > 1 else 0.0
+
+            small_flows = sum(1 for f in flows if f.get("packet_count", 0) <= 3)
+            small_flow_ratio = small_flows / n
+
+            fwd_only = sum(1 for f in flows if f.get("bwd_packet_count", 0) == 0)
+            fwd_only_ratio = fwd_only / n
+
+            base_features.extend([
+                float(flows_per_second),
+                float(dst_port_entropy),
+                float(dst_ip_entropy),
+                float(unanswered_ratio),
+                float(payload_std),
+                float(small_flow_ratio),
+                float(fwd_only_ratio),
+            ])
+
+        return np.array(base_features, dtype=np.float64)
 
     def to_metadata(self) -> Dict[str, Any]:
         """Retorna metadata para rastreamento de ground truth."""
@@ -120,9 +184,11 @@ class WindowAggregator:
         self,
         window_size_seconds: float = 10.0,
         min_flows_per_window: int = 5,
+        window_feature_version: str = "v1",
     ):
         self.window_size = window_size_seconds
         self.min_flows = min_flows_per_window
+        self.feature_version = window_feature_version
 
         # Estado: {src_ip: WindowRecord}
         self._current_windows: Dict[str, WindowRecord] = {}
@@ -183,7 +249,10 @@ class WindowAggregator:
 
         for src_ip, record in self._current_windows.items():
             if record.flow_count >= self.min_flows:
-                vector = record.to_feature_vector()
+                vector = record.to_feature_vector(
+                    feature_version=self.feature_version,
+                    window_size_seconds=self.window_size,
+                )
                 metadata = record.to_metadata()
                 emitted.append((vector, metadata))
                 self.total_vectors_emitted += 1
@@ -208,4 +277,5 @@ class WindowAggregator:
             "total_vectors_emitted": self.total_vectors_emitted,
             "window_size_seconds": self.window_size,
             "min_flows_per_window": self.min_flows,
+            "feature_version": self.feature_version,
         }

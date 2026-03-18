@@ -12,13 +12,17 @@ Verifica:
 import numpy as np
 import pytest
 
-from src.detector.window_aggregator import WindowAggregator, WindowRecord, WINDOW_FEATURES
+from src.detector.window_aggregator import (
+    WindowAggregator, WindowRecord, WINDOW_FEATURES, WINDOW_FEATURES_V2,
+    _shannon_entropy,
+)
 
 
 def make_flow(src_ip="1.2.3.4", dst_ip="5.6.7.8", dst_port=80,
               timestamp=100.0, packet_count=10, total_bytes=500,
               flow_duration=1.0, packet_size_mean=50.0,
-              fwd_bwd_ratio=1.0, iat_mean=0.1, syn_count=1):
+              fwd_bwd_ratio=1.0, iat_mean=0.1, syn_count=1,
+              ack_count=1, bwd_packet_count=5):
     """Helper para criar flows de teste."""
     return {
         "src_ip": src_ip,
@@ -34,6 +38,8 @@ def make_flow(src_ip="1.2.3.4", dst_ip="5.6.7.8", dst_port=80,
         "fwd_bwd_ratio": fwd_bwd_ratio,
         "iat_mean": iat_mean,
         "syn_count": syn_count,
+        "ack_count": ack_count,
+        "bwd_packet_count": bwd_packet_count,
     }
 
 
@@ -166,3 +172,138 @@ class TestWindowAggregator:
         # syn_ratio = 10 / 20 = 0.5
         syn_ratio_idx = WINDOW_FEATURES.index("syn_ratio")
         assert vector[syn_ratio_idx] == pytest.approx(0.5)
+
+
+class TestWindowFeaturesV2:
+    """Tests para window features v2 (behavioral)."""
+
+    def test_v2_feature_vector_shape(self):
+        """v2 should produce 19 features."""
+        record = WindowRecord(src_ip="1.2.3.4", window_start=100.0)
+        for i in range(5):
+            record.add_flow(make_flow(timestamp=100.0 + i))
+        vector = record.to_feature_vector(feature_version="v2", window_size_seconds=10.0)
+        assert vector.shape == (len(WINDOW_FEATURES_V2),)
+        assert vector.shape == (19,)
+        assert vector.dtype == np.float64
+
+    def test_v1_backward_compatible(self):
+        """v1 should still produce 12 features."""
+        record = WindowRecord(src_ip="1.2.3.4", window_start=100.0)
+        for i in range(5):
+            record.add_flow(make_flow(timestamp=100.0 + i))
+        vector = record.to_feature_vector(feature_version="v1")
+        assert vector.shape == (len(WINDOW_FEATURES),)
+        assert vector.shape == (12,)
+
+    def test_flows_per_second(self):
+        """10 flows in 10s window -> 1.0 flows/s."""
+        record = WindowRecord(src_ip="1.2.3.4", window_start=100.0)
+        for i in range(10):
+            record.add_flow(make_flow(timestamp=100.0 + i))
+        vector = record.to_feature_vector(feature_version="v2", window_size_seconds=10.0)
+        fps_idx = WINDOW_FEATURES_V2.index("flows_per_second")
+        assert vector[fps_idx] == pytest.approx(1.0)
+
+    def test_dst_port_entropy_uniform(self):
+        """5 flows to 5 different ports -> log2(5)."""
+        record = WindowRecord(src_ip="1.2.3.4", window_start=100.0)
+        for i in range(5):
+            record.add_flow(make_flow(dst_port=80 + i))
+        vector = record.to_feature_vector(feature_version="v2", window_size_seconds=10.0)
+        ent_idx = WINDOW_FEATURES_V2.index("dst_port_entropy")
+        assert vector[ent_idx] == pytest.approx(np.log2(5), rel=1e-6)
+
+    def test_dst_port_entropy_concentrated(self):
+        """5 flows all to port 80 -> entropy 0."""
+        record = WindowRecord(src_ip="1.2.3.4", window_start=100.0)
+        for i in range(5):
+            record.add_flow(make_flow(dst_port=80))
+        vector = record.to_feature_vector(feature_version="v2", window_size_seconds=10.0)
+        ent_idx = WINDOW_FEATURES_V2.index("dst_port_entropy")
+        assert vector[ent_idx] == pytest.approx(0.0)
+
+    def test_dst_ip_entropy(self):
+        """3 flows to 3 different IPs -> log2(3)."""
+        record = WindowRecord(src_ip="1.2.3.4", window_start=100.0)
+        for i in range(3):
+            record.add_flow(make_flow(dst_ip=f"10.0.0.{i}"))
+        vector = record.to_feature_vector(feature_version="v2", window_size_seconds=10.0)
+        ent_idx = WINDOW_FEATURES_V2.index("dst_ip_entropy")
+        assert vector[ent_idx] == pytest.approx(np.log2(3), rel=1e-6)
+
+    def test_unanswered_ratio(self):
+        """Mix of SYN+ACK and SYN-only flows."""
+        record = WindowRecord(src_ip="1.2.3.4", window_start=100.0)
+        # 3 flows with SYN but no ACK (unanswered)
+        for i in range(3):
+            record.add_flow(make_flow(syn_count=1, ack_count=0))
+        # 2 flows with SYN and ACK (answered)
+        for i in range(2):
+            record.add_flow(make_flow(syn_count=1, ack_count=1))
+        vector = record.to_feature_vector(feature_version="v2", window_size_seconds=10.0)
+        idx = WINDOW_FEATURES_V2.index("unanswered_ratio")
+        assert vector[idx] == pytest.approx(3 / 5)
+
+    def test_payload_std_uniform(self):
+        """Flows with identical bytes -> std ~= 0."""
+        record = WindowRecord(src_ip="1.2.3.4", window_start=100.0)
+        for i in range(5):
+            record.add_flow(make_flow(total_bytes=500))
+        vector = record.to_feature_vector(feature_version="v2", window_size_seconds=10.0)
+        idx = WINDOW_FEATURES_V2.index("payload_std")
+        assert vector[idx] == pytest.approx(0.0, abs=1e-10)
+
+    def test_small_flow_ratio(self):
+        """Mix of small (<=3 pkts) and large flows."""
+        record = WindowRecord(src_ip="1.2.3.4", window_start=100.0)
+        # 3 small flows
+        for i in range(3):
+            record.add_flow(make_flow(packet_count=2))
+        # 2 large flows
+        for i in range(2):
+            record.add_flow(make_flow(packet_count=10))
+        vector = record.to_feature_vector(feature_version="v2", window_size_seconds=10.0)
+        idx = WINDOW_FEATURES_V2.index("small_flow_ratio")
+        assert vector[idx] == pytest.approx(3 / 5)
+
+    def test_fwd_only_ratio(self):
+        """Mix of unidirectional and bidirectional flows."""
+        record = WindowRecord(src_ip="1.2.3.4", window_start=100.0)
+        # 4 forward-only (bwd_packet_count=0)
+        for i in range(4):
+            record.add_flow(make_flow(bwd_packet_count=0))
+        # 1 bidirectional
+        record.add_flow(make_flow(bwd_packet_count=5))
+        vector = record.to_feature_vector(feature_version="v2", window_size_seconds=10.0)
+        idx = WINDOW_FEATURES_V2.index("fwd_only_ratio")
+        assert vector[idx] == pytest.approx(4 / 5)
+
+    def test_empty_record_v2(self):
+        """Empty record in v2 mode should produce zeros with correct shape."""
+        record = WindowRecord(src_ip="1.2.3.4", window_start=100.0)
+        vector = record.to_feature_vector(feature_version="v2", window_size_seconds=10.0)
+        assert vector.shape == (19,)
+        assert np.all(vector == 0)
+
+    def test_aggregator_v2_emission(self):
+        """WindowAggregator with v2 should emit 19-feature vectors."""
+        agg = WindowAggregator(
+            window_size_seconds=10.0, min_flows_per_window=3,
+            window_feature_version="v2",
+        )
+        for i in range(5):
+            agg.add_flow(make_flow(timestamp=100.0 + i))
+        result = agg.add_flow(make_flow(timestamp=110.0))
+        assert len(result) == 1
+        vector, _ = result[0]
+        assert vector.shape == (19,)
+
+    def test_no_nan_inf_v2(self):
+        """v2 features should never produce NaN or Inf."""
+        record = WindowRecord(src_ip="1.2.3.4", window_start=100.0)
+        # Single flow — edge case
+        record.add_flow(make_flow(packet_count=1, total_bytes=0, syn_count=0, ack_count=0))
+        vector = record.to_feature_vector(feature_version="v2", window_size_seconds=10.0)
+        assert not np.any(np.isnan(vector))
+        assert not np.any(np.isinf(vector))
