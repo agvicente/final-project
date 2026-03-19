@@ -1,0 +1,28 @@
+{
+  "git_commit": "1f2d2cf",
+  "algorithm": "micro_teda",
+  "params": {
+    "r0": 0.15,
+    "min_samples": 10,
+    "window_size": 1000,
+    "alpha": 0.01,
+    "features": "v1",
+    "granularity": "window",
+    "window_seconds": 10.0,
+    "min_flows_per_window": 5,
+    "window_features": "v2",
+    "ground_truth": "ip"
+  },
+  "pcaps": {
+    "benign": "/home/augusto/final-project/data/pcaps/Benign_Final/BenignTraffic.pcap",
+    "attack": "/home/augusto/final-project/data/pcaps/DDoS-TCP_Flood/DDoS-TCP_Flood.pcap"
+  },
+  "execution": {
+    "start_time": "2026-03-18T01:56:37.713250",
+    "duration_seconds": 14.927110433578491
+  },
+  "volumes": {
+    "total_flows": 213,
+    "anomalies_detected": 7
+  }
+}

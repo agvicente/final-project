@@ -1,0 +1,28 @@
+{
+  "git_commit": "1f2d2cf",
+  "algorithm": "micro_teda",
+  "params": {
+    "r0": 0.1,
+    "min_samples": 10,
+    "window_size": 1000,
+    "alpha": 0.01,
+    "features": "v1",
+    "granularity": "window",
+    "window_seconds": 30.0,
+    "min_flows_per_window": 5,
+    "window_features": "v1",
+    "ground_truth": "ip"
+  },
+  "pcaps": {
+    "benign": "/home/augusto/final-project/data/pcaps/Benign_Final/BenignTraffic.pcap",
+    "attack": "/home/augusto/final-project/data/pcaps/Mirai-greeth_flood/Mirai-greeth_flood.pcap"
+  },
+  "execution": {
+    "start_time": "2026-03-18T01:25:16.809326",
+    "duration_seconds": 15.400512933731079
+  },
+  "volumes": {
+    "total_flows": 148,
+    "anomalies_detected": 9
+  }
+}
