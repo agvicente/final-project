@@ -70,7 +70,8 @@ C03-S4 (Features de Janela)
 | Campaign-01 | Baseline | 17 | Mar 10-12 |
 | Campaign-02 | S1, S2, S3 | 72 | Mar 14-16 |
 | Campaign-03 | S4 | 48 | Mar 18 |
-| **Total** | **4 steps** | **137** | **9 dias** |
+| Campaign-04 | Original vs Próprio | 30 | Abr 3 |
+| **Total** | **5 steps** | **167** | — |
 
 ---
 
@@ -148,6 +149,35 @@ Resultados por janela (r0=0.10):
 
 **Conclusão S4:** As features comportamentais **não produzem melhoria consistente**. Desbloqueiam DDoS-ICMP (0%→50%) e melhoram Recon (39%→45%), mas degradam Mirai e SYN. O FPR piora significativamente.
 
+### 3.4 Campaign-04 — Implementação Original vs Própria (30 runs)
+
+**Objetivo:** Comparar a implementação original do autor (EvolvingClustering, Maia 2020) com a implementação própria adaptada para IoT IDS.
+
+**Diferenças de implementação:**
+
+| Aspecto | Próprio (micro_teda) | Original (Maia 2020) |
+|---------|---------------------|---------------------|
+| Update policy | Atualiza apenas o melhor cluster | Atualiza TODOS os clusters aceitantes |
+| Variância | Welford (numericamente estável) | Norm-based `(norm(delta)*2/len)^2` |
+| Cluster jovem (n=1) | Threshold permissivo (=13) | Sem caso especial |
+| Pruning | Sem pruning | Life decay + remoção |
+| Macro-clusters | Não tem | Grafo de conectividade |
+
+**Resultado: O original é drasticamente pior.**
+
+| Granularidade | FPR Próprio | FPR Original | Degradação |
+|---------------|-------------|-------------|------------|
+| Flow-level | **3.9%** | 54.4% | 14x pior |
+| Window v1 w=10s | **2.9%** | 41.9% | 14x pior |
+| Window v1 w=30s | **5.0%** | 74.5% | 15x pior |
+| Window v2 w=10s | **14.3%** | 45.5% | 3x pior |
+
+O original classifica metade ou mais do tráfego benigno como anômalo. Os altos Recalls (69-100%) são consequência trivial — se você classifica 55% de tudo como anomalia, acerta muitos ataques por acaso.
+
+**Causa raiz:** A fórmula de variância original subestima a variância em alta dimensionalidade (17 features), fazendo o teste de Chebyshev rejeitar excessivamente. Foi projetado para datasets sintéticos 2D.
+
+**Implicação:** As adaptações da implementação própria (Welford, update seletivo, thresholds para clusters jovens) são **contribuição técnica real** da dissertação — necessárias para aplicação em IoT IDS.
+
 ---
 
 ## 4. Tabela Consolidada — Melhor Resultado por Ataque
@@ -204,6 +234,14 @@ O melhor resultado da dissertação em detecção não-supervisionada:
 - Comparável com resultados publicados de IDS não-supervisionados na literatura
 - Demonstra que o pipeline Kafka → MicroTEDAclus **funciona** para certos tipos de ataque
 
+### 6. Adaptação ao domínio é contribuição técnica (C04)
+
+A comparação com a implementação original do autor (C04, 30 runs) demonstra que:
+- O algoritmo original produz **FPR de 42-75%** — inutilizável como IDS
+- As adaptações da implementação própria (Welford, update seletivo, thresholds para n=1/n=2) **reduzem o FPR de ~55% para ~3-15%**
+- O original foi projetado para datasets 2D; com 17 features de rede, a fórmula de variância diverge
+- **Adaptar o algoritmo ao domínio é tão importante quanto o algoritmo em si**
+
 ---
 
 ## 6. Próximos Passos — 3 Opções para Discussão
@@ -229,7 +267,7 @@ O melhor resultado da dissertação em detecção não-supervisionada:
 **Foco:** Documentar os resultados atuais como contribuição válida.
 
 **Argumento:**
-- 137 experimentos com ablation study rigoroso é contribuição metodológica
+- 167 experimentos com ablation study rigoroso é contribuição metodológica
 - Resultados negativos documentados são valiosos (onde/por que IDS por anomalia falha)
 - Recon F1=43.7% é resultado positivo demonstrável
 - Mais tempo para escrita + revisão do orientador

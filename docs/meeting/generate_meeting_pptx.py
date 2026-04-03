@@ -18,6 +18,7 @@ OUTPUT_PATH = SCRIPT_DIR / "2026-03-19-advisor-meeting.pptx"
 
 PLOTS_C02 = PROJECT_ROOT / "experiments" / "results" / "campaign-02" / "plots"
 PLOTS_C03 = PROJECT_ROOT / "experiments" / "results" / "campaign-03" / "plots"
+PLOTS_C04 = PROJECT_ROOT / "experiments" / "results" / "campaign-04" / "plots"
 
 # Colors
 DARK_BLUE = RGBColor(0x1B, 0x3A, 0x5C)
@@ -158,7 +159,7 @@ def create_presentation():
     add_paragraph(tf, "Reunião com Orientador — 19 de março de 2026",
                   font_size=18, color=LIGHT_BLUE,
                   alignment=PP_ALIGN.CENTER)
-    add_paragraph(tf, "137 experimentos | 3 campanhas | 4 steps de ablation",
+    add_paragraph(tf, "167 experimentos | 4 campanhas | 5 steps de ablation",
                   font_size=16, color=LIGHT_BLUE,
                   alignment=PP_ALIGN.CENTER)
 
@@ -173,8 +174,8 @@ def create_presentation():
         ("3.", "Campaign-01", "Baseline — anomaly rate invariante"),
         ("4.", "Campaign-02", "3 hipóteses: GT, features, janelas"),
         ("5.", "Campaign-03 S4", "Features comportamentais"),
-        ("6.", "Consolidado", "Melhor resultado por ataque"),
-        ("7.", "Insights", "5 pontos-chave"),
+        ("6.", "Campaign-04", "Original vs Próprio — validação da implementação"),
+        ("7.", "Consolidado + Insights", "Melhor resultado por ataque + 6 pontos-chave"),
         ("8.", "Próximos passos", "3 opções para discussão"),
     ]
     for i, (num, title, desc) in enumerate(items):
@@ -247,7 +248,7 @@ def create_presentation():
 
     # Table showing progression
     table = add_table(slide, Inches(0.5), Inches(1.5),
-                      Inches(12.3), Inches(4.5), 6, 5)
+                      Inches(12.3), Inches(4.8), 7, 5)
 
     headers = ["Step", "Variável", "Opções Testadas", "Resultado", "Decisão"]
     for i, h in enumerate(headers):
@@ -260,11 +261,12 @@ def create_presentation():
         ["C02-S2", "Features/flow", "v1(17) vs v2(25) vs v3(32)", "Zero impacto (±1pp)", "v1 (Occam)"],
         ["C02-S3", "Granularidade", "Per-flow vs Window (5-60s)", "Recall 15-20x melhor", "Window"],
         ["C03-S4", "Features/janela", "v1(12) vs v2(19 comportam.)", "Misto: 2/5 melhor, 2/5 pior", "Em análise"],
+        ["C04", "Implementação", "Própria vs Original (Maia)", "Original FPR 42-75%", "Própria superior"],
     ]
     for r, row_data in enumerate(data):
         for c, val in enumerate(row_data):
             set_cell(table, r+1, c, val)
-            if r < 3:
+            if r < 3 or r == 5:
                 table.cell(r+1, 4).fill.solid()
                 table.cell(r+1, 4).fill.fore_color.rgb = RGBColor(0xE8, 0xF5, 0xE9)
 
@@ -440,7 +442,44 @@ def create_presentation():
     for label, desc, color in verdicts:
         add_paragraph(tf2, f"{label} {desc}", font_size=14, color=color)
 
-    # ===== SLIDE 9: CONSOLIDADO =====
+    # ===== SLIDE 9: C04 — ORIGINAL VS PRÓPRIO =====
+    slide = prs.slides.add_slide(blank_layout)
+    set_slide_bg(slide, WHITE)
+    add_title_bar(slide, "C04 — Original (Maia 2020) vs Implementação Própria (30 runs)")
+
+    plot_path = PLOTS_C04 / "06_campaign04_dashboard.png"
+    if plot_path.exists():
+        slide.shapes.add_picture(
+            str(plot_path),
+            Inches(0.2), Inches(1.3),
+            Inches(8.5), Inches(6.0)
+        )
+    else:
+        add_text_box(slide, Inches(1), Inches(3), Inches(6), Inches(1),
+                     f"[Plot não encontrado: {plot_path.name}]",
+                     font_size=16, color=RED)
+
+    # Key findings on the right
+    tf = add_text_box(slide, Inches(8.9), Inches(1.4), Inches(4.2), Inches(5.8),
+                      "Veredicto:", font_size=20, bold=True, color=RED)
+    add_paragraph(tf, "Original INUTILIZÁVEL", font_size=18, bold=True, color=RED)
+    add_paragraph(tf, "", font_size=6)
+    add_paragraph(tf, "FPR Benigno:", font_size=16, bold=True, color=DARK_BLUE)
+    add_paragraph(tf, "Próprio: 3.9%", font_size=14, color=GREEN)
+    add_paragraph(tf, "Original: 54.4%", font_size=14, color=RED)
+    add_paragraph(tf, "(14x pior)", font_size=13, color=DARK_GRAY)
+    add_paragraph(tf, "", font_size=6)
+    add_paragraph(tf, "Causa raiz:", font_size=16, bold=True, color=DARK_BLUE)
+    add_paragraph(tf, "Fórmula de variância diverge", font_size=13, color=DARK_GRAY)
+    add_paragraph(tf, "em 17 dimensões (projetado", font_size=13, color=DARK_GRAY)
+    add_paragraph(tf, "para datasets 2D sintéticos)", font_size=13, color=DARK_GRAY)
+    add_paragraph(tf, "", font_size=6)
+    add_paragraph(tf, "Contribuição técnica:", font_size=16, bold=True, color=GREEN)
+    add_paragraph(tf, "Adaptações (Welford, update", font_size=13, color=DARK_GRAY)
+    add_paragraph(tf, "seletivo, thresholds n=1/2)", font_size=13, color=DARK_GRAY)
+    add_paragraph(tf, "são NECESSÁRIAS para IoT IDS", font_size=14, bold=True, color=GREEN)
+
+    # ===== SLIDE 10: CONSOLIDADO =====
     slide = prs.slides.add_slide(blank_layout)
     set_slide_bg(slide, WHITE)
     add_title_bar(slide, "Consolidado — Melhor Resultado por Ataque")
@@ -484,7 +523,7 @@ def create_presentation():
     # ===== SLIDE 10: INSIGHTS =====
     slide = prs.slides.add_slide(blank_layout)
     set_slide_bg(slide, WHITE)
-    add_title_bar(slide, "5 Insights Principais")
+    add_title_bar(slide, "6 Insights Principais")
 
     insights = [
         ("1. Detecção per-flow é fundamentalmente limitada",
@@ -494,20 +533,21 @@ def create_presentation():
          'Mudam a pergunta de "este flow é anômalo?" para "este IP tem comportamento anômalo?". '
          "Melhorias de 10-20x no Recall."),
         ("3. Curse of dimensionality",
-         "~210 vetores com 19 features → MicroTEDAclus não converge. "
-         "Poucos vetores de ataque (2-55) se perdem no ruído."),
+         "~210 vetores com 19 features — MicroTEDAclus não converge com poucos dados."),
         ("4. Não existe config única ótima",
          "ICMP precisa de v2, Mirai/SYN funcionam melhor com v1. "
          "DDoS-TCP é indistinguível em qualquer configuração."),
         ("5. Resultado positivo: Recon F1=43.7%",
-         "Demonstra que o pipeline Kafka → MicroTEDAclus funciona para certos tipos de ataque. "
-         "Comparável com IDS não-supervisionados da literatura."),
+         "Pipeline Kafka → MicroTEDAclus funciona para certos tipos de ataque."),
+        ("6. Adaptação ao domínio é contribuição técnica (C04)",
+         "Implementação original (Maia 2020) produz FPR de 42-75% — inutilizável. "
+         "Adaptações próprias (Welford, update seletivo) reduzem FPR para 3-15%."),
     ]
     for i, (title, desc) in enumerate(insights):
-        y = Inches(1.5) + Inches(i * 1.15)
-        tf = add_text_box(slide, Inches(0.5), y, Inches(12.3), Inches(1.1),
-                          title, font_size=19, bold=True, color=DARK_BLUE)
-        add_paragraph(tf, desc, font_size=15, color=DARK_GRAY)
+        y = Inches(1.5) + Inches(i * 0.95)
+        tf = add_text_box(slide, Inches(0.5), y, Inches(12.3), Inches(0.9),
+                          title, font_size=18, bold=True, color=DARK_BLUE)
+        add_paragraph(tf, desc, font_size=14, color=DARK_GRAY)
 
     # ===== SLIDE 11: PRÓXIMOS PASSOS =====
     slide = prs.slides.add_slide(blank_layout)
@@ -546,7 +586,7 @@ def create_presentation():
     add_paragraph(tf, "", font_size=8)
     add_paragraph(tf, "Resultados atuais como", font_size=15, bold=True, color=DARK_GRAY)
     add_paragraph(tf, "contribuição válida:", font_size=15, bold=True, color=DARK_GRAY)
-    add_paragraph(tf, "137 exps + ablation rigoroso", font_size=13, color=DARK_GRAY)
+    add_paragraph(tf, "167 exps + ablation rigoroso", font_size=13, color=DARK_GRAY)
     add_paragraph(tf, "Resultados negativos documentados", font_size=13, color=DARK_GRAY)
     add_paragraph(tf, "", font_size=8)
     add_paragraph(tf, "Menos risco de prazo\nMais tempo para revisão", font_size=14, bold=True, color=GREEN)

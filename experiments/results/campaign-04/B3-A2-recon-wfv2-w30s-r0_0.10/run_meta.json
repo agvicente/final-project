@@ -1,0 +1,28 @@
+{
+  "git_commit": "023a0ae",
+  "algorithm": "original_micro_teda",
+  "params": {
+    "r0": 0.1,
+    "min_samples": 10,
+    "window_size": 1000,
+    "alpha": 0.01,
+    "features": "v1",
+    "granularity": "window",
+    "window_seconds": 30.0,
+    "min_flows_per_window": 5,
+    "window_features": "v2",
+    "ground_truth": "ip"
+  },
+  "pcaps": {
+    "benign": "/home/augusto/final-project/data/pcaps/Benign_Final/BenignTraffic.pcap",
+    "attack": "/home/augusto/final-project/data/pcaps/Recon-PortScan/Recon-PortScan.pcap"
+  },
+  "execution": {
+    "start_time": "2026-04-03T13:12:50.291311",
+    "duration_seconds": 20.54139542579651
+  },
+  "volumes": {
+    "total_flows": 253,
+    "anomalies_detected": 194
+  }
+}

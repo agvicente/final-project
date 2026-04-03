@@ -48,6 +48,7 @@ from kafka.errors import KafkaError
 
 from .teda import TEDADetector, TEDAResult
 from .micro_teda import MicroTEDAclus, MicroTEDAResult
+from .original_micro_teda import OriginalMicroTEDAclus
 from .window_aggregator import WindowAggregator, WINDOW_FEATURES, WINDOW_FEATURES_V2
 
 
@@ -59,6 +60,7 @@ class DetectorAlgorithm(Enum):
     """Algoritmo de deteccao a usar."""
     TEDA = "teda"
     MICRO_TEDA = "micro_teda"
+    ORIGINAL_MICRO_TEDA = "original_micro_teda"
 
 
 class DetectionGranularity(Enum):
@@ -254,6 +256,11 @@ class StreamingDetector:
             self._detector = TEDADetector(
                 m=self.config.teda_m,
                 min_samples=self.config.teda_min_samples,
+            )
+        elif self._algorithm == DetectorAlgorithm.ORIGINAL_MICRO_TEDA:
+            self._detector = OriginalMicroTEDAclus(
+                r0=self.config.micro_teda_r0,
+                min_samples=self.config.micro_teda_min_samples,
             )
         else:  # MicroTEDAclus (default)
             self._detector = MicroTEDAclus(

@@ -35,6 +35,7 @@ Uso:
 
 from .teda import TEDADetector, TEDAResult, calculate_eccentricity_batch
 from .micro_teda import MicroCluster, MicroTEDAclus, MicroTEDAResult
+from .original_micro_teda import OriginalMicroTEDAclus
 from .streaming_detector import (
     StreamingDetector,
     StreamingDetectorConfig,
@@ -50,6 +51,8 @@ __all__ = [
     "MicroCluster",
     "MicroTEDAclus",
     "MicroTEDAResult",
+    # MicroTEDAclus original (Maia 2020)
+    "OriginalMicroTEDAclus",
     # Streaming
     "StreamingDetector",
     "StreamingDetectorConfig",

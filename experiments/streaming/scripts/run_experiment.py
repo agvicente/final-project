@@ -314,8 +314,12 @@ def run_detector(
     logger.info("=" * 60)
 
     # Configuração do detector
-    algo_enum = (DetectorAlgorithm.TEDA if algorithm == "teda"
-                 else DetectorAlgorithm.MICRO_TEDA)
+    if algorithm == "teda":
+        algo_enum = DetectorAlgorithm.TEDA
+    elif algorithm == "original_micro_teda":
+        algo_enum = DetectorAlgorithm.ORIGINAL_MICRO_TEDA
+    else:
+        algo_enum = DetectorAlgorithm.MICRO_TEDA
 
     gran_enum = (DetectionGranularity.WINDOW if granularity == "window"
                  else DetectionGranularity.FLOW)
@@ -588,7 +592,7 @@ def main():
     )
     parser.add_argument(
         "--algorithm",
-        choices=["teda", "micro_teda"],
+        choices=["teda", "micro_teda", "original_micro_teda"],
         default="micro_teda",
         help="Algoritmo de detecção"
     )
