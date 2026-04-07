@@ -1,8 +1,8 @@
 # Arquitetura Atual - IoT IDS Streaming
 
 **Criado:** 2026-01-20
-**Última Atualização:** 2026-03-16
-**Versão:** 0.4.0
+**Última Atualização:** 2026-04-07
+**Versão:** 0.6.0
 
 > **Propósito:** Este documento descreve O QUE ESTÁ IMPLEMENTADO AGORA. Para a visão de alto nível (onde queremos chegar), veja [TARGET.md](./TARGET.md).
 
@@ -19,6 +19,7 @@
 | 0.3.0 | 2026-03-10 | Sincronização FlowConsumer-Detector, métricas prequential, orquestrador de experimentos v2 |
 | 0.4.0 | 2026-03-16 | Feature sets v1/v2/v3, WindowAggregator (detecção por janela temporal), DetectionGranularity enum |
 | 0.5.0 | 2026-03-16 | WindowAggregator v2: 7 behavioral features (entropy, ratios, rates), --window-features CLI arg |
+| 0.6.0 | 2026-04-07 | OriginalMicroTEDAclus adapter (evolclustering package), ORIGINAL_MICRO_TEDA algorithm enum, Campaign-04 validation |
 
 ---
 
@@ -186,7 +187,8 @@ PCAP ──► PCAPProducer ──► [packets] ──► FlowConsumer ──►
 | Componente | Arquivo | Algoritmo | Status | Default |
 |------------|---------|-----------|--------|---------|
 | **TEDADetector** | `detector/teda.py` | TEDA (Angelov 2014) - Single-center | ✅ Implementado | Não |
-| **MicroTEDAclus** | `detector/micro_teda.py` | Maia 2020 - Multi-cluster evolutivo | ✅ Implementado | **Sim** |
+| **MicroTEDAclus** | `detector/micro_teda.py` | Maia 2020 - Multi-cluster evolutivo (adaptado) | ✅ Implementado | **Sim** |
+| **OriginalMicroTEDAclus** | `detector/original_micro_teda.py` | Maia 2020 - Implementação original (adapter) | ✅ Implementado | Não (FPR 42-75%) |
 
 ### 3.4 Comparação dos Algoritmos
 
@@ -349,7 +351,7 @@ python -m src.detector.streaming_detector --max-flows 1000
 
 | Parâmetro | Default | Descrição |
 |-----------|---------|-----------|
-| `--algorithm` | `micro_teda` | Algoritmo: `teda` ou `micro_teda` |
+| `--algorithm` | `micro_teda` | Algoritmo: `teda`, `micro_teda` ou `original_micro_teda` |
 | `--m` | `3.0` | Parâmetro m do TEDA básico |
 | `--r0` | `0.1` | Variância mínima do MicroTEDAclus |
 | `--min-samples` | `10` | Amostras antes de detectar anomalias |
@@ -366,9 +368,10 @@ python -m src.detector.streaming_detector --max-flows 1000
 | `producer/pcap_producer.py` | `PCAPProducer` | ~600 | PCAP → packets |
 | `consumer/flow_consumer.py` | `FlowConsumer`, `FlowData` | ~500 | packets → flows |
 | `detector/teda.py` | `TEDADetector`, `TEDAResult` | ~250 | Algoritmo TEDA |
-| `detector/micro_teda.py` | `MicroCluster`, `MicroTEDAclus`, `MicroTEDAResult` | ~400 | MicroTEDAclus |
+| `detector/micro_teda.py` | `MicroCluster`, `MicroTEDAclus`, `MicroTEDAResult` | ~400 | MicroTEDAclus (adaptado) |
+| `detector/original_micro_teda.py` | `OriginalMicroTEDAclus` | ~160 | Adapter sobre evolclustering (Maia 2020 original) |
 | `detector/streaming_detector.py` | `StreamingDetector`, `StreamingDetectorConfig`, `DetectorAlgorithm` | ~600 | flows → alerts |
-| **Total** | **10 classes** | **~2350** | |
+| **Total** | **11 classes** | **~2510** | |
 
 ### Testes
 

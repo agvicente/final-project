@@ -61,6 +61,10 @@ C02-S3 (Granularidade)
 C03-S4 (Features de Janela)
  ├─ Variável: v1(12 básicas) vs v2(19 comportamentais)
  └─ Resultado: Misto — v2 ajuda em 2/5 ataques, piora em 2/5
+
+C04 (Validação da Implementação)
+ ├─ Variável: implementação própria vs original (Maia 2020)
+ └─ Decisão: Própria superior (FPR 3.9% vs 54.4%) — 5 adaptações validadas
 ```
 
 ### Volume Experimental
@@ -174,9 +178,20 @@ Resultados por janela (r0=0.10):
 
 O original classifica metade ou mais do tráfego benigno como anômalo. Os altos Recalls (69-100%) são consequência trivial — se você classifica 55% de tudo como anomalia, acerta muitos ataques por acaso.
 
-**Causa raiz:** A fórmula de variância original subestima a variância em alta dimensionalidade (17 features), fazendo o teste de Chebyshev rejeitar excessivamente. Foi projetado para datasets sintéticos 2D.
+**5 adaptações realizadas (e por que cada uma importa):**
 
-**Implicação:** As adaptações da implementação própria (Welford, update seletivo, thresholds para clusters jovens) são **contribuição técnica real** da dissertação — necessárias para aplicação em IoT IDS.
+| # | Aspecto | Original (Maia 2020) | Próprio (adaptado) | Impacto |
+|---|---------|---------------------|--------------------|---------|
+| 1 | **Variância** | `σ² = (norm·2/dim)²` — divide por dim e eleva ao quadrado. Em 2D: fator=1 (neutro). Em 17D: fator=(2/17)²=0.014 → **subestima σ² em ~70x** | Welford: `σ² = Σδ·δ'/（n-1）` — soma quadrados de todas as dimensões, numericamente estável | **CRÍTICO** — variância subestimada → eccentricity inflada → Chebyshev rejeita tudo → FPR 54% |
+| 2 | **Eccentricity** | `ξ = (norm·2/dim)² / (n·σ²)` — inconsistente com a fórmula de σ² | `ξ = Σ(diff²) / (n·σ²)` — consistente com Welford | Estabilidade do teste de Chebyshev |
+| 3 | **Update policy** | Atualiza **todos** os clusters que aceitam o ponto | Atualiza **somente o melhor** (maior typicality) | Evita convergência de clusters — mantém diversidade |
+| 4 | **Cluster n=1** | Sem proteção especial → cluster morre na segunda amostra | Threshold=13 (equivale a m=5) → permite crescimento inicial | Menos fragmentação — clusters jovens sobrevivem |
+| 5 | **Cluster n=2** | Só verifica `variância > limit` | Guard duplo: rejeita somente se ζ > threshold **E** σ² ≥ r0 | Clusters com 2 pontos não são destruídos prematuramente |
+
+**Por que a fórmula de variância é a causa raiz:**
+O fator `(2/dim)²` foi projetado para datasets 2D (notebooks do autor), onde `(2/2)²=1` é neutro. Com 17 features de rede, o fator vira `(2/17)²=0.014`, reduzindo a variância em ~70x. Com σ² artificialmente baixa, o teste de Chebyshev (`ζ > (m²+1)/2n`) rejeita quase todos os pontos → cada ponto cria um novo cluster → FPR catastrófico de 42-75%.
+
+**Implicação para a dissertação:** As 5 adaptações não são otimizações incrementais — são **necessárias** para que o MicroTEDAclus funcione em dados de alta dimensionalidade (17-19 features de rede IoT). A implementação original, aplicada diretamente, é inutilizável como IDS. Isso constitui uma **contribuição técnica** da dissertação.
 
 ---
 

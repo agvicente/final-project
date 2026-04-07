@@ -2,28 +2,28 @@
 <!-- STATUS.md é um snapshot. Substituir seções dinâmicas a cada sessão. -->
 <!-- Histórico em docs/progress/ (gerado automaticamente) -->
 
-**Atualizado:** 2026-03-19 | **Branch:** main | **Prazo defesa:** ~maio 2026 (~7 semanas)
+**Atualizado:** 2026-04-07 | **Branch:** main | **Prazo defesa:** ~maio 2026 (~5 semanas)
 
 ---
 
 ## Agora
 
-**Campaign-03 S4 concluída — 48 runs (behavioral window features v2).**
+**Campaign-04 concluída — 30 runs (original vs próprio MicroTEDAclus).**
 
-Sessão 18-19/03:
-- ✅ Commit: behavioral features v2 (19 features = 12 base + 7 comportamentais)
-- ✅ Campaign-02 ANALYSIS.md criado (72 runs, S1/S2/S3)
-- ✅ Campaign-03 S4 executada: 48 runs, 0 falhas, 66 min
-- ✅ 7 plots gerados (v1 vs v2, FPR, F1, r0 sweep, dashboard S3→S4)
-- ✅ Campaign-03 ANALYSIS.md criado com resultados e diagnóstico
-- ✅ 123 testes passando, architecture v0.5.0
+Sessão 03-07/04:
+- ✅ Adapter `OriginalMicroTEDAclus` criado (wrapper sobre `evolclustering` package)
+- ✅ `original_micro_teda` registrado como algoritmo no pipeline
+- ✅ Campaign-04 executada: 30 runs, 0 falhas, 38 min
+- ✅ 6 plots comparativos gerados
+- ✅ Campaign-04 ANALYSIS.md com diagnóstico das 5 diferenças
+- ✅ Documentos de reunião atualizados (.md + .pptx com 14 slides)
 
-**Resultado S4:** Features v2 **não produzem melhoria consistente**. Desbloqueiam DDoS-ICMP (0%→50%) mas degradam SYN e Mirai. FPR benigno piora em w=10s (2.9%→14.3%). Melhor resultado global: Recon F1=43.7% (v2/w10s/r0=0.05). Problema fundamental: poucos vetores (~210) em 19 dimensões.
+**Resultado C04:** Implementação original (Maia 2020) produz **FPR catastrófico de 42-75%** em todas as granularidades. Causa raiz: fórmula de variância `(norm*2/dim)²` subestima σ² em ~70x com 17 features. As 5 adaptações da implementação própria (Welford, update seletivo, thresholds n=1/n=2, piso de variância) são **necessárias** para IoT IDS. Contribuição técnica validada.
 
 **Próxima sessão:**
-1. Decidir se implementar S5 (Two-Stage Detection) ou seguir para escrita
-2. Se S5: implementar IPAnomalyMonitor + ~24 runs
-3. Consolidar best configs por ataque para tabela final da dissertação
+1. Decidir rumo com orientador: S5 (Two-Stage) ou consolidar + escrever
+2. Se escrita: iniciar capítulo de Metodologia com ablation study (167 exps, 4 campanhas)
+3. Consolidar tabela final de melhores configs por ataque para dissertação
 
 ---
 
@@ -34,11 +34,13 @@ Sessão 18-19/03:
 | Campaign-01 completa (17 runs) | ✅ |
 | Campaign-02 completa (72 runs) + ANALYSIS.md | ✅ |
 | Campaign-03 S4 completa (48 runs) + ANALYSIS.md | ✅ |
+| Campaign-04 completa (30 runs) + ANALYSIS.md | ✅ |
+| Validação: implementação própria superior ao original | ✅ FPR 3.9% vs 54.4% |
 | Features v2 melhoram detecção consistentemente | ❌ Parcial (2/5 ataques) |
 | FPR benigno <= 5% com v2 | ❌ 14.3% em w=10s |
 | Recall >= 80% em algum ataque | ❌ Best: 61.5% (SYN@w30s/r0=0.05, FPR=36%) |
 | 123 testes passando | ✅ |
-| Decidir S5 (Two-Stage) | ⬜ Pendente |
+| Decidir S5 (Two-Stage) vs escrita | ⬜ Pendente (reunião orientador) |
 
 ---
 
@@ -49,15 +51,18 @@ Sessão 18-19/03:
 | Análise Campaign-01 | `experiments/results/campaign-01/ANALYSIS.md` |
 | Análise Campaign-02 | `experiments/results/campaign-02/ANALYSIS.md` |
 | Análise Campaign-03 S4 | `experiments/results/campaign-03/ANALYSIS.md` |
+| Análise Campaign-04 | `experiments/results/campaign-04/ANALYSIS.md` |
+| Adapter original | `experiments/streaming/src/detector/original_micro_teda.py` |
+| Documento reunião | `docs/meeting/2026-03-19-advisor-meeting.md` |
+| Apresentação reunião | `docs/meeting/2026-03-19-advisor-meeting.pptx` |
 | Plano experimental | `experiments/campaign-plan.md` |
 | Orquestrador | `experiments/streaming/scripts/run_experiment.py` |
-| WindowAggregator (v1+v2) | `experiments/streaming/src/detector/window_aggregator.py` |
-| Detector | `experiments/streaming/src/detector/streaming_detector.py` |
-| Arquitetura v0.5.0 | `docs/architecture/CURRENT.md` |
+| Detector próprio | `experiments/streaming/src/detector/micro_teda.py` |
+| Arquitetura v0.6.0 | `docs/architecture/CURRENT.md` |
 
 ---
 
-## Roadmap (7 semanas até defesa)
+## Roadmap (~5 semanas até defesa)
 
 | Semana | Foco |
 |--------|------|
@@ -65,9 +70,10 @@ Sessão 18-19/03:
 | S2 ✅ | Campaign-01: 17 exps, baseline + diagnóstico |
 | S3 ✅ | Campaign-02: 72 exps (IP GT + features + windows) |
 | S4 ✅ | Campaign-03 S4: 48 exps (behavioral features) |
-| S5 | Decisão S5/S6 + consolidação de resultados |
-| S6-S7 | Escrita dissertação (caps 2-5) |
-| S8 | Revisão final + preparação defesa |
+| S5 ✅ | Campaign-04: 30 exps (original vs próprio) |
+| S6 | Reunião orientador + decisão S5/escrita |
+| S7-S8 | Escrita dissertação (caps 2-5) |
+| S9 | Revisão final + preparação defesa |
 
 ---
 

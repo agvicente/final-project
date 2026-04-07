@@ -442,10 +442,76 @@ def create_presentation():
     for label, desc, color in verdicts:
         add_paragraph(tf2, f"{label} {desc}", font_size=14, color=color)
 
-    # ===== SLIDE 9: C04 — ORIGINAL VS PRÓPRIO =====
+    # ===== SLIDE 9: C04 — O QUE MUDAMOS (técnico) =====
     slide = prs.slides.add_slide(blank_layout)
     set_slide_bg(slide, WHITE)
-    add_title_bar(slide, "C04 — Original (Maia 2020) vs Implementação Própria (30 runs)")
+    add_title_bar(slide, "C04 — O que Adaptamos no MicroTEDAclus (5 mudanças)")
+
+    # Table with 5 differences
+    table = add_table(slide, Inches(0.3), Inches(1.4),
+                      Inches(12.7), Inches(4.0), 6, 4)
+
+    for i, h in enumerate(["Aspecto", "Original (Maia 2020)", "Próprio (adaptado)", "Impacto"]):
+        table.cell(0, i).text = h
+    style_header_row(table)
+
+    diffs = [
+        ["Variância",
+         "σ² = (norm*2/dim)²\n→ divide por 17, eleva²\n→ subestima ~70x",
+         "Welford: dot(δ,δ')\n→ soma todas dimensões\n→ valor fiel",
+         "CRÍTICO\nFPR 54% → 3.9%"],
+        ["Eccentricity",
+         "ξ = (norm*2/dim)² / (n*σ²)\nInconsistente com σ²",
+         "ξ = Σ(diff²) / (n*σ²)\nConsistente com Welford",
+         "Estabilidade do\nteste Chebyshev"],
+        ["Update policy",
+         "Atualiza TODOS os\nclusters que aceitam",
+         "Atualiza SÓ o melhor\n(maior typicality)",
+         "Evita convergência\nde clusters"],
+        ["Cluster n=1",
+         "Sem proteção especial\n→ cluster morre rápido",
+         "Threshold=13 (m=5)\n→ permite crescimento",
+         "Menos fragmentação\nde clusters"],
+        ["Cluster n=2",
+         "Só checa var > limit",
+         "Guard duplo:\nζ > threshold E σ² >= r0",
+         "Clusters jovens\nsobrevivem"],
+    ]
+    for r, row_data in enumerate(diffs):
+        for c, val in enumerate(row_data):
+            bold = (r == 0 and c == 3)  # Highlight "CRÍTICO"
+            clr = RED if (r == 0 and c == 3) else BLACK
+            set_cell(table, r+1, c, val, font_size=11, bold=bold, color=clr)
+        # Red background for original column on variance row
+        if r == 0:
+            table.cell(r+1, 1).fill.solid()
+            table.cell(r+1, 1).fill.fore_color.rgb = RGBColor(0xFD, 0xED, 0xED)
+            table.cell(r+1, 2).fill.solid()
+            table.cell(r+1, 2).fill.fore_color.rgb = RGBColor(0xE8, 0xF5, 0xE9)
+
+    # Formula highlight box at bottom
+    shape = slide.shapes.add_shape(5, Inches(0.3), Inches(5.6),
+                                   Inches(12.7), Inches(1.7))
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = RGBColor(0xFD, 0xED, 0xED)
+    shape.line.fill.background()
+
+    tf = add_text_box(slide, Inches(0.6), Inches(5.7), Inches(12), Inches(1.5),
+                      "Por que a fórmula de variância é o problema principal?",
+                      font_size=18, bold=True, color=RED)
+    add_paragraph(tf,
+        "Original: σ² usa (2/dim)² como fator → em 2D: (2/2)²=1 (neutro). "
+        "Em 17D: (2/17)²=0.014 → reduz variância ~70x",
+        font_size=14, color=DARK_GRAY)
+    add_paragraph(tf,
+        "Com σ² subestimada → eccentricity inflada → Chebyshev rejeita tudo → "
+        "cada ponto cria novo cluster → FPR catastrófico",
+        font_size=14, bold=True, color=RED)
+
+    # ===== SLIDE 10: C04 — RESULTADO QUANTITATIVO =====
+    slide = prs.slides.add_slide(blank_layout)
+    set_slide_bg(slide, WHITE)
+    add_title_bar(slide, "C04 — Impacto Quantitativo (30 runs)")
 
     plot_path = PLOTS_C04 / "06_campaign04_dashboard.png"
     if plot_path.exists():
@@ -459,27 +525,36 @@ def create_presentation():
                      f"[Plot não encontrado: {plot_path.name}]",
                      font_size=16, color=RED)
 
-    # Key findings on the right
-    tf = add_text_box(slide, Inches(8.9), Inches(1.4), Inches(4.2), Inches(5.8),
-                      "Veredicto:", font_size=20, bold=True, color=RED)
-    add_paragraph(tf, "Original INUTILIZÁVEL", font_size=18, bold=True, color=RED)
-    add_paragraph(tf, "", font_size=6)
-    add_paragraph(tf, "FPR Benigno:", font_size=16, bold=True, color=DARK_BLUE)
-    add_paragraph(tf, "Próprio: 3.9%", font_size=14, color=GREEN)
-    add_paragraph(tf, "Original: 54.4%", font_size=14, color=RED)
-    add_paragraph(tf, "(14x pior)", font_size=13, color=DARK_GRAY)
-    add_paragraph(tf, "", font_size=6)
-    add_paragraph(tf, "Causa raiz:", font_size=16, bold=True, color=DARK_BLUE)
-    add_paragraph(tf, "Fórmula de variância diverge", font_size=13, color=DARK_GRAY)
-    add_paragraph(tf, "em 17 dimensões (projetado", font_size=13, color=DARK_GRAY)
-    add_paragraph(tf, "para datasets 2D sintéticos)", font_size=13, color=DARK_GRAY)
-    add_paragraph(tf, "", font_size=6)
-    add_paragraph(tf, "Contribuição técnica:", font_size=16, bold=True, color=GREEN)
-    add_paragraph(tf, "Adaptações (Welford, update", font_size=13, color=DARK_GRAY)
-    add_paragraph(tf, "seletivo, thresholds n=1/2)", font_size=13, color=DARK_GRAY)
-    add_paragraph(tf, "são NECESSÁRIAS para IoT IDS", font_size=14, bold=True, color=GREEN)
+    # FPR comparison on the right
+    tf = add_text_box(slide, Inches(8.9), Inches(1.4), Inches(4.2), Inches(2.0),
+                      "FPR Benigno:", font_size=20, bold=True, color=DARK_BLUE)
 
-    # ===== SLIDE 10: CONSOLIDADO =====
+    fpr_data = [
+        ("Flow-level", "3.9%", "54.4%", "14x"),
+        ("Win v1 w=10s", "2.9%", "41.9%", "14x"),
+        ("Win v1 w=30s", "5.0%", "74.5%", "15x"),
+        ("Win v2 w=10s", "14.3%", "45.5%", "3x"),
+    ]
+    for label, ours, orig, ratio in fpr_data:
+        add_paragraph(tf, f"{label}:", font_size=13, bold=True, color=DARK_GRAY)
+        add_paragraph(tf, f"  Próprio {ours} vs Original {orig} ({ratio})",
+                      font_size=12, color=RED)
+
+    # Verdict box
+    shape = slide.shapes.add_shape(5, Inches(8.8), Inches(5.0),
+                                   Inches(4.3), Inches(2.2))
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = RGBColor(0xE8, 0xF5, 0xE9)
+    shape.line.fill.background()
+
+    tf2 = add_text_box(slide, Inches(9.0), Inches(5.1), Inches(3.9), Inches(2.0),
+                       "Contribuição técnica:", font_size=16, bold=True, color=GREEN)
+    add_paragraph(tf2, "Adaptação do MicroTEDAclus", font_size=14, color=DARK_GRAY)
+    add_paragraph(tf2, "para alta dimensionalidade", font_size=14, color=DARK_GRAY)
+    add_paragraph(tf2, "(17 features de rede IoT)", font_size=14, color=DARK_GRAY)
+    add_paragraph(tf2, "é NECESSÁRIA e VALIDADA", font_size=15, bold=True, color=GREEN)
+
+    # ===== SLIDE 11: CONSOLIDADO =====
     slide = prs.slides.add_slide(blank_layout)
     set_slide_bg(slide, WHITE)
     add_title_bar(slide, "Consolidado — Melhor Resultado por Ataque")

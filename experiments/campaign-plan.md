@@ -328,6 +328,53 @@ r0 dinâmico baseado em percentil de eccentricidade ou desvio do cluster.
 
 ---
 
+---
+
+## Campaign-04: Validação da Implementação (Original vs Próprio)
+
+**Criado:** 2026-04-03
+**Motivação:** Verificar se a implementação própria do MicroTEDAclus introduz viés ou se as diferenças com a implementação original do autor (Maia 2020) são significativas.
+
+### Configuração
+
+Usa o package `evolclustering` original do autor, encapsulado por `OriginalMicroTEDAclus` (adapter em `src/detector/original_micro_teda.py`).
+
+| Decisão | Valor | Origem |
+|---------|-------|--------|
+| Algoritmo | **original_micro_teda** (variável) | C04 |
+| Ground truth | IP-based | C02-S1 |
+| Features per-flow | v1 (17) | C02-S2 |
+| r0 | 0.10 | C02-S1 |
+
+### Blocos
+
+| Bloco | Granularidade | Window Features | Runs | Comparação direta |
+|-------|--------------|-----------------|------|-------------------|
+| B1 | Flow-level | — | 6 | C02-S1 |
+| B2 | Window v1 w={10,30}s | v1 (12) | 12 | C03-S4 Block 1 |
+| B3 | Window v2 w={10,30}s | v2 (19) | 12 | C03-S4 Block 2 |
+| **Total** | | | **30** | |
+
+### 5 Diferenças Identificadas
+
+| # | Aspecto | Original | Próprio | Impacto |
+|---|---------|----------|---------|---------|
+| 1 | Variância | `(norm*2/dim)²` — subestima ~70x em 17D | Welford `dot(δ,δ')` | **CRÍTICO** — causa raiz do FPR 54% |
+| 2 | Eccentricity | `(norm*2/dim)²/(n*σ²)` inconsistente | `Σ(diff²)/(n*σ²)` consistente | Estabilidade Chebyshev |
+| 3 | Update | Todos os clusters aceitantes | Só o melhor (max typicality) | Evita convergência |
+| 4 | n=1 | Sem proteção | Threshold=13 (m=5) | Clusters jovens sobrevivem |
+| 5 | n=2 | Só checa var>limit | Guard duplo (ζ E σ²) | Menos fragmentação |
+
+### Resultado
+
+Original produz FPR de **42-75%** em todas as granularidades (vs 3-15% do próprio). Inutilizável como IDS. As 5 adaptações são **necessárias** para aplicação em IoT de alta dimensionalidade.
+
+**Script:** `experiments/streaming/scripts/run_campaign04_original.sh`
+**Plots:** `experiments/results/campaign-04/generate_plots_c04.py`
+**Análise:** `experiments/results/campaign-04/ANALYSIS.md`
+
+---
+
 ## Notas
 
 - Resultados anteriores (`streaming/results/week5/`) sao descartaveis
