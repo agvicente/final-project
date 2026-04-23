@@ -153,42 +153,38 @@
 
 ---
 
-## Slide 8 — Experimentos a Executar
+## Slide 8 — Resultados Experimentais Novos
 
-**Ponto central:** 5 experimentos priorizados. Tempo total ~2 semanas. Preciso decidir o que priorizar em 4 semanas.
+**Ponto central:** 3 experimentos rodados, 2 completos com resultados surpreendentes, 1 rodando agora.
 
 **Fala:**
-- "Tenho 5 experimentos mapeados, priorizados por impacto na dissertação."
-- "Prioridade alta, em vermelho: dimensional sweep com d variando em 2, 5, 10, 17, 20 e 50. Estimativa de 2-3 dias. Produz a curva de colapso para o paper — é a evidência visual mais forte da contribuição."
-- "Também prioridade alta: ablation V0-V7. Mais 2-3 dias. Isola a contribuição de cada adaptação individualmente."
-- "Prioridade média, em amarelo: S5 Two-Stage — per-flow seguido de concentração por IP. Estimativa de 3-5 dias. Ataca diretamente o trade-off FPR vs Recall."
-- "Também prioridade média: baseline com IF e OC-SVM prequential. 1-2 dias. Produz a comparação direta que falta."
-- "Prioridade baixa, em verde: KS-test e Spearman para validar o framework de dimensões anômalas. 2-3 dias."
-- "Total: ~2 semanas de trabalho experimental. A pergunta é: quais desses cabem nas 4 semanas restantes junto com a escrita?"
+- "Desde a última reunião, executei 3 experimentos novos."
+- "Exp 1 — Sweep dimensional: 1440 runs, d de 2 a 50, com sweep de r₀. O achado principal: com r₀ calibrado (1.0 ou mais), o FPR de V0 é ZERO em qualquer dimensão. Isso confirma que o Chebyshev se auto-cancela perfeitamente. A degradação vem inteiramente do guard n<3 quando r₀ está mal calibrado para a escala dos dados."
+- "Exp 2 — Ablation V0-V7: 240 runs com testes de Friedman e ANOVA. O achado surpreendente: Welford sozinho (V1) PIORA o FPR para 99%. Ele quebra a simetria que fazia o original funcionar por acidente. Só V7 (todas as 5 juntas) funciona — as adaptações são acopladas, não independentes."
+- "Exp 3 — Baseline IF/OC-SVM: 42 runs rodando agora no Linux. Resultados amanhã de manhã."
+- "Esses resultados mudam o framing: não é 'corrigimos 5 coisas' — é 'demonstramos que as adaptações formam um sistema acoplado onde ligar uma isoladamente pode piorar o resultado'."
 
-**Âncoras:** ~2 semanas total de experimentos | 4 semanas até defesa.
+**Âncoras:** Friedman p<10⁻⁴⁰ | V1 FPR=99% (piora!) | V7 FPR=0.1% | r₀ interage com d.
 
 ---
 
-## Slide 9 — Decisões para o Orientador
+## Slide 9 — Próximos Passos e Decisões
 
-**Ponto central:** Três perguntas concretas que precisam de resposta HOJE. Ser honesto sobre o que é e o que não é contribuição.
+**Ponto central:** Paper SoftCom em andamento, experimentos quase completos. Decisões sobre escopo e timeline.
 
 **Fala:**
-- "Chegando na decisão. Antes das perguntas, quero ser transparente sobre o que considero contribuição e o que não é."
-- "A correção da variância em si NÃO é contribuição. O paper descreve ||x-mu||², o código usa (||delta||*2/d)². Corrigir isso é bug fix — é errata, não ciência nova."
-- "O que considero contribuição são as camadas ao redor: primeiro, a análise de por que o bug é dormente em baixa dimensão e catastrófico em alta — o auto-cancelamento no Chebyshev e os 3 code paths que falham. Ninguém na comunidade TEDA identificou isso. Segundo, as 4 adaptações adicionais — update seletivo, guards n=1 e n=2 — que não estão no paper original e são necessárias para o contexto de IDS. Terceiro, o primeiro estudo empírico de MicroTEDAclus em dados de rede de alta dimensão — 167 experimentos, 4 campanhas, 5 ataques."
-- "Dito isso, as três perguntas."
-- "Primeira: essa análise + as 4 adaptações genuinamente novas + o estudo empírico constituem contribuição suficiente? Ou preciso de mais resultados experimentais?"
-- "Segunda: prioridade. Caminho A: sweep dimensional d={2,5,10,17,20,50} + ablation V0-V7 — produz a curva de colapso e isola cada adaptação. Fortalece a análise como contribuição. Caminho B: S5 Two-Stage — melhora resultados absolutos. Os dois não cabem junto com a escrita."
-- "Terceira: escopo realista em 4 semanas. Paper focado na análise dimensional + dissertação cobrindo o percurso completo. É viável?"
-- "Minha preferência é pelo caminho A — porque a curva de colapso com significância estatística é o que transforma a análise de observação em contribuição validada."
-
-**Se perguntarem "então sem o sweep a contribuição é fraca?":**
-- Honestamente, sim. Hoje tenho a análise teórica (auto-cancelamento) e a evidência empírica pontual (d=17 em C04). O sweep com d={2,5,10,17,20,50} e testes estatísticos (ANOVA, Tukey) transformaria isso em contribuição robusta — mostraria a curva exata de degradação e em qual d o colapso começa.
+- "Status atual: sweep dimensional e ablation completos. Baseline IF/OC-SVM rodando — resultados amanhã. Paper SoftCom em draft."
+- "Quero ser transparente sobre a contribuição. A correção da variância em si é bug fix — o paper diz ||x-mu||², o código usa (||delta||*2/d)². Mas a análise do auto-cancelamento, a descoberta de que Welford sozinho piora, e as 4 adaptações genuinamente novas — isso sim é contribuição."
+- "O achado do acoplamento (Welford piora sem guards) é particularmente forte — ninguém na comunidade TEDA reportou isso."
+- "Também descobrimos que r₀ não é universalmente robusto como Maia 2020 afirmou — depende da escala dos dados. V7 é robusto a r₀; V0 não é."
+- "Perguntas:"
+- "1. Esses achados (auto-cancelamento + acoplamento + estudo empírico) sustentam um paper SoftCom?"
+- "2. O paper deve focar na análise dimensional pura ou incluir os resultados de detecção IoT (F1=43.7% para Recon)?"
+- "3. Timeline: paper SoftCom para quando? Dissertação para agosto?"
 
 **Se perguntarem "e os resultados de detecção? F1=43.7% é suficiente?":**
-- Isoladamente, não competitivo com métodos supervisionados (F1>95%). Mas o framing correto é: Recon 43.7% é o melhor resultado não-supervisionado que conseguimos, e documenta com rigor ONDE e POR QUE anomaly detection falha — que é contribuição válida segundo Sommer & Paxson 2010 e Arp et al. 2022.
+- Para o paper SoftCom, o foco é a análise dimensional — os resultados de detecção são contexto, não contribuição principal.
+- Para a dissertação, F1=43.7% é documentado como resultado positivo parcial, com TCP=0% como limitação explícita (Sommer & Paxson 2010).
 
 ---
 
@@ -196,11 +192,11 @@
 
 **Os 5 fatos que você DEVE ter na ponta da língua:**
 
-1. **167 experimentos, 4 campanhas, 5 adaptações** — 1 é bug fix (variância), 4 são genuinamente novas
-2. **A correção da variância é bug fix, não contribuição** — paper diz ||x-mu||², código diverge com (2/d)². A contribuição é a ANÁLISE (auto-cancelamento + 3 code paths) e as 4 adaptações novas
-3. **FPR 3.9% (adaptado) vs 54.4% (original) — 14x** — consistente em TODAS as configurações do C04
-4. **(2/17)² = 0.014** — Chebyshev auto-cancela, falhas são nos 3 code paths assimétricos
-5. **DDoS-TCP = 0%** em tudo — gap semântico real (Sommer & Paxson 2010)
+1. **167+1680 experimentos** (4 campanhas IoT + sweep dimensional + ablation) — 1 adaptação é bug fix (variância), 4 são genuinamente novas
+2. **Welford sozinho PIORA** — V1 FPR=99% vs V0 FPR=0% com r₀=1.0 (Exp 2). As adaptações são acopladas, não independentes.
+3. **Chebyshev se auto-cancela** — com r₀ calibrado, V0 FPR=0% em qualquer d. A falha está nos 3 code paths assimétricos, mediada pelo r₀.
+4. **FPR 3.9% (V7) vs 54.4% (V0) em IoT real** (C04, 14x). V7 é robusto a r₀; V0 não é.
+5. **r₀ NÃO é universalmente robusto** como Maia 2020 afirmou — depende da escala dos dados.
 
 **As 3 citações que você DEVE conseguir mencionar sem pensar:**
 

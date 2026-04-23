@@ -680,87 +680,109 @@ def create_presentation():
         add_paragraph(tf, line, font_size=12, color=DARK_GRAY, space_before=Pt(4))
 
     # ==================================================================
-    # SLIDE 8: EXPERIMENTOS A EXECUTAR (white bg)
+    # SLIDE 8: RESULTADOS NOVOS (white bg)
     # ==================================================================
-    print("Gerando slide 8: Proximos Experimentos...")
+    print("Gerando slide 8: Resultados Novos...")
     slide = prs.slides.add_slide(blank_layout)
     set_slide_bg(slide, WHITE)
-    add_title_bar(slide, "Proximos Experimentos \u2014 Priorizacao")
+    add_title_bar(slide, "Resultados Novos (Exp 1 + Exp 2)")
 
-    # Table: 6 rows (header + 5 data), 4 columns
-    table = add_table(slide, Inches(0.3), Inches(1.5),
-                      Inches(12.7), Inches(4.5), 6, 4)
+    # Left: Exp 1 summary
+    shape = slide.shapes.add_shape(5, Inches(0.3), Inches(1.5),
+                                   Inches(6.3), Inches(3.5))
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = RGBColor(0xE8, 0xF5, 0xE9)
+    shape.line.color.rgb = GREEN
+    shape.line.width = Pt(1.5)
 
-    for i, h in enumerate(["Prioridade", "Experimento", "Tempo", "Produz"]):
-        table.cell(0, i).text = h
-    style_header_row(table)
+    add_text_box(slide, Inches(0.5), Inches(1.55), Inches(5.9), Inches(0.4),
+                 "Exp 1: Sweep Dimensional (1440 runs)",
+                 font_size=16, bold=True, color=DARK_GREEN)
 
-    # Set column widths
-    exp_col_widths = [Inches(1.8), Inches(5.5), Inches(1.8), Inches(3.6)]
-    for i, w in enumerate(exp_col_widths):
-        for row_idx in range(6):
-            table.cell(row_idx, i).width = w
-
-    # Use colored text for priority instead of emoji (safer for encoding)
-    exp_data = [
-        ("[ALTA]", RED,
-         "Sweep dimensional d\u2208{2,5,10,17,20,50}",
-         "2-3 dias", "Curva de colapso (fig. paper)"),
-        ("[ALTA]", RED,
-         "Ablation V0-V7 (8 variantes)",
-         "2-3 dias", "Contribuicao isolada de cada fix"),
-        ("[MEDIA]", ORANGE,
-         "S5 Two-Stage (per-flow \u2192 concentracao IP)",
-         "3-5 dias", "Ataca trade-off FPR/Recall"),
-        ("[MEDIA]", ORANGE,
-         "Baseline IF/OC-SVM prequential",
-         "1-2 dias", "Comparacao direta"),
-        ("[BAIXA]", GREEN,
-         "KS-test + Spearman",
-         "2-3 dias", "Valida dim. anomalas"),
+    exp1_lines = [
+        "Com r\u2080\u22651.0 (guard neutralizado):",
+        "  V0 FPR = 0% em QUALQUER d",
+        "  \u2192 Chebyshev auto-cancela (CONFIRMADO)",
+        "",
+        "Com r\u2080=0.001 (mal calibrado):",
+        "  V0 FPR = 72-99.8% em todo d",
+        "  \u2192 Guard n<3 domina tudo",
+        "",
+        "V7 est\u00e1vel ~0.1% em TODOS os r\u2080 e d",
     ]
-    for r, (priority, prio_color, experiment, tempo, produz) in enumerate(exp_data):
-        set_cell(table, r + 1, 0, priority, font_size=13, bold=True, color=prio_color)
-        set_cell(table, r + 1, 1, experiment, font_size=12,
-                 alignment=PP_ALIGN.LEFT)
-        set_cell(table, r + 1, 2, tempo, font_size=12)
-        set_cell(table, r + 1, 3, produz, font_size=12,
-                 alignment=PP_ALIGN.LEFT)
+    tf = add_text_box(slide, Inches(0.5), Inches(2.1), Inches(5.9), Inches(2.5),
+                      exp1_lines[0], font_size=13, color=DARK_GRAY)
+    for line in exp1_lines[1:]:
+        bold = "\u2192" in line or "CONFIRMADO" in line
+        add_paragraph(tf, line, font_size=13, bold=bold,
+                      color=DARK_GREEN if bold else DARK_GRAY, space_before=Pt(3))
 
-    # Color the priority cells background
-    priority_bg_colors = [
-        RGBColor(0xFD, 0xED, 0xED),  # light red
-        RGBColor(0xFD, 0xED, 0xED),  # light red
-        RGBColor(0xFF, 0xF8, 0xE1),  # light orange
-        RGBColor(0xFF, 0xF8, 0xE1),  # light orange
-        RGBColor(0xE8, 0xF5, 0xE9),  # light green
+    # Right: Exp 2 summary
+    shape = slide.shapes.add_shape(5, Inches(6.8), Inches(1.5),
+                                   Inches(6.3), Inches(3.5))
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = RGBColor(0xFD, 0xED, 0xED)
+    shape.line.color.rgb = RED
+    shape.line.width = Pt(1.5)
+
+    add_text_box(slide, Inches(7.0), Inches(1.55), Inches(5.9), Inches(0.4),
+                 "Exp 2: Abla\u00e7\u00e3o V0-V7 (240 runs, d=17)",
+                 font_size=16, bold=True, color=RED)
+
+    exp2_lines = [
+        "V7 (full):     FPR = 0.1%  \u2713",
+        "V0 (original): FPR = 0%    \u2713 (r\u2080=1.0)",
+        "V5 (guard n1): FPR = 0.4%  \u2713",
+        "",
+        "V2 (ecc only): FPR = 49.7% \u2717",
+        "V1 (Welford):  FPR = 98.9% \u2717\u2717",
+        "V3 (Welf+ecc): FPR = 99.8% \u2717\u2717\u2717",
+        "",
+        "Welford SOZINHO piora!",
+        "Adapta\u00e7\u00f5es s\u00e3o ACOPLADAS",
     ]
-    for r, bg_color in enumerate(priority_bg_colors):
-        cell = table.cell(r + 1, 0)
-        cell.fill.solid()
-        cell.fill.fore_color.rgb = bg_color
+    tf = add_text_box(slide, Inches(7.0), Inches(2.1), Inches(5.9), Inches(2.5),
+                      exp2_lines[0], font_size=13, color=DARK_GRAY)
+    for line in exp2_lines[1:]:
+        bold = "SOZINHO" in line or "ACOPLADAS" in line
+        c = RED if ("\u2717" in line or bold) else DARK_GREEN if "\u2713" in line else DARK_GRAY
+        add_paragraph(tf, line, font_size=13, bold=bold, color=c, space_before=Pt(3))
 
-    # Footer
-    add_text_box(slide, Inches(0.5), Inches(6.3), Inches(12.5), Inches(0.6),
-                 "Total ~2 semanas. Quais priorizar nas ~4 semanas restantes?",
-                 font_size=15, bold=True, italic=True, color=MEDIUM_BLUE)
+    # Bottom: status + stats
+    shape = slide.shapes.add_shape(5, Inches(0.3), Inches(5.2),
+                                   Inches(12.8), Inches(1.8))
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = RGBColor(0xF5, 0xF5, 0xF5)
+    shape.line.color.rgb = DARK_GRAY
+    shape.line.width = Pt(1)
+
+    tf = add_text_box(slide, Inches(0.5), Inches(5.3), Inches(12.4), Inches(0.4),
+                      "Estat\u00edstica: Friedman \u03c7\u00b2=203.2, p<10\u207b\u2074\u2070 | ANOVA F=19381, p=0 | CD=1.917 (Nem\u00e9nyi)",
+                      font_size=12, bold=True, color=DARK_BLUE)
+    add_paragraph(tf,
+                  "Exp 3 (Baseline IF/OC-SVM): 42 runs rodando no Linux \u2014 resultados amanh\u00e3",
+                  font_size=13, bold=True, color=ORANGE, space_before=Pt(8))
+    add_paragraph(tf,
+                  "Achado principal: as adapta\u00e7\u00f5es formam um sistema acoplado. "
+                  "Ligar uma isoladamente pode PIORAR o resultado.",
+                  font_size=12, italic=True, color=DARK_GRAY, space_before=Pt(6))
 
     # ==================================================================
-    # SLIDE 9: DECISOES PARA O ORIENTADOR (dark blue bg)
+    # SLIDE 9: PROXIMOS PASSOS E DECISOES (dark blue bg)
     # ==================================================================
-    print("Gerando slide 9: Decisoes Necessarias...")
+    print("Gerando slide 9: Proximos Passos...")
     slide = prs.slides.add_slide(blank_layout)
     set_slide_bg(slide, DARK_BLUE)
 
     add_text_box(slide, Inches(1), Inches(0.8), Inches(11), Inches(1.0),
-                 "Decisoes Necessarias",
+                 "Pr\u00f3ximos Passos e Decis\u00f5es",
                  font_size=40, bold=True, color=WHITE,
                  alignment=PP_ALIGN.CENTER)
 
     questions = [
-        "1. As 5 adaptacoes + prova do auto-cancelamento constituem contribuicao suficiente?",
-        "2. Prioridade: sweep+ablation (fortalece paper) vs S5 Two-Stage (melhora resultados)?",
-        "3. Escopo realista em ~4 semanas: paper focado no bug dimensional + dissertacao?",
+        "1. Auto-cancelamento + acoplamento + estudo emp\u00edrico sustentam um paper SoftCom?",
+        "2. Foco: an\u00e1lise dimensional pura OU incluir resultados de detec\u00e7\u00e3o IoT (F1=43.7%)?",
+        "3. Timeline: paper SoftCom para quando? Disserta\u00e7\u00e3o para agosto?",
     ]
 
     for i, question in enumerate(questions):
@@ -777,7 +799,7 @@ def create_presentation():
                      question, font_size=19, bold=True, color=WHITE)
 
     add_text_box(slide, Inches(1), Inches(6.5), Inches(11), Inches(0.6),
-                 "Obrigado. Abro para discussao.",
+                 "Obrigado. Abro para discuss\u00e3o.",
                  font_size=18, italic=True, color=LIGHT_BLUE,
                  alignment=PP_ALIGN.CENTER)
 
