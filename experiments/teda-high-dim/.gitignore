@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environment
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Results (regenerable)
+results/*.json
+results/*.csv
+results/*.pkl
+!results/README.md
+
+# Paper build artifacts
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.pdf
+paper/*.synctex.gz
+paper/*.fdb_latexmk
+paper/*.fls
+
+# Generated figures and tables
+paper/figures/*.pdf
+paper/figures/*.png
+paper/tables/*.tex
+
+# OS
+.DS_Store
+Thumbs.db

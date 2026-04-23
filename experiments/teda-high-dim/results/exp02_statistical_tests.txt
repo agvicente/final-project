@@ -1,0 +1,88 @@
+======================================================================
+STATISTICAL TESTS -- Experiment 2: Ablation Study
+Dimension: d=17, Anomaly scale: 5.0sigma
+Seeds: 30, Variants: 8
+======================================================================
+
+----------------------------------------------------------------------
+1. PARAMETRIC: ANOVA one-way + Tukey HSD
+----------------------------------------------------------------------
+
+ANOVA F-statistic: 19381.2858
+ANOVA p-value: 0.000000e+00
+Significant (p < 0.05): YES
+
+Tukey HSD pairwise p-values:
+                            V0_ori   V1_wel   V2_con   V3_wel   V4_sel   V5_n1_   V6_n2_   V7_ful
+V0_original                    ---   0.0000   0.0000   0.0000   1.0000   1.0000   1.0000   1.0000 
+V1_welford_var              0.0000      ---   0.0000   0.4862   0.0000   0.0000   0.0000   0.0000 
+V2_consistent_ecc           0.0000   0.0000      ---   0.0000   0.0000   0.0000   0.0000   0.0000 
+V3_welford_and_ecc          0.0000   0.4862   0.0000      ---   0.0000   0.0000   0.0000   0.0000 
+V4_selective_update         1.0000   0.0000   0.0000   0.0000      ---   1.0000   1.0000   1.0000 
+V5_n1_guard                 1.0000   0.0000   0.0000   0.0000   1.0000      ---   1.0000   1.0000 
+V6_n2_guard                 1.0000   0.0000   0.0000   0.0000   1.0000   1.0000      ---   1.0000 
+V7_full_corrected           1.0000   0.0000   0.0000   0.0000   1.0000   1.0000   1.0000      --- 
+
+----------------------------------------------------------------------
+2. NON-PARAMETRIC: Friedman + Nemenyi (Demsar 2006)
+----------------------------------------------------------------------
+
+Friedman chi-square: 203.2076
+Friedman p-value: 2.401318e-40
+Significant (p < 0.05): YES
+
+Average ranks (lower = better FPR):
+  V0_original              : 2.667
+  V4_selective_update      : 2.667
+  V5_n1_guard              : 2.667
+  V6_n2_guard              : 2.667
+  V7_full_corrected        : 4.333
+  V2_consistent_ecc        : 6.000
+  V1_welford_var           : 7.483
+  V3_welford_and_ecc       : 7.517
+
+Critical Difference (alpha=0.05): CD = 1.9170
+  q_alpha(8) = 3.031, k = 8, N = 30
+
+Nemenyi post-hoc: pairs with |rank_i - rank_j| > CD are significant
+
+Significant differences (14 pairs):
+  V0_original vs V3_welford_and_ecc: |rank_diff| = 4.850 > CD = 1.9170
+  V3_welford_and_ecc vs V4_selective_update: |rank_diff| = 4.850 > CD = 1.9170
+  V3_welford_and_ecc vs V5_n1_guard: |rank_diff| = 4.850 > CD = 1.9170
+  V3_welford_and_ecc vs V6_n2_guard: |rank_diff| = 4.850 > CD = 1.9170
+  V0_original vs V1_welford_var: |rank_diff| = 4.817 > CD = 1.9170
+  V1_welford_var vs V4_selective_update: |rank_diff| = 4.817 > CD = 1.9170
+  V1_welford_var vs V5_n1_guard: |rank_diff| = 4.817 > CD = 1.9170
+  V1_welford_var vs V6_n2_guard: |rank_diff| = 4.817 > CD = 1.9170
+  V0_original vs V2_consistent_ecc: |rank_diff| = 3.333 > CD = 1.9170
+  V2_consistent_ecc vs V4_selective_update: |rank_diff| = 3.333 > CD = 1.9170
+  V2_consistent_ecc vs V5_n1_guard: |rank_diff| = 3.333 > CD = 1.9170
+  V2_consistent_ecc vs V6_n2_guard: |rank_diff| = 3.333 > CD = 1.9170
+  V3_welford_and_ecc vs V7_full_corrected: |rank_diff| = 3.183 > CD = 1.9170
+  V1_welford_var vs V7_full_corrected: |rank_diff| = 3.150 > CD = 1.9170
+
+Not significant (14 pairs):
+  V2_consistent_ecc vs V7_full_corrected: |rank_diff| = 1.667 <= CD = 1.9170
+  V0_original vs V7_full_corrected: |rank_diff| = 1.667 <= CD = 1.9170
+  V4_selective_update vs V7_full_corrected: |rank_diff| = 1.667 <= CD = 1.9170
+  V5_n1_guard vs V7_full_corrected: |rank_diff| = 1.667 <= CD = 1.9170
+  V6_n2_guard vs V7_full_corrected: |rank_diff| = 1.667 <= CD = 1.9170
+  V2_consistent_ecc vs V3_welford_and_ecc: |rank_diff| = 1.517 <= CD = 1.9170
+  V1_welford_var vs V2_consistent_ecc: |rank_diff| = 1.483 <= CD = 1.9170
+  V1_welford_var vs V3_welford_and_ecc: |rank_diff| = 0.033 <= CD = 1.9170
+  V0_original vs V4_selective_update: |rank_diff| = 0.000 <= CD = 1.9170
+  V0_original vs V5_n1_guard: |rank_diff| = 0.000 <= CD = 1.9170
+  V0_original vs V6_n2_guard: |rank_diff| = 0.000 <= CD = 1.9170
+  V4_selective_update vs V5_n1_guard: |rank_diff| = 0.000 <= CD = 1.9170
+  V4_selective_update vs V6_n2_guard: |rank_diff| = 0.000 <= CD = 1.9170
+  V5_n1_guard vs V6_n2_guard: |rank_diff| = 0.000 <= CD = 1.9170
+
+----------------------------------------------------------------------
+3. AGREEMENT
+----------------------------------------------------------------------
+
+ANOVA significant: YES
+Friedman significant: YES
+Both agree: YES
+Conclusion: Result is robust (both parametric and non-parametric agree).

@@ -49,6 +49,9 @@ from kafka.errors import KafkaError
 from .teda import TEDADetector, TEDAResult
 from .micro_teda import MicroTEDAclus, MicroTEDAResult
 from .original_micro_teda import OriginalMicroTEDAclus
+from .isolation_forest_detector import IsolationForestDetector
+from .ocsvm_detector import OneClassSVMDetector
+from .variant_micro_teda import VariantMicroTEDAclus
 from .window_aggregator import WindowAggregator, WINDOW_FEATURES, WINDOW_FEATURES_V2
 
 
@@ -61,6 +64,9 @@ class DetectorAlgorithm(Enum):
     TEDA = "teda"
     MICRO_TEDA = "micro_teda"
     ORIGINAL_MICRO_TEDA = "original_micro_teda"
+    ISOLATION_FOREST = "isolation_forest"
+    OCSVM = "ocsvm"
+    VARIANT_MICRO_TEDA = "variant_micro_teda"
 
 
 class DetectionGranularity(Enum):
@@ -111,6 +117,19 @@ class StreamingDetectorConfig:
     # MicroTEDAclus
     micro_teda_r0: float = 0.1  # Variancia minima (calibrar para escala dos dados)
     micro_teda_min_samples: int = 10  # Minimo de amostras antes de detectar
+
+    # Isolation Forest (batch-adapted-to-streaming)
+    if_n_estimators: int = 100  # Numero de arvores
+    if_contamination: float = 0.1  # Fracao esperada de anomalias
+    if_buffer_size: int = 200  # Pontos acumulados antes de retreinar
+
+    # One-Class SVM (batch-adapted-to-streaming)
+    svm_nu: float = 0.1  # Upper bound na fracao de outliers
+    svm_kernel: str = "rbf"  # Tipo de kernel
+    svm_gamma: str = "scale"  # Coeficiente do kernel
+
+    # Variantes ablation (teda-high-dim V0-V7)
+    variant_name: str = "V7_full_corrected"  # Variante a usar
 
     # Features a usar (None = todas numericas)
     feature_names: Optional[List[str]] = None
@@ -259,6 +278,27 @@ class StreamingDetector:
             )
         elif self._algorithm == DetectorAlgorithm.ORIGINAL_MICRO_TEDA:
             self._detector = OriginalMicroTEDAclus(
+                r0=self.config.micro_teda_r0,
+                min_samples=self.config.micro_teda_min_samples,
+            )
+        elif self._algorithm == DetectorAlgorithm.ISOLATION_FOREST:
+            self._detector = IsolationForestDetector(
+                n_estimators=self.config.if_n_estimators,
+                contamination=self.config.if_contamination,
+                buffer_size=self.config.if_buffer_size,
+                min_samples=self.config.micro_teda_min_samples,
+            )
+        elif self._algorithm == DetectorAlgorithm.OCSVM:
+            self._detector = OneClassSVMDetector(
+                nu=self.config.svm_nu,
+                kernel=self.config.svm_kernel,
+                gamma=self.config.svm_gamma,
+                buffer_size=self.config.if_buffer_size,
+                min_samples=self.config.micro_teda_min_samples,
+            )
+        elif self._algorithm == DetectorAlgorithm.VARIANT_MICRO_TEDA:
+            self._detector = VariantMicroTEDAclus(
+                variant_name=self.config.variant_name,
                 r0=self.config.micro_teda_r0,
                 min_samples=self.config.micro_teda_min_samples,
             )
@@ -600,6 +640,12 @@ class StreamingDetector:
         logger.info(f"  Topico alertas: {self.config.topic_alerts}")
         if self._algorithm == DetectorAlgorithm.TEDA:
             logger.info(f"  TEDA: m={self.config.teda_m}, min_samples={self.config.teda_min_samples}")
+        elif self._algorithm == DetectorAlgorithm.ISOLATION_FOREST:
+            logger.info(f"  IF: n_estimators={self.config.if_n_estimators}, contamination={self.config.if_contamination}, buffer={self.config.if_buffer_size}")
+        elif self._algorithm == DetectorAlgorithm.OCSVM:
+            logger.info(f"  OC-SVM: nu={self.config.svm_nu}, kernel={self.config.svm_kernel}, gamma={self.config.svm_gamma}, buffer={self.config.if_buffer_size}")
+        elif self._algorithm == DetectorAlgorithm.VARIANT_MICRO_TEDA:
+            logger.info(f"  Variant: {self.config.variant_name}, r0={self.config.micro_teda_r0}, min_samples={self.config.micro_teda_min_samples}")
         else:
             logger.info(f"  MicroTEDAclus: r0={self.config.micro_teda_r0}, min_samples={self.config.micro_teda_min_samples}")
         logger.info(f"  Features: {len(self._feature_names)}")

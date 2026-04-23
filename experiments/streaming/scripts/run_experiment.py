@@ -275,6 +275,16 @@ def run_detector(
     window_seconds: float = 10.0,
     min_flows_per_window: int = 5,
     window_feature_version: str = "v1",
+    # Isolation Forest params
+    if_n_estimators: int = 100,
+    contamination: float = 0.1,
+    if_buffer_size: int = 200,
+    # One-Class SVM params
+    svm_nu: float = 0.1,
+    svm_kernel: str = "rbf",
+    svm_gamma: str = "scale",
+    # Variant params
+    variant_name: str = "V7_full_corrected",
 ) -> Dict[str, Any]:
     """
     Executa StreamingDetector e avalia resultados.
@@ -314,12 +324,15 @@ def run_detector(
     logger.info("=" * 60)
 
     # Configuração do detector
-    if algorithm == "teda":
-        algo_enum = DetectorAlgorithm.TEDA
-    elif algorithm == "original_micro_teda":
-        algo_enum = DetectorAlgorithm.ORIGINAL_MICRO_TEDA
-    else:
-        algo_enum = DetectorAlgorithm.MICRO_TEDA
+    algo_enum_map = {
+        "teda": DetectorAlgorithm.TEDA,
+        "micro_teda": DetectorAlgorithm.MICRO_TEDA,
+        "original_micro_teda": DetectorAlgorithm.ORIGINAL_MICRO_TEDA,
+        "isolation_forest": DetectorAlgorithm.ISOLATION_FOREST,
+        "ocsvm": DetectorAlgorithm.OCSVM,
+        "variant_micro_teda": DetectorAlgorithm.VARIANT_MICRO_TEDA,
+    }
+    algo_enum = algo_enum_map.get(algorithm, DetectorAlgorithm.MICRO_TEDA)
 
     gran_enum = (DetectionGranularity.WINDOW if granularity == "window"
                  else DetectionGranularity.FLOW)
@@ -333,6 +346,16 @@ def run_detector(
         algorithm=algo_enum,
         micro_teda_r0=r0,
         micro_teda_min_samples=min_samples,
+        # Isolation Forest
+        if_n_estimators=if_n_estimators,
+        if_contamination=contamination,
+        if_buffer_size=if_buffer_size,
+        # One-Class SVM
+        svm_nu=svm_nu,
+        svm_kernel=svm_kernel,
+        svm_gamma=svm_gamma,
+        # Variantes ablation
+        variant_name=variant_name,
         publish_alerts=False,  # Não publica alerts em experimentos
         verbose=verbose,
         log_interval=100,
@@ -592,7 +615,10 @@ def main():
     )
     parser.add_argument(
         "--algorithm",
-        choices=["teda", "micro_teda", "original_micro_teda"],
+        choices=[
+            "teda", "micro_teda", "original_micro_teda",
+            "isolation_forest", "ocsvm", "variant_micro_teda",
+        ],
         default="micro_teda",
         help="Algoritmo de detecção"
     )
@@ -602,12 +628,59 @@ def main():
         default=0.1,
         help="Variância mínima (MicroTEDAclus)"
     )
-    # TODO: Para que serve este min_samples e onde ele é usado?
     parser.add_argument(
         "--min-samples",
         type=int,
         default=10,
         help="Amostras mínimas antes de detectar"
+    )
+
+    # Isolation Forest
+    parser.add_argument(
+        "--if-n-estimators",
+        type=int,
+        default=100,
+        help="Número de árvores no IF (default: 100)"
+    )
+    parser.add_argument(
+        "--contamination",
+        type=float,
+        default=0.1,
+        help="Fração esperada de anomalias para IF (default: 0.1)"
+    )
+    parser.add_argument(
+        "--if-buffer-size",
+        type=int,
+        default=200,
+        help="Tamanho do buffer para retreino IF/OC-SVM (default: 200)"
+    )
+
+    # One-Class SVM
+    parser.add_argument(
+        "--svm-nu",
+        type=float,
+        default=0.1,
+        help="Parâmetro nu do OC-SVM (default: 0.1)"
+    )
+    parser.add_argument(
+        "--svm-kernel",
+        type=str,
+        default="rbf",
+        help="Kernel do OC-SVM (default: rbf)"
+    )
+    parser.add_argument(
+        "--svm-gamma",
+        type=str,
+        default="scale",
+        help="Gamma do OC-SVM (default: scale)"
+    )
+
+    # Variantes ablation (teda-high-dim)
+    parser.add_argument(
+        "--variant-name",
+        type=str,
+        default="V7_full_corrected",
+        help="Variante ablation V0-V7 (default: V7_full_corrected)"
     )
 
     # Métricas Prequential
@@ -831,6 +904,16 @@ def main():
             window_seconds=args.window_seconds,
             min_flows_per_window=args.min_flows_per_window,
             window_feature_version=args.window_features,
+            # Isolation Forest
+            if_n_estimators=args.if_n_estimators,
+            contamination=args.contamination,
+            if_buffer_size=args.if_buffer_size,
+            # One-Class SVM
+            svm_nu=args.svm_nu,
+            svm_kernel=args.svm_kernel,
+            svm_gamma=args.svm_gamma,
+            # Variantes ablation
+            variant_name=args.variant_name,
         )
 
         # ETAPA 4: Coletar snapshots de clusters (simplificado)

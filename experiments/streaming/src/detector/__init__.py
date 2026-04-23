@@ -36,6 +36,9 @@ Uso:
 from .teda import TEDADetector, TEDAResult, calculate_eccentricity_batch
 from .micro_teda import MicroCluster, MicroTEDAclus, MicroTEDAResult
 from .original_micro_teda import OriginalMicroTEDAclus
+from .isolation_forest_detector import IsolationForestDetector
+from .ocsvm_detector import OneClassSVMDetector
+from .variant_micro_teda import VariantMicroTEDAclus
 from .streaming_detector import (
     StreamingDetector,
     StreamingDetectorConfig,
@@ -53,6 +56,11 @@ __all__ = [
     "MicroTEDAResult",
     # MicroTEDAclus original (Maia 2020)
     "OriginalMicroTEDAclus",
+    # Baselines (batch-adapted-to-streaming)
+    "IsolationForestDetector",
+    "OneClassSVMDetector",
+    # Variantes ablation (teda-high-dim)
+    "VariantMicroTEDAclus",
     # Streaming
     "StreamingDetector",
     "StreamingDetectorConfig",

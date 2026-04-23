@@ -15,6 +15,7 @@ Dissertação de Mestrado — UFMG PPGEE
 research/           ← CONHECIMENTO (teoria, fichamentos, referências)
 experiments/        ← EVIDÊNCIA (código, testes, resultados)
   streaming/        ← Fase 2: Kafka + TEDA (código ativo)
+  teda-high-dim/    ← Análise dimensional: variantes V0-V7, sweep, ablation
   baseline/         ← Fase 1: ML clássico (referência, intocado)
   results/          ← resultados das campanhas experimentais
 writing/            ← PRODUÇÃO (dissertação, figuras, tabelas)
