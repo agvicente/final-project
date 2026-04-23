@@ -1,5 +1,8 @@
 #!/bin/bash
-set -e
+set -euo pipefail
+
+# Note: arithmetic ((var++)) returns 1 when var=0 in some shells,
+# which triggers set -e. Use || true to prevent premature exit.
 
 # ============================================================
 # Experiment 3: Baseline IF/OC-SVM + MicroTEDAclus Variants
@@ -83,7 +86,7 @@ total=0
 for seed in "${SEEDS[@]}"; do
     for attack in "${ATTACKS[@]}"; do
         for algo in "${ALGOS[@]}"; do
-            ((total++))
+            ((total++)) || true
         done
     done
 done
@@ -100,13 +103,13 @@ start_time=$(date +%s)
 for seed in "${SEEDS[@]}"; do
     for attack in "${ATTACKS[@]}"; do
         for algo in "${ALGOS[@]}"; do
-            ((done_count++))
+            ((done_count++)) || true
             outdir="${RESULTS_BASE}/${algo}-${attack}-seed${seed}"
 
             # Skip if already completed
             if [ -f "${outdir}/detection_results.json" ]; then
                 echo "  [SKIP] ${algo}/${attack}/seed${seed} (already exists)"
-                ((skipped++))
+                ((skipped++)) || true
                 continue
             fi
 
@@ -119,7 +122,7 @@ for seed in "${SEEDS[@]}"; do
             if [ "$attack" != "benign" ]; then
                 if [ -z "${ATTACK_PCAPS[$attack]}" ]; then
                     echo "  [WARN] Unknown attack type: ${attack}"
-                    ((failed++))
+                    ((failed++)) || true
                     continue
                 fi
                 cmd+=" --attack-pcap ${ATTACK_PCAPS[$attack]}"
