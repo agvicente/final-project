@@ -29,8 +29,8 @@ VENV_PYTHON="${SCRIPT_DIR}/../venv/bin/python"
 RUN_SCRIPT="${SCRIPT_DIR}/run_experiment.py"
 RESULTS_BASE="../../experiments/results/campaign-05"
 
-# Reproducibility: 5 seeds for confidence intervals
-SEEDS=(42 123 456 789 1024)
+# Single seed for initial run (fast). Re-run with more seeds later for CI.
+SEEDS=(42)
 
 # PCAP paths (verified from campaign-04 run_meta.json)
 BENIGN_PCAP="../../data/pcaps/Benign_Final/BenignTraffic.pcap"
