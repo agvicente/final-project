@@ -48,11 +48,10 @@ from kafka.errors import KafkaError
 
 from .teda import TEDADetector, TEDAResult
 from .micro_teda import MicroTEDAclus, MicroTEDAResult
-from .original_micro_teda import OriginalMicroTEDAclus
-from .isolation_forest_detector import IsolationForestDetector
-from .ocsvm_detector import OneClassSVMDetector
-from .variant_micro_teda import VariantMicroTEDAclus
 from .window_aggregator import WindowAggregator, WINDOW_FEATURES, WINDOW_FEATURES_V2
+
+# Optional detector imports — deferred to avoid hard dependency chains.
+# Actual import happens in __init__ when the algorithm is selected.
 
 
 # ============================================================
@@ -67,6 +66,8 @@ class DetectorAlgorithm(Enum):
     ISOLATION_FOREST = "isolation_forest"
     OCSVM = "ocsvm"
     VARIANT_MICRO_TEDA = "variant_micro_teda"
+    HALFSPACE_TREES = "halfspace_trees"
+    LOF = "lof"
 
 
 class DetectionGranularity(Enum):
@@ -127,6 +128,16 @@ class StreamingDetectorConfig:
     svm_nu: float = 0.1  # Upper bound na fracao de outliers
     svm_kernel: str = "rbf"  # Tipo de kernel
     svm_gamma: str = "scale"  # Coeficiente do kernel
+
+    # Half-Space Trees (river — genuinamente incremental)
+    hst_n_trees: int = 25  # Numero de arvores
+    hst_height: int = 15  # Altura maxima
+    hst_window_size: int = 250  # Janela de referencia
+    hst_threshold: float = 0.5  # Limiar anomalia (0-1)
+
+    # LOF (river — genuinamente incremental)
+    lof_n_neighbors: int = 20  # Numero de vizinhos
+    lof_threshold: float = 1.5  # Limiar anomalia
 
     # Variantes ablation (teda-high-dim V0-V7)
     variant_name: str = "V7_full_corrected"  # Variante a usar
@@ -277,11 +288,13 @@ class StreamingDetector:
                 min_samples=self.config.teda_min_samples,
             )
         elif self._algorithm == DetectorAlgorithm.ORIGINAL_MICRO_TEDA:
+            from .original_micro_teda import OriginalMicroTEDAclus
             self._detector = OriginalMicroTEDAclus(
                 r0=self.config.micro_teda_r0,
                 min_samples=self.config.micro_teda_min_samples,
             )
         elif self._algorithm == DetectorAlgorithm.ISOLATION_FOREST:
+            from .isolation_forest_detector import IsolationForestDetector
             self._detector = IsolationForestDetector(
                 n_estimators=self.config.if_n_estimators,
                 contamination=self.config.if_contamination,
@@ -289,6 +302,7 @@ class StreamingDetector:
                 min_samples=self.config.micro_teda_min_samples,
             )
         elif self._algorithm == DetectorAlgorithm.OCSVM:
+            from .ocsvm_detector import OneClassSVMDetector
             self._detector = OneClassSVMDetector(
                 nu=self.config.svm_nu,
                 kernel=self.config.svm_kernel,
@@ -297,9 +311,27 @@ class StreamingDetector:
                 min_samples=self.config.micro_teda_min_samples,
             )
         elif self._algorithm == DetectorAlgorithm.VARIANT_MICRO_TEDA:
+            from .variant_micro_teda import VariantMicroTEDAclus
             self._detector = VariantMicroTEDAclus(
                 variant_name=self.config.variant_name,
                 r0=self.config.micro_teda_r0,
+                min_samples=self.config.micro_teda_min_samples,
+            )
+        elif self._algorithm == DetectorAlgorithm.HALFSPACE_TREES:
+            from .halfspace_trees_detector import HalfSpaceTreesDetector
+            self._detector = HalfSpaceTreesDetector(
+                n_trees=self.config.hst_n_trees,
+                height=self.config.hst_height,
+                window_size=self.config.hst_window_size,
+                seed=42,
+                threshold=self.config.hst_threshold,
+                min_samples=self.config.micro_teda_min_samples,
+            )
+        elif self._algorithm == DetectorAlgorithm.LOF:
+            from .lof_detector import LOFDetector
+            self._detector = LOFDetector(
+                n_neighbors=self.config.lof_n_neighbors,
+                threshold=self.config.lof_threshold,
                 min_samples=self.config.micro_teda_min_samples,
             )
         else:  # MicroTEDAclus (default)
@@ -646,6 +678,10 @@ class StreamingDetector:
             logger.info(f"  OC-SVM: nu={self.config.svm_nu}, kernel={self.config.svm_kernel}, gamma={self.config.svm_gamma}, buffer={self.config.if_buffer_size}")
         elif self._algorithm == DetectorAlgorithm.VARIANT_MICRO_TEDA:
             logger.info(f"  Variant: {self.config.variant_name}, r0={self.config.micro_teda_r0}, min_samples={self.config.micro_teda_min_samples}")
+        elif self._algorithm == DetectorAlgorithm.HALFSPACE_TREES:
+            logger.info(f"  HST: n_trees={self.config.hst_n_trees}, height={self.config.hst_height}, window={self.config.hst_window_size}, threshold={self.config.hst_threshold}")
+        elif self._algorithm == DetectorAlgorithm.LOF:
+            logger.info(f"  LOF: n_neighbors={self.config.lof_n_neighbors}, threshold={self.config.lof_threshold}")
         else:
             logger.info(f"  MicroTEDAclus: r0={self.config.micro_teda_r0}, min_samples={self.config.micro_teda_min_samples}")
         logger.info(f"  Features: {len(self._feature_names)}")

@@ -760,7 +760,7 @@ def create_presentation():
                       "Estat\u00edstica: Friedman \u03c7\u00b2=203.2, p<10\u207b\u2074\u2070 | ANOVA F=19381, p=0 | CD=1.917 (Nem\u00e9nyi)",
                       font_size=12, bold=True, color=DARK_BLUE)
     add_paragraph(tf,
-                  "Exp 3 (Baseline IF/OC-SVM): 42 runs rodando no Linux \u2014 resultados amanh\u00e3",
+                  "Exp 3: IF e OC-SVM parciais (12/42). Adicionando Half-Space Trees (streaming genu\u00edno) \u2014 rodando no Linux",
                   font_size=13, bold=True, color=ORANGE, space_before=Pt(8))
     add_paragraph(tf,
                   "Achado principal: as adapta\u00e7\u00f5es formam um sistema acoplado. "

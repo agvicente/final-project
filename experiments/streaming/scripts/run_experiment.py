@@ -331,6 +331,8 @@ def run_detector(
         "isolation_forest": DetectorAlgorithm.ISOLATION_FOREST,
         "ocsvm": DetectorAlgorithm.OCSVM,
         "variant_micro_teda": DetectorAlgorithm.VARIANT_MICRO_TEDA,
+        "halfspace_trees": DetectorAlgorithm.HALFSPACE_TREES,
+        "lof": DetectorAlgorithm.LOF,
     }
     algo_enum = algo_enum_map.get(algorithm, DetectorAlgorithm.MICRO_TEDA)
 
@@ -618,6 +620,7 @@ def main():
         choices=[
             "teda", "micro_teda", "original_micro_teda",
             "isolation_forest", "ocsvm", "variant_micro_teda",
+            "halfspace_trees", "lof",
         ],
         default="micro_teda",
         help="Algoritmo de detecção"

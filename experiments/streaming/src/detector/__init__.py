@@ -35,10 +35,38 @@ Uso:
 
 from .teda import TEDADetector, TEDAResult, calculate_eccentricity_batch
 from .micro_teda import MicroCluster, MicroTEDAclus, MicroTEDAResult
-from .original_micro_teda import OriginalMicroTEDAclus
-from .isolation_forest_detector import IsolationForestDetector
-from .ocsvm_detector import OneClassSVMDetector
-from .variant_micro_teda import VariantMicroTEDAclus
+
+# Optional dependencies — import with try/except to allow partial installs
+try:
+    from .original_micro_teda import OriginalMicroTEDAclus
+except ImportError:
+    OriginalMicroTEDAclus = None  # type: ignore[misc,assignment]
+
+try:
+    from .isolation_forest_detector import IsolationForestDetector
+except ImportError:
+    IsolationForestDetector = None  # type: ignore[misc,assignment]
+
+try:
+    from .ocsvm_detector import OneClassSVMDetector
+except ImportError:
+    OneClassSVMDetector = None  # type: ignore[misc,assignment]
+
+try:
+    from .variant_micro_teda import VariantMicroTEDAclus
+except ImportError:
+    VariantMicroTEDAclus = None  # type: ignore[misc,assignment]
+
+try:
+    from .halfspace_trees_detector import HalfSpaceTreesDetector
+except ImportError:
+    HalfSpaceTreesDetector = None  # type: ignore[misc,assignment]
+
+try:
+    from .lof_detector import LOFDetector
+except ImportError:
+    LOFDetector = None  # type: ignore[misc,assignment]
+
 from .streaming_detector import (
     StreamingDetector,
     StreamingDetectorConfig,
@@ -61,6 +89,9 @@ __all__ = [
     "OneClassSVMDetector",
     # Variantes ablation (teda-high-dim)
     "VariantMicroTEDAclus",
+    # Streaming baselines (river — genuinamente incrementais)
+    "HalfSpaceTreesDetector",
+    "LOFDetector",
     # Streaming
     "StreamingDetector",
     "StreamingDetectorConfig",

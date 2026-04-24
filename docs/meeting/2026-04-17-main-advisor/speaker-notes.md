@@ -161,7 +161,7 @@
 - "Desde a última reunião, executei 3 experimentos novos."
 - "Exp 1 — Sweep dimensional: 1440 runs, d de 2 a 50, com sweep de r₀. O achado principal: com r₀ calibrado (1.0 ou mais), o FPR de V0 é ZERO em qualquer dimensão. Isso confirma que o Chebyshev se auto-cancela perfeitamente. A degradação vem inteiramente do guard n<3 quando r₀ está mal calibrado para a escala dos dados."
 - "Exp 2 — Ablation V0-V7: 240 runs com testes de Friedman e ANOVA. O achado surpreendente: Welford sozinho (V1) PIORA o FPR para 99%. Ele quebra a simetria que fazia o original funcionar por acidente. Só V7 (todas as 5 juntas) funciona — as adaptações são acopladas, não independentes."
-- "Exp 3 — Baseline IF/OC-SVM: 42 runs rodando agora no Linux. Resultados amanhã de manhã."
+- "Exp 3: IF e OC-SVM parcialmente completos (12/42 runs). Adicionando Half-Space Trees (streaming genuino) como baseline mais justo — rodando no Linux."
 - "Esses resultados mudam o framing: não é 'corrigimos 5 coisas' — é 'demonstramos que as adaptações formam um sistema acoplado onde ligar uma isoladamente pode piorar o resultado'."
 
 **Âncoras:** Friedman p<10⁻⁴⁰ | V1 FPR=99% (piora!) | V7 FPR=0.1% | r₀ interage com d.
@@ -174,6 +174,7 @@
 
 **Fala:**
 - "Status atual: sweep dimensional e ablation completos. Baseline IF/OC-SVM rodando — resultados amanhã. Paper SoftCom em draft."
+- "Update: estamos substituindo OC-SVM por Half-Space Trees (Tan 2011) como baseline. HST e genuinamente streaming (O(1) por ponto), o que torna a comparacao com MicroTEDAclus mais justa do que IF/OC-SVM que precisam de retreino periodico."
 - "Quero ser transparente sobre a contribuição. A correção da variância em si é bug fix — o paper diz ||x-mu||², o código usa (||delta||*2/d)². Mas a análise do auto-cancelamento, a descoberta de que Welford sozinho piora, e as 4 adaptações genuinamente novas — isso sim é contribuição."
 - "O achado do acoplamento (Welford piora sem guards) é particularmente forte — ninguém na comunidade TEDA reportou isso."
 - "Também descobrimos que r₀ não é universalmente robusto como Maia 2020 afirmou — depende da escala dos dados. V7 é robusto a r₀; V0 não é."

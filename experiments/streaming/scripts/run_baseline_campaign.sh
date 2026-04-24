@@ -15,13 +15,13 @@ set -euo pipefail
 #
 # Pre-requisites:
 #   - Kafka running: cd docker && docker-compose up -d
-#   - scikit-learn installed: pip install scikit-learn
+#   - river installed: pip install river
 #   - teda_hd installed: cd experiments/teda-high-dim && pip install -e .
 #   - PCAPs at ../../data/pcaps/ (Linux machine)
 #   - attack_ips.json extracted (scripts/extract_attack_ips.py)
 #
-# Total runs: 7 algorithms x 6 configs (5 attacks + benign) x 5 seeds = 210
-# Estimated time: 4-6 hours
+# Total runs: 5 algorithms x 6 configs (5 attacks + benign) x 1 seed = 30
+# Estimated time: 1-2 hours
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -43,14 +43,12 @@ ATTACK_PCAPS[mirai]="../../data/pcaps/Mirai-greeth_flood/Mirai-greeth_flood.pcap
 ATTACK_PCAPS[recon]="../../data/pcaps/Recon-PortScan/Recon-PortScan.pcap"
 
 # Algorithms to test:
-#   - isolation_forest: sklearn IF (batch-adapted-to-streaming)
-#   - ocsvm: sklearn OC-SVM (batch-adapted-to-streaming)
+#   - halfspace_trees: river HST (genuinamente incremental) — Tan et al. 2011
+#   - lof: river LOF (genuinamente incremental) — Breunig et al. 2000
 #   - micro_teda: MicroTEDAclus proprio (referencia)
 #   - variant_V0_original: Implementacao original (todas flags OFF)
-#   - variant_V1_welford_var: Apenas variancia Welford
-#   - variant_V3_welford_and_ecc: Welford + eccentricity consistente
 #   - variant_V4_selective_update: Apenas update seletivo
-ALGOS=("isolation_forest" "ocsvm" "micro_teda" "variant_V0_original" "variant_V1_welford_var" "variant_V3_welford_and_ecc" "variant_V4_selective_update")
+ALGOS=("halfspace_trees" "lof" "micro_teda" "variant_V0_original" "variant_V4_selective_update")
 
 # Attack configs (5 attacks + benign-only)
 ATTACKS=("benign" "ddos" "syn" "tcp" "mirai" "recon")
