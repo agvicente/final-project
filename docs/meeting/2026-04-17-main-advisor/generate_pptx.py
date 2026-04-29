@@ -344,7 +344,7 @@ def create_presentation():
         ("m(k) din\u00e2mico: protege clusters jovens",
          "k=1: m\u22480.6 (permissivo) | k\u2192\u221e: m\u21923 (estrito, 89% Chebyshev)"),
         ("\u00danico par\u00e2metro: r\u2080 (piso de vari\u00e2ncia)",
-         "r\u2080=0.001 fixo em todos os 167 experimentos (robusto)"),
+         "Maia 2020: r\u2080=0.001 fixo. N\u00f3s descobrimos: depende da escala dos dados"),
     ]
     for i, (main, sub) in enumerate(concepts):
         y = Inches(1.6) + Inches(i * 1.1)
@@ -375,14 +375,22 @@ def create_presentation():
         "    criar MC\u2081(\u03bc=x, \u03c3\u00b2=0, S=1)\n"
         "\n"
         "  para cada MC\u1d62:\n"
-        "    calcular \u03be\u1d62(x) e \u03b6\u1d62(x)\n"
-        "    m\u1d62 \u2190 3/(1+e^(-0.007(S\u1d62-100)))\n"
-        "    thr\u1d62 \u2190 (m\u1d62\u00b2+1)/(2\xb7S\u1d62)\n"
-        "    aceita\u1d62 \u2190 (\u03b6\u1d62 \u2264 thr\u1d62)\n"
+        "    S\u1d62 \u2190 S\u1d62 + 1\n"
+        "    \u03bc \u2190 \u03bc + (x\u2212\u03bc)/S       # m\u00e9dia incremental\n"
+        "    \u03c3\u00b2 \u2190 atualizar(\u03b4)    # \u2190 BUG AQUI\n"
+        "    \u03be \u2190 1/S + \u2016x\u2212\u03bc\u2016\u00b2/(S\u00b7\u03c3\u00b2)\n"
+        "    \u03b6 \u2190 \u03be/2\n"
+        "\n"
+        "    se S < 3:              # \u2190 PATH 2\n"
+        "      outlier \u2190 (\u03c3\u00b2 > r\u2080)\n"
+        "    sen\u00e3o:               # Chebyshev OK\n"
+        "      outlier \u2190 (\u03b6 > thr)\n"
         "\n"
         "  se algum aceita:\n"
         "    best \u2190 MC com max \u03c4\u1d62(x)\n"
         "    atualizar best: \u03bc, \u03c3\u00b2, S\n"
+        "    life += (\u221a\u03c3\u00b2\u2212dist)/\u221a\u03c3\u00b2  # \u2190 PATH 3\n"
+        "    merge se dist < 2(\u221a\u03c3\u00b2) # \u2190 PATH 1\n"
         "    \u2192 NORMAL\n"
         "\n"
         "  sen\u00e3o (rejeitado por todos):\n"
