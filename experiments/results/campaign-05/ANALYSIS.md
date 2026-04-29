@@ -179,7 +179,96 @@ Alternativa: mover para `experiments/results/campaign-05-archive/` se a análise
 
 ---
 
-## 7. Próximos Passos para o Paper SoftCom
+## 7. Topologia de Clusters (TEDA-based) — Estado Final
+
+Análise dos `clusters_state.jsonl` revela **três regimes estruturalmente distintos** entre as variantes TEDA:
+
+### 7.1 Sumário por algoritmo (estado final)
+
+| Algoritmo | Cenário | Flows | #Clusters | Flows/cluster | Singletons | Top-1 cluster | Avg variance |
+|-----------|---------|-------|-----------|---------------|------------|---------------|--------------|
+| **micro_teda** | benign | 3241 | 132 | 24.6 | **94%** | 2985 (92% flows) | 9.5 × 10¹² |
+| | ddos | 10000 | 706 | 14.2 | **99%** | 7925 (79%) | 1.8 × 10¹² |
+| | recon | 10000 | 423 | 23.6 | 97% | 9384 (94%) | 2.6 × 10¹³ |
+| | tcp | 10000 | 247 | 40.5 | 96% | 9544 (95%) | 2.0 × 10¹³ |
+| **variant_V0** | benign | 3228 | **1580** | 2.0 | 70% | 60 (1.9%) | 0.010 |
+| | ddos | 10000 | **6707** | 1.5 | 84% | 92 (0.9%) | 0.006 |
+| | recon | 10000 | 3621 | 2.8 | 65% | 80 (0.8%) | 0.010 |
+| **variant_V4** | benign | 3247 | 1567 | 2.1 | 72% | 62 (1.9%) | 0.008 |
+| | ddos | 10000 | 6693 | 1.5 | 86% | 89 (0.9%) | 0.004 |
+| **variant_V1** (Welford) | benign | 3240 | **43** | 75.3 | 79% | 3195 (99%) | 3.0 × 10¹¹ |
+| | ddos | 10000 | **46** | 217.4 | 83% | **9945** (99.5%) | 4.8 × 10¹¹ |
+| **variant_V3** (W+ecc) | benign | 1715 | 1245 | 1.4 | 85% | 23 (1.3%) | 0.006 |
+
+### 7.2 Três regimes de fragmentação
+
+**Regime 1 — Silent collapse (V1):** 43-46 clusters totais, com **um único cluster contendo 99% dos flows**. Welford sozinho deteriora σ² incrementalmente, fazendo o threshold crescer indefinidamente; quase nada é rotulado outlier. Confirma F1=0.001 do detector.
+
+**Regime 2 — Long-tail (micro_teda):** 132-706 clusters, com **um cluster dominante (79-95% dos flows)** seguido de uma cauda de singletons (94-99%). Estrutura "1 grande + N pequenos descartados" — alarma só os outliers extremos, gerando recall baixíssimo (5%) mas FPR=3%.
+
+**Regime 3 — Hyper-fragmented (V0/V4/V3):** 1500-6700 clusters totais, **nenhum cluster ultrapassa 1% dos flows**. 60-86% são singletons. Quase todo flow novo cria seu próprio cluster — alarma demais (FPR≈50%) mas pega ataques (recall 0.20-0.79).
+
+### 7.3 ⚠️ Discrepância crítica: escalas de feature
+
+| Algoritmo | Avg variance | Ordem de grandeza | Interpretação |
+|-----------|--------------|-------------------|---------------|
+| micro_teda | 10¹² – 10¹³ | features **raw** (bytes, timestamps) | Não-normalizado |
+| variant_V0/V4 | 10⁻² – 10⁻¹ | features **normalizadas** | Aparentemente standard scaler |
+| variant_V1 | 10¹¹ | raw também, mas Welford degrada lento | |
+
+**Os means do micro_teda contém valores como `[2978.0, 2876169.0, 1582.0, ...]` (bytes/timestamps brutos), enquanto V0/V4 operam em escala unitária.** Isso significa **14 ordens de grandeza de diferença na variância** entre os algoritmos comparados.
+
+**Implicação para o paper:** A comparação `micro_teda vs V0/V4` não é apples-to-apples. Os comportamentos opostos (silent vs hyper-fragmented) podem ser **majoritariamente artefato da escala**, não das adaptações algorítmicas. Antes de submeter o SoftCom:
+1. Confirmar no código se `micro_teda.py` e `variants.py` aplicam normalização diferente
+2. Re-rodar pelo menos 1 algo com features normalizadas igual (controle)
+3. Se confirmado, **adicionar disclaimer** na metodologia OU **renormalizar e re-rodar** antes da Table VIII
+
+### 7.4 Cluster count vs FPR (correlação inesperada)
+
+```
+#clusters → FPR (benign-only)
+─────────────────────────────
+  43 (V1)         →  1.0%   silent
+ 132 (micro_teda) →  3.8%   silent (long-tail)
+1245 (V3)         → 72.1%   paranoid
+1567 (V4)         → 48.0%   paranoid
+1580 (V0)         → 48.7%   paranoid
+```
+
+**O número de clusters criados é melhor preditor de FPR que qualquer parâmetro do algoritmo.** Algos que fragmentam muito alarmam muito; algos que colapsam silenciam. Esse é um achado **não-trivial e citável** para o paper, mas precisa ser robusto à crítica de escala (seção 7.3).
+
+---
+
+## 8. ⚠️ Limitação de dados: ausência de séries temporais
+
+Inspeção do `run_experiment.py` (linhas 922-939) revela que a coleta de snapshots é **explicitamente "simplificada"** (comentário do código: `"ETAPA 4: Coletar snapshots de clusters (simplificado)"` e `"ETAPA 5: System usage (simplificado - apenas final)"`). Resultado:
+
+| Arquivo | Promete | Tem | Linhas com dados |
+|---------|---------|-----|------------------|
+| `metrics_windowed.csv` | F1/Precision/Recall **por janela** | Só linha `window=final` | **1** |
+| `clusters_state.jsonl` | Snapshots ao longo do stream | Só estado final | **1** |
+| `system_usage.csv` | CPU/RAM **periodicamente** | Só leitura final | **1** |
+
+**Consequências para o paper:**
+- ❌ Impossível mostrar "evolução de F1 ao longo do stream"
+- ❌ Impossível mostrar "número de clusters crescendo no tempo"
+- ❌ Impossível mostrar overhead computacional como série temporal
+- ✅ Estado final (cluster count, mean RSS, CPU final) está disponível
+
+**Decisão para o SoftCom:** Trabalhar apenas com snapshot final. Plots temporais ficam para versão journal/dissertação após modificar `run_experiment.py` para amostrar periodicamente (~10 linhas de código, mas precisaria re-rodar 49h de experimentos).
+
+**Patch sugerido em `run_experiment.py`** (não bloqueia o paper atual):
+```python
+# Em vez de só "snapshot final":
+# Adicionar ao loop de processamento:
+if flows_processed % SNAPSHOT_INTERVAL == 0:
+    cluster_snapshots.append(snapshot_now())
+    system_usage.append(usage_now())
+```
+
+---
+
+## 9. Próximos Passos para o Paper SoftCom
 
 1. **Preencher Table VIII** com as colunas: Algorithm | Precision | Recall | F1 | FPR | Throughput | (todas as 5×6=30 células dos algos alvo)
 2. **Adicionar coluna "Calibration"** (predicted_anomaly_rate vs real_attack_rate) — diferencial não-trivial sobre baselines da literatura
@@ -190,7 +279,7 @@ Alternativa: mover para `experiments/results/campaign-05-archive/` se a análise
 
 ---
 
-## 8. Arquivos
+## 10. Arquivos
 
 | Arquivo | Descrição | Status no repo |
 |---------|-----------|----------------|
