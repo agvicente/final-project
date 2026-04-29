@@ -49,6 +49,10 @@ mlartifacts/
 *.pkl
 *.joblib
 
+# Permitir CSVs/parquets analíticos dentro de experiments/results/
+!experiments/results/**/*.csv
+!experiments/results/**/*.parquet
+
 # DVC - Cache and temporary files
 .dvc/cache/
 .dvc/tmp/
