@@ -1,0 +1,28 @@
+{
+  "git_commit": "fea56fb",
+  "algorithm": "halfspace_trees",
+  "params": {
+    "r0": 0.1,
+    "min_samples": 10,
+    "window_size": 1000,
+    "alpha": 0.01,
+    "features": "v1",
+    "granularity": "flow",
+    "window_seconds": 10.0,
+    "min_flows_per_window": 5,
+    "window_features": "v1",
+    "ground_truth": "ip"
+  },
+  "pcaps": {
+    "benign": "../../data/pcaps/Benign_Final/BenignTraffic.pcap",
+    "attack": null
+  },
+  "execution": {
+    "start_time": "2026-04-24T23:03:09.518380",
+    "duration_seconds": 44.78222584724426
+  },
+  "volumes": {
+    "total_flows": 3214,
+    "anomalies_detected": 1510
+  }
+}

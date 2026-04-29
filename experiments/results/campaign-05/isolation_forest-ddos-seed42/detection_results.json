@@ -1,0 +1,36 @@
+{
+  "flows_processed": 10000,
+  "anomalies_detected": 1330,
+  "anomaly_rate": 13.3,
+  "elapsed_seconds": 340.15317702293396,
+  "flows_per_second": 29.398520065346254,
+  "algorithm": "isolation_forest",
+  "detector_stats": {
+    "total_samples": 10000,
+    "anomaly_count": 1330,
+    "n_estimators": 100,
+    "contamination": 0.1,
+    "buffer_size": 200,
+    "seed": 42,
+    "min_samples": 10,
+    "retrain_count": 50,
+    "current_buffer_size": 0,
+    "model_fitted": true
+  },
+  "ground_truth_mode": "ip",
+  "attack_flows_by_ip": 6308,
+  "benign_flows_by_ip": 3692,
+  "prequential_metrics": {
+    "precision": 0.7669172932330827,
+    "recall": 0.1616994292961319,
+    "f1": 0.2670856245090338,
+    "accuracy": 0.4402,
+    "fpr": 0.08396533044420368,
+    "tp": 1020,
+    "fp": 310,
+    "tn": 3382,
+    "fn": 5288,
+    "error_rate": 0.5598,
+    "total_samples": 10000
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "git_commit": "6581033",
+  "algorithm": "ocsvm",
+  "params": {
+    "r0": 0.1,
+    "min_samples": 10,
+    "window_size": 1000,
+    "alpha": 0.01,
+    "features": "v1",
+    "granularity": "flow",
+    "window_seconds": 10.0,
+    "min_flows_per_window": 5,
+    "window_features": "v1",
+    "ground_truth": "ip"
+  },
+  "pcaps": {
+    "benign": "../../data/pcaps/Benign_Final/BenignTraffic.pcap",
+    "attack": "../../data/pcaps/DDoS-ICMP_Flood/DDoS-ICMP_Flood.pcap"
+  },
+  "execution": {
+    "start_time": "2026-04-24T04:13:41.268366",
+    "duration_seconds": 12.79518747329712
+  },
+  "volumes": {
+    "total_flows": 10000,
+    "anomalies_detected": 1943
+  }
+}

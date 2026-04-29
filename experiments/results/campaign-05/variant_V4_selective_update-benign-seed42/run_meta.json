@@ -1,0 +1,28 @@
+{
+  "git_commit": "54b7a00",
+  "algorithm": "variant_micro_teda",
+  "params": {
+    "r0": 0.1,
+    "min_samples": 10,
+    "window_size": 1000,
+    "alpha": 0.01,
+    "features": "v1",
+    "granularity": "flow",
+    "window_seconds": 10.0,
+    "min_flows_per_window": 5,
+    "window_features": "v1",
+    "ground_truth": "ip"
+  },
+  "pcaps": {
+    "benign": "../../data/pcaps/Benign_Final/BenignTraffic.pcap",
+    "attack": null
+  },
+  "execution": {
+    "start_time": "2026-04-23T22:49:35.876246",
+    "duration_seconds": 88.79658532142639
+  },
+  "volumes": {
+    "total_flows": 3247,
+    "anomalies_detected": 1558
+  }
+}

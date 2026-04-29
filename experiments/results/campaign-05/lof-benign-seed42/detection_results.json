@@ -1,0 +1,31 @@
+{
+  "flows_processed": 3244,
+  "anomalies_detected": 623,
+  "anomaly_rate": 19.204685573366216,
+  "elapsed_seconds": 1059.6286990642548,
+  "flows_per_second": 3.0614497350484533,
+  "algorithm": "lof",
+  "detector_stats": {
+    "total_samples": 3244,
+    "anomaly_count": 623,
+    "n_neighbors": 20,
+    "threshold": 1.5,
+    "min_samples": 10
+  },
+  "ground_truth_mode": "ip",
+  "attack_flows_by_ip": 0,
+  "benign_flows_by_ip": 3244,
+  "prequential_metrics": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "accuracy": 0.8079531442663379,
+    "fpr": 0.19204685573366215,
+    "tp": 0,
+    "fp": 623,
+    "tn": 2621,
+    "fn": 0,
+    "error_rate": 0.19204685573366215,
+    "total_samples": 3244
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "git_commit": "fea56fb",
+  "algorithm": "halfspace_trees",
+  "params": {
+    "r0": 0.1,
+    "min_samples": 10,
+    "window_size": 1000,
+    "alpha": 0.01,
+    "features": "v1",
+    "granularity": "flow",
+    "window_seconds": 10.0,
+    "min_flows_per_window": 5,
+    "window_features": "v1",
+    "ground_truth": "ip"
+  },
+  "pcaps": {
+    "benign": "../../data/pcaps/Benign_Final/BenignTraffic.pcap",
+    "attack": "../../data/pcaps/Mirai-greeth_flood/Mirai-greeth_flood.pcap"
+  },
+  "execution": {
+    "start_time": "2026-04-26T19:18:05.599917",
+    "duration_seconds": 52.91022849082947
+  },
+  "volumes": {
+    "total_flows": 5445,
+    "anomalies_detected": 2854
+  }
+}
