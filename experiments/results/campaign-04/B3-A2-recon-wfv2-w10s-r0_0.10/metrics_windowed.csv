@@ -1,0 +1,2 @@
+window,precision,recall,f1,fpr,cumulative_error,window_error,fading_error
+final,0.2087378640776699,0.8269230769230769,0.33333333333333337,0.5258064516129032,0,0,0
