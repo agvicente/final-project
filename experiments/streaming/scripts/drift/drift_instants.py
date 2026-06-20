@@ -45,6 +45,7 @@ def read_serie(path: Path):
             "rho_median": float(r.get("rho_median", r["rho_mean"])),
             "rho_p90": float(r.get("rho_p90", r["rho_mean"])),
             "rho_max": float(r["rho_max"]),
+            "rho_frac_above_1": float(r.get("rho_frac_above_1", 0.0)),
             "c_rate": float(r["c_rate"]),
             "num_clusters": float(r["num_clusters"]),
             "f1_w": float(r["f1_w"]),
