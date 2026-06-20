@@ -200,7 +200,7 @@ def start_flow_consumer(experiment_id: str, verbose: bool = False) -> subprocess
     logger.info("=" * 60)
 
     cmd = [
-        "python", "-m", "src.consumer.flow_consumer",
+        sys.executable, "-m", "src.consumer.flow_consumer",
         "--group-id", f"flow-consumer-{experiment_id}",
         "--from-beginning",  # Consome desde o início
     ]
@@ -461,6 +461,10 @@ def run_detector(
 
     logger.info("=" * 60)
 
+    # Reanexa a serie por-fluxo (rho/y_true/fading_error) ao stats para persistencia.
+    # Sem isso, o .pop() da linha ~383 a removia e o JSON salvava so agregados.
+    stats["detection_results"] = detection_results
+
     return stats
 
 
@@ -516,6 +520,7 @@ def save_structured_results(
             "ground_truth": config_used.get("ground_truth", "ip"),
         },
         "pcaps": pcap_paths,
+        "phase_markers": config_used.get("phase_markers", []),
         "execution": {
             "start_time": datetime.now().isoformat(),
             "duration_seconds": results.get("elapsed_seconds", 0),
@@ -573,6 +578,50 @@ def save_structured_results(
 # MAIN
 # ============================================================
 
+def inject_phases(phases_spec, bootstrap_servers, verbose=False):
+    """
+    G1 multi-fase: injeta uma sequencia de PCAPs (fases) no Kafka, em ordem temporal.
+    A ordem de PUBLICACAO no Kafka define a ordem temporal do stream.
+
+    Args:
+        phases_spec: string 'pcap:label:max_packets,pcap:label:max_packets,...'
+        bootstrap_servers, verbose
+
+    Returns:
+        (pcap_stats_list, phase_markers): stats por fase e marcadores
+        [{label, start_packet, end_packet, max_packets}] (em pacotes publicados).
+    """
+    phases = []
+    for item in phases_spec.split(","):
+        parts = item.split(":")
+        pcap_path = parts[0].strip()
+        label = parts[1].strip() if len(parts) > 1 else "phase"
+        mp = int(parts[2]) if len(parts) > 2 and parts[2].strip() else None
+        phases.append({"pcap": pcap_path, "label": label, "max_packets": mp})
+
+    pcap_stats_list, markers, cum = [], [], 0
+    for i, ph in enumerate(phases):
+        if i > 0:
+            time.sleep(2)  # pausa entre fases (igual ao fluxo de 2 PCAPs)
+        logger.info("=" * 60)
+        logger.info(f"FASE {i+1}/{len(phases)}: {ph['label']} ({ph['pcap']})")
+        logger.info("=" * 60)
+        stats = inject_pcap(
+            pcap_path=ph["pcap"],
+            bootstrap_servers=bootstrap_servers,
+            max_packets=ph["max_packets"],
+            verbose=verbose,
+        )
+        sent = stats.get("packets_sent", 0)
+        markers.append({
+            "label": ph["label"], "start_packet": cum,
+            "end_packet": cum + sent, "max_packets": ph["max_packets"],
+        })
+        cum += sent
+        pcap_stats_list.append(stats)
+    return pcap_stats_list, markers
+
+
 def main():
     """Interface CLI para executar experimentos."""
     parser = argparse.ArgumentParser(
@@ -583,8 +632,15 @@ def main():
     # PCAP
     parser.add_argument(
         "--pcap",
-        required=True,
-        help="Caminho para PCAP benign (warm-up)"
+        default=None,
+        help="Caminho para PCAP benign (warm-up). Obrigatorio se --phases nao for usado."
+    )
+    parser.add_argument(
+        "--phases",
+        default=None,
+        help="Drift multi-fase: lista 'pcap:label:max_packets' separada por virgula, "
+             "em ordem temporal. Ex: 'benign.pcap:benign:50000,ddos.pcap:ddos:30000'. "
+             "Sobrepoe --pcap/--attack-pcap quando presente."
     )
     parser.add_argument(
         "--attack-pcap",
@@ -775,6 +831,9 @@ def main():
 
     args = parser.parse_args()
 
+    if not args.pcap and not args.phases:
+        parser.error("forneca --pcap (benign) ou --phases (drift multi-fase)")
+
     # Sanitize attack-pcap: tratar "none" como None
     if args.attack_pcap and args.attack_pcap.lower() == "none":
         args.attack_pcap = None
@@ -826,25 +885,35 @@ def main():
         logger.info(f"Output: {args.output}")
         logger.info("=" * 60)
 
-        # ETAPA 1: Injetar PCAP benign
-        pcap_stats_benign = inject_pcap(
-            pcap_path=args.pcap,
-            bootstrap_servers=args.bootstrap_servers,
-            max_packets=args.max_packets,
-            verbose=args.verbose
-        )
-        pcap_stats_list.append(pcap_stats_benign)
-
-        # ETAPA 1b: Injetar PCAP de ataque (se fornecido)
-        if args.attack_pcap:
-            time.sleep(2)  # Pausa entre PCAPs
-            pcap_stats_attack = inject_pcap(
-                pcap_path=args.attack_pcap,
+        # ETAPA 1: Injetar PCAP(s)
+        phase_markers = []
+        if args.phases:
+            # G1: drift multi-fase (sobrepoe --pcap/--attack-pcap)
+            pcap_stats_list, phase_markers = inject_phases(
+                args.phases, args.bootstrap_servers, verbose=args.verbose
+            )
+            pcap_stats_benign = pcap_stats_list[0] if pcap_stats_list else {}
+        else:
+            # Fluxo classico: benign (+ attack opcional)
+            pcap_stats_benign = inject_pcap(
+                pcap_path=args.pcap,
                 bootstrap_servers=args.bootstrap_servers,
-                max_packets=args.max_packets_attack,
+                max_packets=args.max_packets,
                 verbose=args.verbose
             )
-            pcap_stats_list.append(pcap_stats_attack)
+            pcap_stats_list.append(pcap_stats_benign)
+            if args.attack_pcap:
+                time.sleep(2)  # Pausa entre PCAPs
+                pcap_stats_attack = inject_pcap(
+                    pcap_path=args.attack_pcap,
+                    bootstrap_servers=args.bootstrap_servers,
+                    max_packets=args.max_packets_attack,
+                    verbose=args.verbose
+                )
+                pcap_stats_list.append(pcap_stats_attack)
+
+        # G1: registrar marcadores de fase no meta (drift markers)
+        config_used["phase_markers"] = phase_markers
 
         # ETAPA 2: Iniciar FlowConsumer
         flow_consumer_process = start_flow_consumer(experiment_id=experiment_id, verbose=args.verbose)
