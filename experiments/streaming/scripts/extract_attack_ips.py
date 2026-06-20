@@ -110,7 +110,7 @@ def classify_pcap(name: str) -> str:
         name: Nome do arquivo ou diretório (case-insensitive)
 
     Returns:
-        Categoria: "benign", "ddos", "dos", "mirai", "recon", "spoofing", "other"
+        Categoria: "benign", "ddos", "dos", "mirai", "recon", "spoofing", "bruteforce", "web", "other"
     """
     name_lower = name.lower()
 
@@ -126,6 +126,13 @@ def classify_pcap(name: str) -> str:
         return "recon"
     elif "spoof" in name_lower or "mitm" in name_lower:
         return "spoofing"
+    elif ("brute" in name_lower or "dictionary" in name_lower):
+        return "bruteforce"
+    elif any(k in name_lower for k in (
+        "sql", "xss", "injection", "hijack", "upload",
+        "backdoor", "browser", "web",
+    )):
+        return "web"
     else:
         return "other"
 
