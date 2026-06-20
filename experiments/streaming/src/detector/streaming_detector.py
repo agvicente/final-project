@@ -587,12 +587,32 @@ class StreamingDetector:
         self.flows_processed += 1
 
         # Coleta resultado para avaliação externa (ground truth aplicado pelo orquestrador)
-        self._detection_results.append({
+        # G3: estado de regime por fluxo (rho = variance/r0) para a série temporal de drift.
+        _rec = {
             "is_anomaly": result.is_anomaly,
             "first_packet_time": flow.get("first_packet_time", time.time()),
             "src_ip": flow.get("src_ip"),
             "dst_ip": flow.get("dst_ip"),
-        })
+            "flow_index": self.flows_processed,
+            "eccentricity": float(getattr(result, "eccentricity", 0.0) or 0.0),
+            "typicality": float(getattr(result, "typicality", 0.0) or 0.0),
+            "num_clusters": int(getattr(result, "num_clusters", 0) or 0),
+            "new_cluster_created": bool(getattr(result, "new_cluster_created", False)),
+        }
+        # rho por fluxo (so MicroTEDAclus tem micro_clusters/r0)
+        _det = self._detector
+        if hasattr(_det, "micro_clusters") and hasattr(_det, "r0") and _det.r0 > 0:
+            _vars = [mc.variance for mc in _det.micro_clusters]
+            if _vars:
+                _rhos = [v / _det.r0 for v in _vars]
+                _rec["rho_mean"] = float(np.mean(_rhos))
+                _rec["rho_max"] = float(np.max(_rhos))
+                _rec["rho_frac_above_1"] = float(np.mean([r > 1.0 for r in _rhos]))
+                _rec["n_singletons"] = int(sum(1 for mc in _det.micro_clusters if mc.n == 1))
+            else:
+                _rec["rho_mean"] = _rec["rho_max"] = _rec["rho_frac_above_1"] = 0.0
+                _rec["n_singletons"] = 0
+        self._detection_results.append(_rec)
 
         # Log verbose
         if self.config.verbose:
