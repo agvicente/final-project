@@ -399,6 +399,9 @@ def run_detector(
             if y_true:
                 attack_flow_count += 1
             metrics.update(is_anomaly, y_true, timestamp)
+            # fading_error por-fluxo (input do ADWIN/Page-Hinkley) + y_true, anexados ao log
+            result["fading_error"] = float(metrics.fading_error)
+            result["y_true"] = bool(y_true)
 
         logger.info(
             f"Divisão por IP: {len(detection_results) - attack_flow_count} flows benign / "
