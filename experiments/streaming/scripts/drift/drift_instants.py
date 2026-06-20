@@ -40,6 +40,10 @@ def read_serie(path: Path):
             "flow_start": int(r["flow_start"]),
             "flow_end": int(r["flow_end"]),
             "rho_mean": float(r["rho_mean"]),
+            # rho_median e o sinal robusto principal (Fase 0 mostrou rho_mean instavel);
+            # fallback para rho_mean se a coluna nao existir (CSVs antigos).
+            "rho_median": float(r.get("rho_median", r["rho_mean"])),
+            "rho_p90": float(r.get("rho_p90", r["rho_mean"])),
             "rho_max": float(r["rho_max"]),
             "c_rate": float(r["c_rate"]),
             "num_clusters": float(r["num_clusters"]),
@@ -78,6 +82,7 @@ def compute_instants(rows, t_a_flow):
         "t_rho_3sigma": None, "t_rho_eq1": None, "t_c": None, "t_F": None,
         "rlt_3sigma": None, "rlt_eq1": None,
         "f1_pre": None, "mu_rho": None, "sd_rho": None,
+        "signal": "rho_median",  # sinal robusto principal (Fase 0)
         "n_base_windows": 0, "warning": None,
     }
     if t_a_flow is None:
@@ -92,7 +97,9 @@ def compute_instants(rows, t_a_flow):
                           "(t_a no comeco) — limiares 3sigma indefinidos")
         return out
 
-    mu_rho, sd_rho = _mean_sd([r["rho_mean"] for r in base])
+    # sinal de regime = rho_median (robusto a outliers de escala; Fase 0 mostrou
+    # rho_mean dominado por 1 cluster com variancia astronomica).
+    mu_rho, sd_rho = _mean_sd([r["rho_median"] for r in base])
     mu_c, sd_c = _mean_sd([r["c_rate"] for r in base])
     f1_pre = sum(r["f1_w"] for r in base) / len(base)
     out.update(mu_rho=mu_rho, sd_rho=sd_rho, f1_pre=f1_pre)
@@ -106,8 +113,8 @@ def compute_instants(rows, t_a_flow):
                 return r["flow_start"]
         return None
 
-    out["t_rho_3sigma"] = first(post, lambda r: r["rho_mean"] > thr_rho)
-    out["t_rho_eq1"] = first(post, lambda r: r["rho_mean"] > 1.0)
+    out["t_rho_3sigma"] = first(post, lambda r: r["rho_median"] > thr_rho)
+    out["t_rho_eq1"] = first(post, lambda r: r["rho_median"] > 1.0)
     out["t_c"] = first(post, lambda r: r["c_rate"] > thr_c)
 
     # t_F: queda relativa de F1. Se F1_pre ~ 0 (detector mudo), t_F indefinido.

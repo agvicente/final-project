@@ -151,6 +151,10 @@ class StreamingDetectorConfig:
     min_flows_per_window: int = 5
     window_feature_version: str = "v1"
 
+    # Normalizacao online das features (z-score running / Welford) — Fase 0 mostrou
+    # que features cruas (escalas 1e-3..1e7) fazem sigma^2 explodir e hiper-fragmentar.
+    normalize_features: bool = False
+
     # Comportamento
     publish_alerts: bool = True
     publish_all_results: bool = False  # Se True, publica normal tambem
@@ -235,6 +239,51 @@ DEFAULT_FEATURES = FEATURES_V1
 # STREAMING DETECTOR
 # ============================================================
 
+class RunningNormalizer:
+    """
+    Normalizador z-score ONLINE (Welford) para o vetor de features.
+
+    Mantem media e M2 (soma dos quadrados dos desvios) incrementais por dimensao,
+    atualizados a cada fluxo, e normaliza com as estatisticas VIGENTES (sem
+    look-ahead — streaming puro). Usado quando StreamingDetectorConfig.normalize_features.
+
+    Estado por dimensao d:
+      n      : contagem de amostras vistas
+      mean   : media corrente (array, shape [d])
+      M2     : soma dos quadrados dos desvios (array, shape [d]) -> var = M2/(n-1)
+    """
+
+    def __init__(self, dim: int):
+        self.n = 0
+        self.mean = np.zeros(dim, dtype=np.float64)
+        self.M2 = np.zeros(dim, dtype=np.float64)
+
+    def update_and_transform(self, x: np.ndarray) -> np.ndarray:
+        """
+        Atualiza as estatisticas correntes com x e retorna a versao normalizada
+        z = (x - mean) / std, usando as estatisticas APOS incluir x.
+
+        Implementacao do usuario (Welford):
+          1. incrementar n
+          2. delta = x - mean ; mean += delta / n
+          3. delta2 = x - mean ; M2 += delta * delta2
+          4. std = sqrt(M2 / (n-1)) com guarda para n<2 e std~0
+          5. retornar (x - mean) / std (std=1 onde indefinido, p/ nao dividir por 0)
+        """
+        self.n += 1
+        delta = x - self.mean
+        self.mean += delta / self.n
+        delta2 = x - self.mean
+        self.M2 += delta * delta2
+        # std a partir de M2; guarda para n<2 e dimensoes de variancia ~0
+        if self.n > 1:
+            std = np.sqrt(self.M2 / (self.n - 1))
+        else:
+            std = np.ones_like(self.mean)
+        std = np.where(std < 1e-8, 1.0, std)  # evita divisao por ~0 (feature constante -> 0)
+        return (x - self.mean) / std
+
+
 class StreamingDetector:
     """
     Detector de anomalias em streaming usando TEDA ou MicroTEDAclus.
@@ -273,6 +322,9 @@ class StreamingDetector:
             config: Configuracoes (None = defaults, usa MicroTEDAclus)
         """
         self.config = config or StreamingDetectorConfig()
+
+        # Normalizador online (lazy init na 1a feature; dimensao so conhecida la)
+        self._normalizer: Optional[RunningNormalizer] = None
 
         # Kafka clients
         self._consumer: Optional[KafkaConsumer] = None
@@ -422,7 +474,14 @@ class StreamingDetector:
                     value = 0.0
                 features.append(float(value))
 
-            return np.array(features, dtype=np.float64)
+            vec = np.array(features, dtype=np.float64)
+
+            if self.config.normalize_features:
+                if self._normalizer is None:
+                    self._normalizer = RunningNormalizer(dim=len(vec))
+                vec = self._normalizer.update_and_transform(vec)
+
+            return vec
 
         except Exception as e:
             logger.warning(f"Erro extraindo features: {e}")
@@ -606,11 +665,14 @@ class StreamingDetector:
             if _vars:
                 _rhos = [v / _det.r0 for v in _vars]
                 _rec["rho_mean"] = float(np.mean(_rhos))
+                _rec["rho_median"] = float(np.median(_rhos))
+                _rec["rho_p90"] = float(np.percentile(_rhos, 90))
                 _rec["rho_max"] = float(np.max(_rhos))
                 _rec["rho_frac_above_1"] = float(np.mean([r > 1.0 for r in _rhos]))
                 _rec["n_singletons"] = int(sum(1 for mc in _det.micro_clusters if mc.n == 1))
             else:
-                _rec["rho_mean"] = _rec["rho_max"] = _rec["rho_frac_above_1"] = 0.0
+                _rec["rho_mean"] = _rec["rho_median"] = _rec["rho_p90"] = 0.0
+                _rec["rho_max"] = _rec["rho_frac_above_1"] = 0.0
                 _rec["n_singletons"] = 0
         self._detection_results.append(_rec)
 

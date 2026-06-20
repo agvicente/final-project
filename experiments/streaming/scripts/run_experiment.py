@@ -275,6 +275,7 @@ def run_detector(
     window_seconds: float = 10.0,
     min_flows_per_window: int = 5,
     window_feature_version: str = "v1",
+    normalize_features: bool = False,
     # Isolation Forest params
     if_n_estimators: int = 100,
     contamination: float = 0.1,
@@ -366,6 +367,7 @@ def run_detector(
         window_size_seconds=window_seconds,
         min_flows_per_window=min_flows_per_window,
         window_feature_version=window_feature_version,
+        normalize_features=normalize_features,
     )
 
     # Detector puramente não-supervisionado — sem ground truth
@@ -634,6 +636,12 @@ def main():
         "--pcap",
         default=None,
         help="Caminho para PCAP benign (warm-up). Obrigatorio se --phases nao for usado."
+    )
+    parser.add_argument(
+        "--normalize-features",
+        action="store_true",
+        help="Normaliza as features online (z-score running/Welford) antes do detector. "
+             "Fase 0 mostrou que features cruas fazem sigma^2 explodir e hiper-fragmentar."
     )
     parser.add_argument(
         "--phases",
@@ -979,6 +987,7 @@ def main():
             window_seconds=args.window_seconds,
             min_flows_per_window=args.min_flows_per_window,
             window_feature_version=args.window_features,
+            normalize_features=args.normalize_features,
             # Isolation Forest
             if_n_estimators=args.if_n_estimators,
             contamination=args.contamination,

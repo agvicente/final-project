@@ -60,10 +60,20 @@ def window_stats(chunk):
     """
     n = len(chunk)
     rho_mean = [r.get("rho_mean", 0.0) for r in chunk]
+    rho_median = [r.get("rho_median", 0.0) for r in chunk]
+    rho_p90 = [r.get("rho_p90", 0.0) for r in chunk]
     rho_max = [r.get("rho_max", 0.0) for r in chunk]
     rho_fa1 = [r.get("rho_frac_above_1", 0.0) for r in chunk]
     nclust = [r.get("num_clusters", 0) for r in chunk]
     c_rate = sum(1 for r in chunk if r.get("new_cluster_created"))
+
+    # estatistica robusta agregada na janela: mediana das medianas por-fluxo
+    def _median(xs):
+        s = sorted(xs)
+        m = len(s)
+        if m == 0:
+            return 0.0
+        return s[m // 2] if m % 2 else (s[m // 2 - 1] + s[m // 2]) / 2
 
     # matriz de confusao na janela (y_pred = is_anomaly, y_true = y_true)
     tp = fp = tn = fn = 0
@@ -89,6 +99,8 @@ def window_stats(chunk):
 
     return {
         "rho_mean": sum(rho_mean) / n,
+        "rho_median": _median(rho_median),
+        "rho_p90": _median(rho_p90),
         "rho_max": max(rho_max) if rho_max else 0.0,
         "rho_frac_above_1": sum(rho_fa1) / n,
         "c_rate": c_rate,
@@ -123,7 +135,7 @@ def build(run_dir: Path, window: int):
     out = run_dir / "serie_temporal.csv"
     fields = [
         "win", "flow_start", "flow_end",
-        "rho_mean", "rho_max", "rho_frac_above_1",
+        "rho_mean", "rho_median", "rho_p90", "rho_max", "rho_frac_above_1",
         "c_rate", "num_clusters",
         "f1_w", "fpr_w", "recall_w",
         "fading_error", "attacks", "n",
