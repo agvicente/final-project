@@ -83,3 +83,8 @@ iot-ids-research/
 
 # Claude Code session markers
 .claude/.session-start-commit
+
+# Resultados crus do Exp A (drift) — 597MB de JSON por-fluxo, fora do git (só summary+figuras versionados)
+experiments/results/matrixA-drift/**/detection_results.json
+experiments/results/matrixA-drift/**/run_meta.json
+experiments/results/matrixA-drift/**/*.jsonl
