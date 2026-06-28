@@ -88,3 +88,14 @@ iot-ids-research/
 experiments/results/matrixA-drift/**/detection_results.json
 experiments/results/matrixA-drift/**/run_meta.json
 experiments/results/matrixA-drift/**/*.jsonl
+
+# Dirs de run crus do Exp A (240 runs): telemetria por-run fora do git.
+# Versiona apenas matrix_summary.csv, matrix.log, _analysis/ e plots/.
+experiments/results/matrixA-drift/*_c*/
+
+# Personal study wiki (local mastery map, not versioned)
+study-wiki/
+
+# Local re-entry TIMELINE (regenerated per re-entry, not versioned)
+TIMELINE.md
+.gitignore.bak-*
