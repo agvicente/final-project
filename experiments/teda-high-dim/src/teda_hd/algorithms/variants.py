@@ -73,6 +73,17 @@ VARIANT_CONFIGS = {
         use_n1_guard=True,
         use_n2_guard=True,
     ),
+    # V7 + the original's life-based forgetting/pruning (Maia 2020) re-enabled.
+    # Identical to V7 except clusters whose `life` decays below zero are pruned,
+    # matching the substitutive drift adaptation of the reference implementation.
+    "V7_forgetting": dict(
+        use_welford_variance=True,
+        use_consistent_eccentricity=True,
+        use_selective_update=True,
+        use_n1_guard=True,
+        use_n2_guard=True,
+        enable_pruning=True,
+    ),
 }
 
 

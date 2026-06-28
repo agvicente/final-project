@@ -128,9 +128,10 @@ class TestAblationVariants:
     """Test that ablation variants are correctly configured."""
 
     def test_all_variants_created(self):
-        """create_all_variants should return 8 variants."""
+        """create_all_variants should return the 8 ablation variants plus V7_forgetting."""
         variants = create_all_variants()
-        assert len(variants) == 8
+        assert len(variants) == 9
+        assert "V7_forgetting" in variants
 
     def test_v0_all_flags_off(self):
         """V0 should have all flags off."""
