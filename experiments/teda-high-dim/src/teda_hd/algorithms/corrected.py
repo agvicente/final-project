@@ -29,10 +29,30 @@ class CorrectedMicroCluster:
         self.variance = 0.0
         self._var_sum = 0.0  # Welford accumulator
         self.life = 1.0
+        self.density = 0.0   # 1/norm_ecc, set on update (original define_activations input)
+        self.active = True   # density-filter activation flag (original)
 
-    def update(self, x: np.ndarray) -> None:
-        """Update cluster stats with Welford's online algorithm."""
+    def update(self, x: np.ndarray, fading_factor: float = 0.0) -> None:
+        """Update cluster stats with Welford's online algorithm.
+
+        If ``fading_factor > 0``, also updates ``life`` exactly as the original
+        EvolvingClustering (Maia 2020): life rises when the new point falls
+        within the cluster radius (sqrt(var)) and falls otherwise, so inactive
+        clusters decay and become eligible for pruning. Uses the PRE-update
+        mean/variance, matching the reference implementation.
+        """
         x = np.asarray(x, dtype=np.float64)
+
+        # Life update uses the state BEFORE absorbing x (as in the original).
+        if fading_factor > 0.0:
+            prev_var = self.variance
+            if prev_var > 0.0:
+                dist = float(np.linalg.norm(x - self.mean))
+                rt = math.sqrt(prev_var)
+                self.life += ((rt - dist) / rt) * fading_factor
+            else:
+                self.life = 1.0
+
         self.n += 1
 
         # Mean update (same as original)
@@ -72,7 +92,7 @@ class CorrectedMicroTEDAclus(EvolvingClusteringBase):
         use_selective_update: bool = True,
         use_n1_guard: bool = True,
         use_n2_guard: bool = True,
-        enable_pruning: bool = True,
+        enable_pruning: bool = False,
     ):
         self.r0 = r0
         self.fading_factor = 1.0 / decay
@@ -144,23 +164,33 @@ class CorrectedMicroTEDAclus(EvolvingClusteringBase):
                 accepting.append(mc)
 
         if accepting:
+            # Pass fading_factor only when pruning is enabled, so life actually
+            # decays; otherwise update() leaves life at 1.0 (inert, the prior behavior).
+            ff = self.fading_factor if self.enable_pruning else 0.0
             if self.use_selective_update:
                 # ADAPTATION 3: Update ONLY best cluster
                 best = max(accepting, key=lambda mc: self._typicality(mc, x))
                 ecc = self._eccentricity(best, x)
-                best.update(x)
+                best.update(x, fading_factor=ff)
                 if not self.use_welford_variance:
                     self._update_original_variance(best, x)
+                # density = 1/norm_ecc (original update_micro_cluster), input to the filter
+                best.density = (1.0 / (ecc / 2.0)) if ecc > 0 else 0.0
             else:
                 # Original behavior: update ALL accepting clusters
                 best = max(accepting, key=lambda mc: self._typicality(mc, x))
                 ecc = self._eccentricity(best, x)
                 for mc in accepting:
-                    mc.update(x)
+                    e = self._eccentricity(mc, x)
+                    mc.update(x, fading_factor=ff)
                     if not self.use_welford_variance:
                         self._update_original_variance(mc, x)
+                    mc.density = (1.0 / (e / 2.0)) if e > 0 else 0.0
 
             if self.enable_pruning:
+                # Original chain: rebuild density-based activation, then decay
+                # the life of INACTIVE clusters and remove the dead ones.
+                self._define_activations()
                 self._prune()
 
             return ClusteringResult(
@@ -302,13 +332,71 @@ class CorrectedMicroTEDAclus(EvolvingClusteringBase):
 
     # ── Internal ─────────────────────────────────────────────
 
+    def _define_activations(self) -> None:
+        """Density-based activation filter, faithful to the original
+        EvolvingClustering.define_activations (Maia 2020).
+
+        Builds macro-clusters as connected components under the intersection
+        rule ``dist(mu_i, mu_j) <= 2*(sqrt(var_i)+sqrt(var_j))``; within each
+        macro-cluster a micro-cluster is *active* iff ``n > 2`` and its density
+        is at least the macro-cluster mean density. Inactive clusters are the
+        ones the pruning step decays.
+        """
+        clusters = self._clusters
+        n = len(clusters)
+        if n == 0:
+            return
+
+        # Union-find over the intersection graph (replaces NetworkX components).
+        parent = list(range(n))
+
+        def find(i):
+            while parent[i] != i:
+                parent[i] = parent[parent[i]]
+                i = parent[i]
+            return i
+
+        def union(i, j):
+            ri, rj = find(i), find(j)
+            if ri != rj:
+                parent[rj] = ri
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                a, b = clusters[i], clusters[j]
+                dist = float(np.linalg.norm(a.mean - b.mean))
+                deviation = 2.0 * (math.sqrt(max(a.variance, 0.0)) + math.sqrt(max(b.variance, 0.0)))
+                if dist <= deviation:
+                    union(i, j)
+
+        # Group indices by macro-cluster root.
+        groups: dict = {}
+        for i in range(n):
+            groups.setdefault(find(i), []).append(i)
+
+        for members in groups.values():
+            mean_density = sum(clusters[i].density for i in members) / len(members)
+            for i in members:
+                mc = clusters[i]
+                mc.active = (mc.n > 2) and (mc.density >= mean_density)
+
+    def _prune(self) -> None:
+        """Decay the life of INACTIVE clusters and remove the dead ones,
+        faithful to the original prune_micro_clusters (decay every step)."""
+        survivors = []
+        for mc in self._clusters:
+            if not mc.active:
+                mc.life -= self.fading_factor
+                if mc.life < 0:
+                    continue  # pruned
+            survivors.append(mc)
+        self._clusters = survivors
+
+    # ── Internal ─────────────────────────────────────────────
+
     def _create_cluster(self, x: np.ndarray) -> CorrectedMicroCluster:
         mc = CorrectedMicroCluster(self._next_id, x)
         self._next_id += 1
         self._clusters.append(mc)
         self._cluster_variances[mc.cluster_id] = 0.0
         return mc
-
-    def _prune(self) -> None:
-        """Simple life-based pruning."""
-        self._clusters = [mc for mc in self._clusters if mc.life >= 0]
