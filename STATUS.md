@@ -2,7 +2,35 @@
 <!-- STATUS.md é um snapshot. Substituir seções dinâmicas a cada sessão. -->
 <!-- Histórico em docs/progress/ (gerado automaticamente) -->
 
-**Atualizado:** 2026-06-25 | **Branch:** experimentos-drift (remota) / main (local) | **Prazo defesa:** ~ago/2026 | **Submit SoftCom:** feito
+**Atualizado:** 2026-06-29 | **Branch:** main (Mac/GitHub/VM TODOS sincronizados em `1c3e7de`) | **Prazo defesa:** ~ago/2026 | **Submit SoftCom:** feito
+
+---
+
+**Sessão 28-29/06 — CONSOLIDAÇÃO GIT (3 cópias → main) + AUDITORIA DO FORGETTING + P1.**
+Recuperação de contexto após desligamento abrupto (26-27/06) + consolidação de 3 cópias divergentes
+do repo em `main`, e verificação do ambiente para o re-run do Exp A na linhagem correta.
+- **Auditoria do forgetting (recuperada de `study-wiki/experimentos/14-auditoria-implementacao.md`):**
+  a pergunta era se a ausência do esquecimento compromete o Exp A. Veredito: forgetting IMATERIAL no
+  sintético; o achado de 1ª ordem é que o **Exp A rodou com `micro_teda.py` (bug: variância atual vs
+  hipotética) — detector fragmentado, NÃO o V7 caracterizado em E1-E3**. Blast radius: artigo1 imune,
+  E1-E3/Campaign-05 limpos, só Exp A + Campaigns 01-02 afetados. Decisão: **migrar streaming →
+  corrected.py** (via wrapper `variant_micro_teda`, já existente) e re-rodar.
+- **Consolidação git:** VM tinha branch `experimentos-drift` com 13 commits exclusivos (pipeline Exp A)
+  nunca sincronizados. Tudo mergeado em `main` (commit `1c3e7de`), push GitHub, VM alinhada. Crus
+  (597 MB) seguem gitignored na VM. Conflitos resolvidos (base=VM que rodou o Exp A; normalização
+  FeatureNormalizer/mode/warmup do Mac volta na Campaign-06).
+- **Overleaf DESTRAVADO:** push da dissertação voltou a funcionar (commit `6255819`, master). 4 capítulos
+  (incl. chp5/E5) preservados e sincronizados.
+- **P1 verificado:** testes 52/52 verdes; smoke do wrapper reproduz o laudo (V0→139/2500 ncl,
+  V7→9 ncl/6 anom, V7_forgetting→2 ncl/6 anom). Migração confirmada como troca de flag.
+
+**Próxima sessão (P2 — re-run do Exp A na linhagem correta, na VM):**
+1. Re-rodar a matriz A (4 ataques × 2 r₀ × 30 comp) via pipeline streaming com
+   `--algorithm variant_micro_teda --variant-name V7_full_corrected` (substitui o detector com bug)
+   E braço `V7_forgetting` (Fase 3b: forgetting em IoT real). Usar tmux+checkpoint (resiliente).
+2. Comparação pareada (Wilcoxon) vs os 240 runs antigos: num_clusters, F1/FPR/recall, leads ρ-vs-erro.
+   Critérios: regime muda de fragmentado→estabilizado? forgetting altera ρ/lead? H4 se mantém?
+3. Atualizar §5.7 (e §5.1) da dissertação com os números corretos + gate (build + leitura visual).
 
 ---
 
