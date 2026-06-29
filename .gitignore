@@ -96,3 +96,7 @@ experiments/results/matrixA-drift/**/detection_results.json
 experiments/results/matrixA-drift/**/run_meta.json
 experiments/results/matrixA-drift/**/*.jsonl
 .gitignore.bak-*
+
+# Dissertacao e papers vivem em repos Overleaf proprios (git.overleaf.com), nao aninhados aqui.
+writing/dissertation/
+writing/papers/69da494c7d0d6aa7085e2444
