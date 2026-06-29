@@ -439,7 +439,50 @@ Tráfego IoT → Pré-processamento → MicroTEDAclus → Decisão
 
 ---
 
-## 12. Próximos Passos
+## 12. Regime Transition Analysis (contribuição própria, 2026)
+
+> **Este resumo aponta para o documento dedicado** `regime-transition.md`. Não duplica conteúdo. Inclui aqui apenas o suficiente para que um leitor do TEDA framework saiba que existe um aspecto novo de caracterização e onde encontrá-lo.
+
+### 12.1 O mecanismo
+
+Na implementação do MicroTEDAclus, a eccentricidade de um ponto $x$ relativa a um cluster $i$ usa um denominador travado por um piso $r_0$:
+
+$$
+\xi(x; i) = \frac{1}{n_i} + \frac{\|x - \mu_i\|^2}{n_i \cdot \max(\sigma_i^2, r_0)}.
+$$
+
+A função $\max$ define **dois regimes operacionais distintos**:
+
+- **r0-bounded** ($\sigma^2 \ll r_0$): denominador = $r_0$ (constante). Limiar de aceitação é **não-adaptativo**, idêntico para todos os clusters.
+- **data-bounded** ($\sigma^2 \gg r_0$): denominador = $\sigma^2$ (depende dos dados). Limiar **adapta-se à dispersão local** de cada cluster.
+
+A transição é abrupta (não-suave, função `max`) — ocorre quando $\sigma^2 = r_0$.
+
+### 12.2 Ponto de transição $\lambda^*$ para dados $\mathcal{N}(0, \lambda^2 I_d)$
+
+A variância Welford dum cluster converge para o traço da covariância: $\sigma^2 \to d \cdot \lambda^2$. Logo:
+
+$$
+\lambda^* = \sqrt{r_0 / d}.
+$$
+
+Para $d = 17$, $r_0 = 0{,}001$ (Maia default): $\lambda^* \approx 0{,}008$. Para $r_0 = 0{,}1$: $\lambda^* \approx 0{,}077$.
+
+### 12.3 Implicação para o escopo de Maia 2020
+
+Os datasets de validação do paper Maia ($d \in \{2, 3\}$, features escala $\lambda \sim 1$) estão **muito acima** de $\lambda^* = \sqrt{0{,}001/2} \approx 0{,}022$. Ou seja, o paper opera **exclusivamente no regime data-bounded**, longe da fronteira. A "robustez de $r_0$" reportada é estabilidade **dentro** de um regime, não generalização **entre** regimes.
+
+Em IoT com features raw e $d = 17$, $\lambda^*$ aumenta para $\sim 0{,}008$ (com $r_0 = 0{,}001$), e a calibração default de Maia entra na zona de transição. Daí a necessidade das adaptações V1–V7 para estabilizar o detector quando ele atravessa a fronteira.
+
+### 12.4 Onde aprofundar
+
+- **Mecanismo + 4 code paths em `corrected.py` + derivação completa:** `research/foundations/regime-transition.md`.
+- **Validação empírica (Exp 3, sintético):** `experiments/teda-high-dim/experiments/exp03_regime_transition.py`, resultados em `experiments/teda-high-dim/results/exp03_*`.
+- **Implicação para a contribuição do paper SoftCom:** `TIMELINE.md` §5.
+
+---
+
+## 13. Próximos Passos
 
 1. **Implementar MicroTEDAclus** para CICIoT2023
 2. **Comparar** com baselines da Fase 1 (Random Forest, Isolation Forest, etc.)
@@ -451,4 +494,4 @@ Tráfego IoT → Pré-processamento → MicroTEDAclus → Decisão
 
 **Este documento serve como referência rápida para os conceitos de clustering evolutivo aplicados ao projeto de mestrado.**
 
-*Última atualização: 2025-12-09*
+*Última atualização: 2026-05-04*

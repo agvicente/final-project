@@ -456,6 +456,22 @@ GitHub: https://github.com/cseveriano/evolving_clustering
 
 ---
 
-**Status:** Fichamento completo
-**Próximo passo:** Implementar MicroTEDAclus para IDS IoT
+## 14. Limitação retrospectiva de escopo (anotação 2026-05-04)
+
+Esta seção foi adicionada após a caracterização do regime change pelo Exp 3 do projeto (`research/foundations/regime-transition.md`).
+
+**Achado:** Os datasets de validação do paper Maia 2020 (ST-D1/D2, Cassini, STR-B1/B2, RBF) têm $d \in \{2, 3\}$ e features na faixa $\lambda \sim 1$–$10$. O parâmetro $r_0 = 0{,}001$ usado em todos os experimentos do paper coloca o detector **sempre no regime data-bounded** ($\sigma^2 = d \cdot \lambda^2 \gg r_0$, ou seja, $\sqrt{r_0/d} \approx 0{,}022 \ll \lambda$).
+
+**Implicação 1 (sobre a "robustez" reportada):** A frase do paper "MicroTEDAclus was very robust in terms of parameters. The only variable to be tuned was the variance limit $r_0$, which stayed in the same value for all the experiments" descreve **estabilidade dentro de um regime** (data-bounded), não **generalização entre regimes**. O paper original não testou a fronteira $\sigma^2 \approx r_0$ nem o regime r0-bounded.
+
+**Implicação 2 (sobre uso em IoT):** Em CICIoT2023 com features raw e $d = 17$, $\sqrt{r_0/d} \approx 0{,}008$ com $r_0 = 0{,}001$. A escala efetiva das features é alta o suficiente para colocar o detector em regime data-bounded — mas as **adaptações operacionais** (variance floor `max(σ², r₀)`, n=2 guard, n<3 guard, intersection) operam na fronteira e quebram em alta dimensão, conforme demonstrado em `experiments/teda-high-dim/experiments/exp01_dimensional_sweep.py` e Campaign-04.
+
+**Não é refutação do paper Maia.** A contribuição do nosso trabalho é **delimitar o escopo de aplicabilidade** do método em ambientes de alta dimensão / heterogeneidade de escala — não corrigir um erro do co-autor do orientador. Este framing é defensável do ponto de vista político (o trabalho **estende** o paper Maia) e cientificamente mais forte (caracteriza a fronteira de validade em vez de simplesmente afirmar bug).
+
+Ver: `research/foundations/regime-transition.md` §9 (reinterpretação retroativa) e §3 (derivação de $\lambda^* = \sqrt{r_0/d}$).
+
+---
+
+**Status:** Fichamento completo (com extensão 2026-05-04 sobre escopo retrospectivo)
+**Próximo passo:** Implementar MicroTEDAclus para IDS IoT (já feito) + caracterizar fronteira de regime (Exp 3 em curso)
 

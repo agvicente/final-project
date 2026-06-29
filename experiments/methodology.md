@@ -598,6 +598,53 @@ Todos os campos necessários já existem no flow dict do FlowConsumer. Seleção
 
 ---
 
+## 9. Phase Transition Characterization Protocol
+
+**Adicionado:** 2026-05-04
+**Origem:** Exp 3 (`experiments/teda-high-dim/experiments/exp03_regime_transition.py`).
+
+Quando uma hipótese postula que um algoritmo apresenta **transição de regime** governada por um parâmetro contínuo (ex.: escala dos dados $\lambda$ vs piso de variância $r_0$), o protocolo de validação deve ser **causal e falsificável**, não apenas correlacional. Aplicado em Exp 3 para caracterizar r0-bounded vs data-bounded.
+
+### 9.1 Princípios
+
+1. **Predição algébrica antes do experimento.** Derivar o ponto de transição $\lambda^*$ a partir do mecanismo proposto (`max(σ², r₀)` no MicroTEDAclus implica $\lambda^* = \sqrt{r_0/d}$). Pré-registrar a predição para evitar ajuste post-hoc.
+2. **Sweep log-espaçado cobrindo $\geq 4$ ordens de grandeza** centrados em $\lambda^*$. Densidade maior na vizinhança da transição.
+3. **Variar $r_0$ em paralelo** ($\geq 3$ valores log-espaçados). Verificar que $\lambda^*_{\text{observado}}$ escala como $\sqrt{r_0}$ — preserva a estrutura algébrica entre condições.
+4. **Métrica de regime instrumentada.** Não basta FPR final: precisa rastrear $\sigma^2_{\text{eff}}$, fração de clusters com $\sigma^2 > r_0$, topologia (singletons, top-1 fraction, Shannon entropy). Ver `src/teda_hd/metrics/regime.py`.
+5. **Comparação com algoritmo "controle"** (sem o mecanismo). No caso de Exp 3, V0 (sem `max(var, r₀)` guard) deve apresentar comportamento qualitativamente diferente — confirma que o `max` é causal, não correlato.
+
+### 9.2 Critério de robustez (todos simultâneos)
+
+- Friedman $p < 0{,}001$ entre os "regime groups" identificados pela métrica indicador.
+- $\lambda^*_{\text{observado}}$ dentro de **2×** de $\sqrt{r_0/d}$ predito.
+- Razão $\lambda^*(r_0_a)/\lambda^*(r_0_b)$ dentro de 2× da razão predita ($\sqrt{r_0_a/r_0_b}$).
+- Cohen's $d > 0{,}8$ entre algoritmo com mecanismo (V7) e sem (V0) em ao menos uma métrica de regime.
+
+### 9.3 Iteração condicional pós-experimento
+
+| Resultado | Ação |
+|---|---|
+| Todas as predições confirmadas | Reportar como descoberta validada; gerar figuras paper-quality. |
+| Ponto de transição diverge mas razão preservada | Investigar fonte de divergência (warmup do Welford, finite-sample bias); ajustar derivação algébrica e re-verificar nos mesmos dados. |
+| Predição de fronteira correta mas algoritmo controle também transiciona | Reescrever hipótese — o mecanismo postulado pode não ser o causal. |
+| Nenhuma transição observada | Resultado negativo honesto. Refutar hipótese e voltar ao framing operacional. |
+
+### 9.4 Reusabilidade
+
+Este protocolo é template para qualquer experimento futuro que postule **transição abrupta** governada por uma única variável. Útil para investigações de:
+- Limiares de detecção de drift (Page-Hinkley, ADWIN).
+- Pontos de saturação de performance vs $r_0$ ou outros hiper-parâmetros.
+- Fronteiras de aplicabilidade entre regimes operacionais distintos.
+
+### 9.5 Referências cruzadas
+
+- **Fundamentação teórica completa:** `research/foundations/regime-transition.md` (mecanismo, derivação, intuição geométrica).
+- **Resumo no framework TEDA:** `research/foundations/teda-framework.md` §12.
+- **Limitação retrospectiva do paper-âncora:** `research/summaries/maia-2020-microtedaclus.md` §14.
+- **Snapshot temporal da descoberta:** `TIMELINE.md` §5.
+
+---
+
 **Este documento serve como guia para conduzir experimentos válidos e reprodutíveis com o sistema IoT IDS.**
 
 *Atualizar conforme experimentos forem realizados e novas práticas identificadas.*

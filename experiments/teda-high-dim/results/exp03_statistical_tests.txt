@@ -1,0 +1,98 @@
+===========================================================================
+STATISTICAL TESTS -- Experiment 3: Regime Transition
+Dimension: d=17 (fixed), seeds: 30
+Total runs: 1620
+Hypotheses:
+  H1  V7 transitions at lambda* = sqrt(r0/d).
+  H2  V0 differs qualitatively (Cohen's d > 0.8 vs V7).
+  H3  lambda*(r0_a)/lambda*(r0_b) ~= sqrt(r0_a/r0_b).
+===========================================================================
+
+Summary saved: /Users/augusto/mestrado/final-project/experiments/teda-high-dim/results/exp03_summary.csv
+
+---------------------------------------------------------------------------
+1. FRIEDMAN TEST -- per (algorithm, r0) across lambda groups
+---------------------------------------------------------------------------
+
+  V0_original               r0=0.001: chi2=237.460, p=7.814e-47  [H1 sig p<0.001? YES]
+  V0_original               r0=0.1: chi2=239.490, p=2.903e-47  [H1 sig p<0.001? YES]
+  V0_original               r0=1: chi2=240.000, p=2.264e-47  [H1 sig p<0.001? YES]
+  V7_full_corrected         r0=0.001: chi2=160.000, p=1.599e-30  [H1 sig p<0.001? YES]
+  V7_full_corrected         r0=0.1: chi2=160.000, p=1.599e-30  [H1 sig p<0.001? YES]
+  V7_full_corrected         r0=1: chi2=160.000, p=1.599e-30  [H1 sig p<0.001? YES]
+
+---------------------------------------------------------------------------
+2. ANOVA one-way per r0 -- FPR ~ lambda (each algo separate)
+---------------------------------------------------------------------------
+
+  V0_original               r0=0.001: F=304795.86, p=0.000e+00
+  V0_original               r0=0.1: F=215277.54, p=0.000e+00
+  V0_original               r0=1: F=123539.65, p=0.000e+00
+  V7_full_corrected         r0=0.001: F=9.06, p=5.545e-11
+  V7_full_corrected         r0=0.1: F=18.12, p=1.675e-21
+  V7_full_corrected         r0=1: F=22.66, p=3.569e-26
+
+---------------------------------------------------------------------------
+3. EMPIRICAL TRANSITION POINT lambda*
+---------------------------------------------------------------------------
+Predicted: lambda* = sqrt(r0 / d), d=17
+Empirical: linear interp where frac_above_r0 crosses 0.5
+
+  V0_original               r0=0.001: predicted=0.0077, empirical=  0.0927, ratio= 12.08  [H1 within 2x? NO]
+  V0_original               r0=0.1: predicted=0.0767, empirical=  0.9267, ratio= 12.08  [H1 within 2x? NO]
+  V0_original               r0=1: predicted=0.2425, empirical=  2.9306, ratio= 12.08  [H1 within 2x? NO]
+  V7_full_corrected         r0=0.001: predicted=0.0077, empirical=  0.0029, ratio=  0.38  [H1 within 2x? NO]
+  V7_full_corrected         r0=0.1: predicted=0.0767, empirical=  0.0293, ratio=  0.38  [H1 within 2x? NO]
+  V7_full_corrected         r0=1: predicted=0.2425, empirical=  0.0925, ratio=  0.38  [H1 within 2x? NO]
+
+  H3 check (ratios between r0's, V7 only):
+    lambda*(r0=0.1)/lambda*(r0=0.001): obs=10.000, pred=sqrt(100)=10.000, check_ratio=1.00  [H3? YES]
+    lambda*(r0=1)/lambda*(r0=0.001): obs=31.623, pred=sqrt(1000)=31.623, check_ratio=1.00  [H3? YES]
+    lambda*(r0=1)/lambda*(r0=0.1): obs=3.162, pred=sqrt(10)=3.162, check_ratio=1.00  [H3? YES]
+
+---------------------------------------------------------------------------
+4. COHEN'S d -- V0 vs V7 (per r0, per lambda)
+---------------------------------------------------------------------------
+Effect size on FPR. Threshold for H2: |d| > 0.8 in at least one cell.
+
+  r0 = 0.001:
+    lambda=0.001: V0_mean=0.0000, V7_mean=0.0000, d=  +0.00    
+    lambda=0.00316228: V0_mean=0.0000, V7_mean=0.0000, d=  +0.00    
+    lambda=0.01: V0_mean=0.0000, V7_mean=0.0011, d=  -1.55  ***
+    lambda=0.0316228: V0_mean=0.0000, V7_mean=0.0011, d=  -1.55  ***
+    lambda=0.1: V0_mean=0.0626, V7_mean=0.0011, d=  +5.62  ***
+    lambda=0.316228: V0_mean=0.9978, V7_mean=0.0011, d=+1246.51  ***
+    lambda=1: V0_mean=0.9980, V7_mean=0.0011, d=+1376.33  ***
+    lambda=3.16228: V0_mean=0.9980, V7_mean=0.0011, d=+1376.33  ***
+    lambda=10: V0_mean=0.9980, V7_mean=0.0011, d=+1376.33  ***
+  r0 = 0.1:
+    lambda=0.001: V0_mean=0.0000, V7_mean=0.0000, d=  +0.00    
+    lambda=0.00316228: V0_mean=0.0000, V7_mean=0.0000, d=  +0.00    
+    lambda=0.01: V0_mean=0.0000, V7_mean=0.0000, d=  +0.00    
+    lambda=0.0316228: V0_mean=0.0000, V7_mean=0.0000, d=  +0.00    
+    lambda=0.1: V0_mean=0.0000, V7_mean=0.0011, d=  -1.55  ***
+    lambda=0.316228: V0_mean=0.0000, V7_mean=0.0011, d=  -1.55  ***
+    lambda=1: V0_mean=0.0626, V7_mean=0.0011, d=  +5.62  ***
+    lambda=3.16228: V0_mean=0.9978, V7_mean=0.0011, d=+1246.51  ***
+    lambda=10: V0_mean=0.9980, V7_mean=0.0011, d=+1376.33  ***
+  r0 = 1:
+    lambda=0.001: V0_mean=0.0000, V7_mean=0.0000, d=  +0.00    
+    lambda=0.00316228: V0_mean=0.0000, V7_mean=0.0000, d=  +0.00    
+    lambda=0.01: V0_mean=0.0000, V7_mean=0.0000, d=  +0.00    
+    lambda=0.0316228: V0_mean=0.0000, V7_mean=0.0000, d=  +0.00    
+    lambda=0.1: V0_mean=0.0000, V7_mean=0.0000, d=  +0.00    
+    lambda=0.316228: V0_mean=0.0000, V7_mean=0.0011, d=  -1.55  ***
+    lambda=1: V0_mean=0.0000, V7_mean=0.0011, d=  -1.55  ***
+    lambda=3.16228: V0_mean=0.0626, V7_mean=0.0011, d=  +5.62  ***
+    lambda=10: V0_mean=0.9978, V7_mean=0.0011, d=+1246.51  ***
+
+  H2 (|d|>0.8 in any cell)? YES
+
+---------------------------------------------------------------------------
+5. VERDICT vs. PLAN CRITERIA (Phase C)
+---------------------------------------------------------------------------
+  H1: V7 transitions within 2x of sqrt(r0/d): 0/3 r0 values pass
+  H2: V0 vs V7 |d|>0.8 in some cell: True
+  H3: lambda* ratios within 2x of sqrt(r0_a/r0_b): 3/3
+
+  CASE C/D -- Predictions not confirmed. Revisit hypothesis or instrumentation.
