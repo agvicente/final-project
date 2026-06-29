@@ -83,3 +83,16 @@ iot-ids-research/
 
 # Claude Code session markers
 .claude/.session-start-commit
+
+# Local re-entry TIMELINE (regenerated per re-entry, not versioned)
+TIMELINE.md
+
+# Personal study wiki (local mastery map, not versioned)
+study-wiki/
+
+# Dirs de run crus do Exp A (240 runs): telemetria por-run fora do git (crus ficam na VM).
+experiments/results/matrixA-drift/*_c*/
+experiments/results/matrixA-drift/**/detection_results.json
+experiments/results/matrixA-drift/**/run_meta.json
+experiments/results/matrixA-drift/**/*.jsonl
+.gitignore.bak-*
