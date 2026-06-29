@@ -285,6 +285,10 @@ def run_detector(
     svm_gamma: str = "scale",
     # Variant params
     variant_name: str = "V7_full_corrected",
+    # Feature normalization (Campaign-06)
+    normalize_features: bool = False,
+    normalize_mode: str = "zscore",
+    normalize_warmup_size: int = 100,
 ) -> Dict[str, Any]:
     """
     Executa StreamingDetector e avalia resultados.
@@ -366,6 +370,10 @@ def run_detector(
         window_size_seconds=window_seconds,
         min_flows_per_window=min_flows_per_window,
         window_feature_version=window_feature_version,
+        # Feature normalization (Campaign-06)
+        normalize_features=normalize_features,
+        normalize_mode=normalize_mode,
+        normalize_warmup_size=normalize_warmup_size,
     )
 
     # Detector puramente não-supervisionado — sem ground truth
@@ -755,6 +763,28 @@ def main():
         help="Window feature set: 'v1' (12 basic) or 'v2' (19 = basic + behavioral)"
     )
 
+    # Feature normalization (Campaign-06 — regime transition validation in IoT)
+    parser.add_argument(
+        "--normalize-features",
+        action="store_true",
+        help="Apply online z-score (or min-max) normalization to features. "
+             "Default: False (raw features, matches earlier campaigns). "
+             "Used by Campaign-06 to test the regime transition hypothesis on IoT data."
+    )
+    parser.add_argument(
+        "--normalize-mode",
+        choices=["zscore", "minmax"],
+        default="zscore",
+        help="Normalization mode (only used if --normalize-features is set)."
+    )
+    parser.add_argument(
+        "--normalize-warmup-size",
+        type=int,
+        default=100,
+        help="Number of warmup samples before fitting normalization stats (default: 100). "
+             "During warmup, the detector sees raw features."
+    )
+
     # Ground truth
     parser.add_argument(
         "--ground-truth",
@@ -917,6 +947,10 @@ def main():
             svm_gamma=args.svm_gamma,
             # Variantes ablation
             variant_name=args.variant_name,
+            # Feature normalization (Campaign-06)
+            normalize_features=args.normalize_features,
+            normalize_mode=args.normalize_mode,
+            normalize_warmup_size=args.normalize_warmup_size,
         )
 
         # ETAPA 4: Coletar snapshots de clusters (simplificado)

@@ -151,6 +151,16 @@ class StreamingDetectorConfig:
     min_flows_per_window: int = 5
     window_feature_version: str = "v1"
 
+    # Feature normalization (Campaign-06 -- regime transition validation in IoT)
+    # When True, applies online z-score normalization to features after warmup.
+    # Goal: project raw IoT features into unit-variance space; if regime transition
+    # is governed by sigma^2 vs r0, V0 and V7 should converge to similar behavior
+    # under normalization. See research/foundations/regime-transition.md and
+    # experiments/teda-high-dim/experiments/exp03_regime_transition.py.
+    normalize_features: bool = False
+    normalize_mode: str = "zscore"  # 'zscore' or 'minmax'
+    normalize_warmup_size: int = 100
+
     # Comportamento
     publish_alerts: bool = True
     publish_all_results: bool = False  # Se True, publica normal tambem
@@ -354,6 +364,20 @@ class StreamingDetector:
             self._feature_names = self.config.feature_names or DEFAULT_FEATURES
             self._window_aggregator = None
 
+        # Online feature normalizer (optional, used by Campaign-06)
+        self._normalizer = None
+        if self.config.normalize_features:
+            from src.utils.feature_normalizer import FeatureNormalizer
+            self._normalizer = FeatureNormalizer(
+                mode=self.config.normalize_mode,
+                warmup_size=self.config.normalize_warmup_size,
+            )
+            logger.info(
+                f"Feature normalization enabled "
+                f"(mode={self.config.normalize_mode}, "
+                f"warmup={self.config.normalize_warmup_size})"
+            )
+
         # Estatisticas
         self.flows_processed = 0
         self.anomalies_detected = 0
@@ -534,6 +558,10 @@ class StreamingDetector:
     ) -> None:
         """Processa vetores agregados emitidos pelo WindowAggregator."""
         for feature_vector, metadata in vectors:
+            # Optional online normalization (window-aggregated vectors)
+            if self._normalizer is not None:
+                feature_vector = self._normalizer.update_and_transform(feature_vector)
+
             if self._algorithm == DetectorAlgorithm.TEDA:
                 result = self._detector.update(feature_vector)
             else:
@@ -577,6 +605,10 @@ class StreamingDetector:
         features = self._extract_features(flow)
         if features is None:
             return None
+
+        # Optional online normalization (returns raw during warmup)
+        if self._normalizer is not None:
+            features = self._normalizer.update_and_transform(features)
 
         # Aplica detector (TEDA ou MicroTEDAclus)
         if self._algorithm == DetectorAlgorithm.TEDA:
