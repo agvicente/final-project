@@ -151,15 +151,11 @@ class StreamingDetectorConfig:
     min_flows_per_window: int = 5
     window_feature_version: str = "v1"
 
-    # Feature normalization (Campaign-06 -- regime transition validation in IoT)
-    # When True, applies online z-score normalization to features after warmup.
-    # Goal: project raw IoT features into unit-variance space; if regime transition
-    # is governed by sigma^2 vs r0, V0 and V7 should converge to similar behavior
-    # under normalization. See research/foundations/regime-transition.md and
-    # experiments/teda-high-dim/experiments/exp03_regime_transition.py.
+    # Normalizacao online das features (z-score running / Welford) — Fase 0 mostrou
+    # que features cruas (escalas 1e-3..1e7) fazem sigma^2 explodir e hiper-fragmentar.
+    # Base: RunningNormalizer (VM, que rodou o Exp A). Os modos zscore/minmax + warmup
+    # (FeatureNormalizer do Mac) voltam na Campaign-06. Ver regime-transition.md.
     normalize_features: bool = False
-    normalize_mode: str = "zscore"  # 'zscore' or 'minmax'
-    normalize_warmup_size: int = 100
 
     # Comportamento
     publish_alerts: bool = True
@@ -245,6 +241,51 @@ DEFAULT_FEATURES = FEATURES_V1
 # STREAMING DETECTOR
 # ============================================================
 
+class RunningNormalizer:
+    """
+    Normalizador z-score ONLINE (Welford) para o vetor de features.
+
+    Mantem media e M2 (soma dos quadrados dos desvios) incrementais por dimensao,
+    atualizados a cada fluxo, e normaliza com as estatisticas VIGENTES (sem
+    look-ahead — streaming puro). Usado quando StreamingDetectorConfig.normalize_features.
+
+    Estado por dimensao d:
+      n      : contagem de amostras vistas
+      mean   : media corrente (array, shape [d])
+      M2     : soma dos quadrados dos desvios (array, shape [d]) -> var = M2/(n-1)
+    """
+
+    def __init__(self, dim: int):
+        self.n = 0
+        self.mean = np.zeros(dim, dtype=np.float64)
+        self.M2 = np.zeros(dim, dtype=np.float64)
+
+    def update_and_transform(self, x: np.ndarray) -> np.ndarray:
+        """
+        Atualiza as estatisticas correntes com x e retorna a versao normalizada
+        z = (x - mean) / std, usando as estatisticas APOS incluir x.
+
+        Implementacao do usuario (Welford):
+          1. incrementar n
+          2. delta = x - mean ; mean += delta / n
+          3. delta2 = x - mean ; M2 += delta * delta2
+          4. std = sqrt(M2 / (n-1)) com guarda para n<2 e std~0
+          5. retornar (x - mean) / std (std=1 onde indefinido, p/ nao dividir por 0)
+        """
+        self.n += 1
+        delta = x - self.mean
+        self.mean += delta / self.n
+        delta2 = x - self.mean
+        self.M2 += delta * delta2
+        # std a partir de M2; guarda para n<2 e dimensoes de variancia ~0
+        if self.n > 1:
+            std = np.sqrt(self.M2 / (self.n - 1))
+        else:
+            std = np.ones_like(self.mean)
+        std = np.where(std < 1e-8, 1.0, std)  # evita divisao por ~0 (feature constante -> 0)
+        return (x - self.mean) / std
+
+
 class StreamingDetector:
     """
     Detector de anomalias em streaming usando TEDA ou MicroTEDAclus.
@@ -283,6 +324,9 @@ class StreamingDetector:
             config: Configuracoes (None = defaults, usa MicroTEDAclus)
         """
         self.config = config or StreamingDetectorConfig()
+
+        # Normalizador online (lazy init na 1a feature; dimensao so conhecida la)
+        self._normalizer: Optional[RunningNormalizer] = None
 
         # Kafka clients
         self._consumer: Optional[KafkaConsumer] = None
@@ -364,19 +408,8 @@ class StreamingDetector:
             self._feature_names = self.config.feature_names or DEFAULT_FEATURES
             self._window_aggregator = None
 
-        # Online feature normalizer (optional, used by Campaign-06)
-        self._normalizer = None
-        if self.config.normalize_features:
-            from src.utils.feature_normalizer import FeatureNormalizer
-            self._normalizer = FeatureNormalizer(
-                mode=self.config.normalize_mode,
-                warmup_size=self.config.normalize_warmup_size,
-            )
-            logger.info(
-                f"Feature normalization enabled "
-                f"(mode={self.config.normalize_mode}, "
-                f"warmup={self.config.normalize_warmup_size})"
-            )
+        # Normalizador online: RunningNormalizer (z-score/Welford da VM), criado lazy no
+        # primeiro vetor de features (precisa da dimensao). Caminho que rodou o Exp A.
 
         # Estatisticas
         self.flows_processed = 0
@@ -446,7 +479,14 @@ class StreamingDetector:
                     value = 0.0
                 features.append(float(value))
 
-            return np.array(features, dtype=np.float64)
+            vec = np.array(features, dtype=np.float64)
+
+            if self.config.normalize_features:
+                if self._normalizer is None:
+                    self._normalizer = RunningNormalizer(dim=len(vec))
+                vec = self._normalizer.update_and_transform(vec)
+
+            return vec
 
         except Exception as e:
             logger.warning(f"Erro extraindo features: {e}")
@@ -558,10 +598,6 @@ class StreamingDetector:
     ) -> None:
         """Processa vetores agregados emitidos pelo WindowAggregator."""
         for feature_vector, metadata in vectors:
-            # Optional online normalization (window-aggregated vectors)
-            if self._normalizer is not None:
-                feature_vector = self._normalizer.update_and_transform(feature_vector)
-
             if self._algorithm == DetectorAlgorithm.TEDA:
                 result = self._detector.update(feature_vector)
             else:
@@ -606,10 +642,6 @@ class StreamingDetector:
         if features is None:
             return None
 
-        # Optional online normalization (returns raw during warmup)
-        if self._normalizer is not None:
-            features = self._normalizer.update_and_transform(features)
-
         # Aplica detector (TEDA ou MicroTEDAclus)
         if self._algorithm == DetectorAlgorithm.TEDA:
             result = self._detector.update(features)  # TEDADetector.update()
@@ -619,12 +651,35 @@ class StreamingDetector:
         self.flows_processed += 1
 
         # Coleta resultado para avaliação externa (ground truth aplicado pelo orquestrador)
-        self._detection_results.append({
+        # G3: estado de regime por fluxo (rho = variance/r0) para a série temporal de drift.
+        _rec = {
             "is_anomaly": result.is_anomaly,
             "first_packet_time": flow.get("first_packet_time", time.time()),
             "src_ip": flow.get("src_ip"),
             "dst_ip": flow.get("dst_ip"),
-        })
+            "flow_index": self.flows_processed,
+            "eccentricity": float(getattr(result, "eccentricity", 0.0) or 0.0),
+            "typicality": float(getattr(result, "typicality", 0.0) or 0.0),
+            "num_clusters": int(getattr(result, "num_clusters", 0) or 0),
+            "new_cluster_created": bool(getattr(result, "new_cluster_created", False)),
+        }
+        # rho por fluxo (so MicroTEDAclus tem micro_clusters/r0)
+        _det = self._detector
+        if hasattr(_det, "micro_clusters") and hasattr(_det, "r0") and _det.r0 > 0:
+            _vars = [mc.variance for mc in _det.micro_clusters]
+            if _vars:
+                _rhos = [v / _det.r0 for v in _vars]
+                _rec["rho_mean"] = float(np.mean(_rhos))
+                _rec["rho_median"] = float(np.median(_rhos))
+                _rec["rho_p90"] = float(np.percentile(_rhos, 90))
+                _rec["rho_max"] = float(np.max(_rhos))
+                _rec["rho_frac_above_1"] = float(np.mean([r > 1.0 for r in _rhos]))
+                _rec["n_singletons"] = int(sum(1 for mc in _det.micro_clusters if mc.n == 1))
+            else:
+                _rec["rho_mean"] = _rec["rho_median"] = _rec["rho_p90"] = 0.0
+                _rec["rho_max"] = _rec["rho_frac_above_1"] = 0.0
+                _rec["n_singletons"] = 0
+        self._detection_results.append(_rec)
 
         # Log verbose
         if self.config.verbose:

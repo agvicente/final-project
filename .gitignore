@@ -91,6 +91,7 @@ TIMELINE.md
 study-wiki/
 
 # Dirs de run crus do Exp A (240 runs): telemetria por-run fora do git (crus ficam na VM).
+# Versiona apenas matrix_summary.csv, matrix.log, _analysis/ e plots/.
 experiments/results/matrixA-drift/*_c*/
 experiments/results/matrixA-drift/**/detection_results.json
 experiments/results/matrixA-drift/**/run_meta.json
