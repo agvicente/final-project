@@ -91,6 +91,16 @@ class VariantMicroTEDAclus:
     def anomaly_count(self) -> int:
         return self._algo.anomaly_count
 
+    @property
+    def micro_clusters(self):
+        """Expoe os micro-clusters da variante (corrected.py) sob o MESMO nome que
+        MicroTEDAclus usa. Permite ao streaming_detector computar o sinal de regime
+        rho = variance / r0 por fluxo de forma identica nas duas linhagens (cada
+        CorrectedMicroCluster tem .variance e .n, como o micro_cluster original).
+        Sem isto, o re-run do Exp A nao gravaria rho_mean/rho_max/... e a Tabela 5
+        / H4 ficariam sem dados. Ver streaming_detector._process_flow (bloco rho)."""
+        return self._algo._clusters
+
     def reset(self) -> None:
         """Reseta o detector para estado inicial."""
         self._algo.reset()
