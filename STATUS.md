@@ -2,7 +2,36 @@
 <!-- STATUS.md é um snapshot. Substituir seções dinâmicas a cada sessão. -->
 <!-- Histórico em docs/progress/ (gerado automaticamente) -->
 
-**Atualizado:** 2026-06-29 | **Branch:** main (Mac/GitHub/VM TODOS sincronizados em `1c3e7de`) | **Prazo defesa:** ~ago/2026 | **Submit SoftCom:** feito
+**Atualizado:** 2026-07-01 | **Branch:** main (código) + repo Overleaf (dissertação) | **Prazo defesa:** ~ago/2026 | **Submit SoftCom:** feito
+
+---
+
+**Sessão 01/07 — P3: INTEGRAÇÃO DO RE-RUN NA DISSERTAÇÃO (§5.7 corrigida, gate duplo OK).**
+Recuperação de contexto após desligamento + fechamento do P3 (o re-run do Exp A, P2, já estava
+240/240 commitado; faltava levar os números corrigidos à §5.7, que ainda tinha os do detector com bug).
+- **Cross-validação dos números (VM voltou a ficar acessível):** rodei `plot_matrix.py` canônico nos
+  crus dos 2 braços (`/tmp/matrixA-v7corr|v7forget` na VM) — os 32 p-values Wilcoxon batem EXATO com
+  o recompute do `matrix_summary.csv` local. Counts de cluster extraídos dos crus: V7_corrected 14,9
+  (med 15); V7_forgetting 2,8 (med 3); bug ~204. Tabela de revisão em
+  `experiments/results/matrixA-drift-rerun-revisao.csv`.
+- **§5.7 reescrita (repo Overleaf):** Tabela `tab:res-drift` agora tem coluna "Variante" (V7 vs +poda),
+  16 linhas × 7 col — leads+sig do re-run (V7_corrected: **PH 7/8, ADWIN 7/8**; exceção única DoS-SYN
+  r0=0,10). Parágrafo novo "Efeito do esquecimento (poda)": poda material p/ topologia (14,9→2,8),
+  benéfica p/ ρ, **recupera** a 8ª célula (DoS-SYN r0=0,10 PH −9,4→+117,3) → **+poda dá PH 8/8**; e
+  eleva recall (~13→~48 anom). Figuras A-3/A-4 substituídas pelas do V7_corrected. chp4/síntese H4
+  alinhados. chp1/chp6 (só qualitativos) intactos.
+- **Gate duplo PASSOU:** build Docker OK (78 págs), inspect 0 fatais / 0 ref-cit undefined / 0 `??`
+  (único overfull >20pt é legenda pré-existente do Apêndice C). Leitura visual (pdftoppm): tabela cabe
+  na margem, célula recuperada em negrito, Figuras 10/11 nítidas, síntese coerente.
+- ⚠️ **NÃO-COMMITADO:** edições vivem no repo Overleaf separado (`writing/dissertation/...`, gitignored
+  no final-project), MODIFICADAS mas não commitadas. 2 CSVs untracked no final-project.
+
+**Próxima sessão (P4 — fechar e revisar):**
+1. Commitar a §5.7 no repo Overleaf (`git -C writing/dissertation/67c73... commit` + `push`) e os
+   CSVs/figuras .bug-ref no final-project.
+2. Enviar a §5.7 corrigida para revisão do orientador (mudança de números + veredito reforçado).
+3. Blocos `[EXPERIMENTO PENDENTE]` ainda abertos: normalização (Campaign-06), multi-semente baselines,
+   cenários drift D/E. (Opcional) regerar figuras A-3/A-4 com rótulos em PT (editar plot_matrix.py na VM).
 
 ---
 
